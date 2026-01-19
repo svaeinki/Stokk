@@ -1,7 +1,7 @@
 {
   "expo": {
-    "name": "napoli-mobile",
-    "slug": "napoli-mobile",
+    "name": "inventario-mobile",
+    "slug": "inventario-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -13,14 +13,15 @@
       "backgroundColor": "#ffffff"
     },
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "bundleIdentifier": "com.svaeinki.inventariomobile"
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.svaeinki.napolimobile"
+      "package": "com.svaeinki.inventariomobile"
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -29,6 +30,9 @@
       "eas": {
         "projectId": "9cd45186-c7c9-437b-a35d-812a26f71c29"
       }
-    }
+    },
+    "plugins": [
+      "expo-router"
+    ]
   }
 }

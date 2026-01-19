@@ -1,73 +1,8 @@
+import { Articulo } from '../database/DatabaseManager';
+
 // ============================================
 // VALIDACIÓN DE RUT CHILENO
 // ============================================
-
-export const validarRUT = (rut: string): boolean => {
-  // Limpiar RUT: quitar puntos y guión
-  rut = rut.replace(/\./g, '').replace(/-/g, '');
-  
-  if (rut.length < 2) return false;
-  
-  const cuerpo = rut.slice(0, -1);
-  const dv = rut.slice(-1).toUpperCase();
-  
-  // Validar que el cuerpo sea numérico
-  if (!/^\d+$/.test(cuerpo)) return false;
-  
-  // Calcular dígito verificador
-  let suma = 0;
-  let multiplicador = 2;
-  
-  for (let i = cuerpo.length - 1; i >= 0; i--) {
-    suma += parseInt(cuerpo[i]) * multiplicador;
-    multiplicador = multiplicador === 7 ? 2 : multiplicador + 1;
-  }
-  
-  const dvEsperado = 11 - (suma % 11);
-  let dvCalculado: string;
-  
-  if (dvEsperado === 11) dvCalculado = '0';
-  else if (dvEsperado === 10) dvCalculado = 'K';
-  else dvCalculado = dvEsperado.toString();
-  
-  return dv === dvCalculado;
-};
-
-export const formatearRUT = (rut: string): string => {
-  // Limpiar RUT: dejar solo números y K/k
-  rut = rut.replace(/[^\dKk]/g, '').toUpperCase();
-  
-  if (rut.length < 2) return rut;
-  
-  const cuerpo = rut.slice(0, -1);
-  const dv = rut.slice(-1);
-  
-  // Agregar puntos cada 3 dígitos
-  let rutFormateado = '';
-  let contador = 0;
-  
-  for (let i = cuerpo.length - 1; i >= 0; i--) {
-    rutFormateado = cuerpo[i] + rutFormateado;
-    contador++;
-    if (contador === 3 && i !== 0) {
-      rutFormateado = '.' + rutFormateado;
-      contador = 0;
-    }
-  }
-  
-  return rutFormateado + '-' + dv;
-};
-
-export const validarRUTEnTiempoReal = (rut: string): { isValid: boolean; formattedRUT: string } => {
-  if (!rut || rut.length === 0) {
-    return { isValid: false, formattedRUT: '' };
-  }
-  
-  const isValid = validarRUT(rut);
-  const formattedRUT = isValid ? formatearRUT(rut) : rut;
-  
-  return { isValid, formattedRUT };
-};
 
 // ============================================
 // UTILIDADES DE FORMATO
@@ -131,15 +66,6 @@ export const obtenerClaseAlerta = (fechaIngreso: string): string => {
   }
 };
 
-export const escaparHtml = (texto: string): string => {
-  if (!texto) return '';
-  return texto
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;")
-    .replace(/"/g, "&quot;")
-    .replace(/'/g, "&#039;");
-};
 
 // ============================================
 // GENERACIÓN DE NÚMERO DE BODEGA
@@ -155,29 +81,27 @@ export const generarNumeroBodega = (): string => {
 // VALIDACIÓN DE FORMULARIOS
 // ============================================
 
-export const validarFormularioArticulo = (articulo: any): { isValid: boolean; errors: string[] } => {
+export const validarFormularioArticulo = (articulo: Partial<Articulo>): { isValid: boolean; errors: string[] } => {
   const errors: string[] = [];
 
-  if (!articulo.rut || articulo.rut.trim() === '') {
-    errors.push('El RUT es obligatorio');
-  } else if (!validarRUT(articulo.rut)) {
-    errors.push('El RUT no es válido');
+  if (!articulo.nombre || articulo.nombre.trim() === '') {
+    errors.push('El nombre del producto es obligatorio');
   }
 
-  if (!articulo.nombreCliente || articulo.nombreCliente.trim() === '') {
-    errors.push('El nombre del cliente es obligatorio');
+  if (articulo.precio === undefined || articulo.precio < 0) {
+    errors.push('El precio debe ser mayor o igual a 0');
   }
 
-  if (!articulo.tipoArticulo || articulo.tipoArticulo.trim() === '') {
-    errors.push('El tipo de artículo es obligatorio');
-  }
-
-  if (!articulo.descripcion || articulo.descripcion.trim() === '') {
-    errors.push('La descripción es obligatoria');
+  if (articulo.cantidad === undefined || articulo.cantidad < 0) {
+    errors.push('La cantidad debe ser mayor o igual a 0');
   }
 
   if (!articulo.numeroBodega || articulo.numeroBodega.trim() === '') {
     errors.push('El número de bodega es obligatorio');
+  }
+
+  if (!articulo.fechaIngreso) {
+    errors.push('La fecha de ingreso es obligatoria');
   }
 
   return {

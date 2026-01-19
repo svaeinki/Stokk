@@ -5,24 +5,23 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
-  TextInput as RNTextInput
+  Image,
+  TouchableOpacity
 } from 'react-native';
 import {
   Card,
   Button,
   TextInput,
-  Switch,
   HelperText,
   Divider
 } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
+import * as ImagePicker from 'expo-image-picker';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import { RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
 import {
-  validarRUTEnTiempoReal,
-  formatearMoneda,
   generarNumeroBodega,
   validarFormularioArticulo
 } from '../utils/Validation';
@@ -37,31 +36,25 @@ type ArticuloFormNavigationProp = StackNavigationProp<{ ArticuloForm: RouteParam
 const ArticuloForm: React.FC = () => {
   const route = useRoute<ArticuloFormRouteProp>();
   const navigation = useNavigation<ArticuloFormNavigationProp>();
-
-  // CRITICAL FIX: Safely access params - may be undefined when navigated from tab
   const articulo = route.params?.articulo;
 
   const [formData, setFormData] = useState<Partial<Articulo>>({
-    rut: '',
-    nombreCliente: '',
-    telefono: '',
-    tipoArticulo: '',
+    nombre: '',
     descripcion: '',
+    precio: 0,
+    cantidad: 1,
+    imagen: '',
     numeroBodega: '',
     observaciones: '',
-    estado: 'En Bodega',
     fechaIngreso: new Date().toLocaleDateString('es-CL'),
-    fechaEntrega: ''
   });
 
   const [errors, setErrors] = useState<string[]>([]);
-  const [rutValid, setRutValid] = useState(false);
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (articulo) {
       setFormData(articulo);
-      setRutValid(validarRUTEnTiempoReal(articulo.rut).isValid);
     } else {
       setFormData(prev => ({
         ...prev,
@@ -70,10 +63,52 @@ const ArticuloForm: React.FC = () => {
     }
   }, [articulo]);
 
-  const handleRUTChange = (rut: string) => {
-    const { isValid, formattedRUT } = validarRUTEnTiempoReal(rut);
-    setFormData(prev => ({ ...prev, rut: formattedRUT }));
-    setRutValid(isValid);
+  const pickImage = async () => {
+    // Solicitar permisos
+    const { status } = await ImagePicker.requestCameraPermissionsAsync();
+
+    if (status !== 'granted') {
+      Alert.alert('Permiso denegado', 'Necesitamos permiso para usar la cámara');
+      return;
+    }
+
+    Alert.alert(
+      'Seleccionar Imagen',
+      '¿Qué deseas hacer?',
+      [
+        {
+          text: 'Tomar Foto',
+          onPress: async () => {
+            const result = await ImagePicker.launchCameraAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.5,
+            });
+
+            if (!result.canceled) {
+              setFormData(prev => ({ ...prev, imagen: result.assets[0].uri }));
+            }
+          }
+        },
+        {
+          text: 'Galería',
+          onPress: async () => {
+            const result = await ImagePicker.launchImageLibraryAsync({
+              mediaTypes: ImagePicker.MediaTypeOptions.Images,
+              allowsEditing: true,
+              aspect: [4, 3],
+              quality: 0.5,
+            });
+
+            if (!result.canceled) {
+              setFormData(prev => ({ ...prev, imagen: result.assets[0].uri }));
+            }
+          }
+        },
+        { text: 'Cancelar', style: 'cancel' }
+      ]
+    );
   };
 
   const handleSave = async () => {
@@ -91,17 +126,19 @@ const ArticuloForm: React.FC = () => {
       if (articulo?.id) {
         // Editar artículo existente
         await DatabaseManager.actualizarArticulo(articulo.id, formData);
-        Alert.alert('Éxito', 'Artículo actualizado correctamente');
+        Alert.alert('Éxito', 'Producto actualizado correctamente', [
+          { text: 'OK', onPress: () => navigation.navigate('Inventario' as never) }
+        ]);
       } else {
         // Crear nuevo artículo
         await DatabaseManager.insertarArticulo(formData as Omit<Articulo, 'id'>);
-        Alert.alert('Éxito', 'Artículo creado correctamente');
+        Alert.alert('Éxito', 'Producto creado correctamente', [
+          { text: 'OK', onPress: () => navigation.navigate('Inventario' as never) }
+        ]);
       }
-
-      navigation.goBack();
     } catch (error) {
-      console.error('Error al guardar artículo:', error);
-      Alert.alert('Error', 'No se pudo guardar el artículo');
+      console.error('Error al guardar:', error);
+      Alert.alert('Error', 'No se pudo guardar el producto');
     } finally {
       setLoading(false);
     }
@@ -130,74 +167,75 @@ const ArticuloForm: React.FC = () => {
       <Card style={styles.card}>
         <Card.Content>
           <Text style={styles.title}>
-            {articulo ? 'Editar Artículo' : 'Nuevo Artículo'}
+            {articulo ? 'Editar Producto' : 'Nuevo Producto'}
           </Text>
 
-          {/* Información del Cliente */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>👤 Información del Cliente</Text>
-
-            {renderField(
-              'RUT *',
-              formData.rut || '',
-              handleRUTChange,
-              {
-                placeholder: '12.345.678-9',
-                keyboardType: 'default',
-                error: formData.rut ? !rutValid : false,
-                right: (
-                  <TextInput.Icon
-                    icon={rutValid ? 'check-circle' : 'close-circle'}
-                    color={rutValid ? '#4CAF50' : '#f44336'}
-                  />
-                )
-              }
-            )}
-            <HelperText type="error" visible={formData.rut ? !rutValid : false}>
-              RUT inválido
-            </HelperText>
-
-            {renderField(
-              'Nombre Completo *',
-              formData.nombreCliente || '',
-              (text) => setFormData(prev => ({ ...prev, nombreCliente: text })),
-              {
-                placeholder: 'Juan Pérez'
-              }
-            )}
-
-            {renderField(
-              'Teléfono',
-              formData.telefono || '',
-              (text) => setFormData(prev => ({ ...prev, telefono: text })),
-              {
-                placeholder: '+56 9 1234 5678',
-                keyboardType: 'phone-pad'
-              }
+          {/* Imagen del Producto */}
+          <View style={styles.imageSection}>
+            <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
+              {formData.imagen ? (
+                <Image source={{ uri: formData.imagen }} style={styles.image} />
+              ) : (
+                <View style={styles.placeholderImage}>
+                  <Icon name="add-a-photo" size={40} color="#666" />
+                  <Text style={styles.placeholderText}>Agregar Foto</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+            {formData.imagen && (
+              <Button mode="text" onPress={() => setFormData(prev => ({ ...prev, imagen: '' }))}>
+                Eliminar Foto
+              </Button>
             )}
           </View>
 
           <Divider style={styles.divider} />
 
-          {/* Información del Artículo */}
+          {/* Información del Producto */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>👞 Información del Artículo</Text>
+            <Text style={styles.sectionTitle}>📦 Datos del Producto</Text>
 
             {renderField(
-              'Tipo de Artículo *',
-              formData.tipoArticulo || '',
-              (text) => setFormData(prev => ({ ...prev, tipoArticulo: text })),
+              'Nombre del Producto *',
+              formData.nombre || '',
+              (text) => setFormData(prev => ({ ...prev, nombre: text })),
               {
-                placeholder: 'Zapatos, Botas, Sandalias, etc.'
+                placeholder: 'Ej: Zapatillas Nike Air'
               }
             )}
 
+            <View style={styles.row}>
+              <View style={{ flex: 1, marginRight: 8 }}>
+                {renderField(
+                  'Precio *',
+                  formData.precio?.toString() || '',
+                  (text) => setFormData(prev => ({ ...prev, precio: parseInt(text) || 0 })),
+                  {
+                    placeholder: '0',
+                    keyboardType: 'numeric',
+                    left: <TextInput.Affix text="$" />
+                  }
+                )}
+              </View>
+              <View style={{ flex: 1, marginLeft: 8 }}>
+                {renderField(
+                  'Cantidad *',
+                  formData.cantidad?.toString() || '',
+                  (text) => setFormData(prev => ({ ...prev, cantidad: parseInt(text) || 0 })),
+                  {
+                    placeholder: '1',
+                    keyboardType: 'numeric'
+                  }
+                )}
+              </View>
+            </View>
+
             {renderField(
-              'Descripción *',
+              'Descripción',
               formData.descripcion || '',
               (text) => setFormData(prev => ({ ...prev, descripcion: text })),
               {
-                placeholder: 'Descripción detallada del artículo y reparación',
+                placeholder: 'Detalles del producto...',
                 multiline: true,
                 numberOfLines: 3,
                 style: [styles.input, styles.textArea]
@@ -205,12 +243,12 @@ const ArticuloForm: React.FC = () => {
             )}
 
             {renderField(
-              'Número de Bodega *',
+              'Ubicación / Código *',
               formData.numeroBodega || '',
               (text) => setFormData(prev => ({ ...prev, numeroBodega: text })),
               {
                 placeholder: 'B123456789',
-                disabled: !!articulo, // No permitir editar si es existente
+                disabled: !!articulo,
                 right: (
                   <TextInput.Icon
                     icon="refresh"
@@ -226,65 +264,18 @@ const ArticuloForm: React.FC = () => {
 
           <Divider style={styles.divider} />
 
-          {/* Estado y Fechas */}
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📅 Estado y Fechas</Text>
-
-            <View style={styles.switchContainer}>
-              <Text style={styles.switchLabel}>Estado:</Text>
-              <View style={styles.switchRow}>
-                <Text style={styles.switchValue}>
-                  {formData.estado === 'En Bodega' ? '📦 En Bodega' : '✅ Entregado'}
-                </Text>
-                <Switch
-                  value={formData.estado === 'Entregado'}
-                  onValueChange={(value) =>
-                    setFormData(prev => ({
-                      ...prev,
-                      estado: value ? 'Entregado' : 'En Bodega',
-                      fechaEntrega: value ? new Date().toLocaleDateString('es-CL') : ''
-                    }))
-                  }
-                />
-              </View>
-            </View>
-
-            {renderField(
-              'Fecha de Ingreso',
-              formData.fechaIngreso || '',
-              (text) => setFormData(prev => ({ ...prev, fechaIngreso: text })),
-              {
-                disabled: true,
-                placeholder: 'dd/mm/yyyy'
-              }
-            )}
-
-            {formData.estado === 'Entregado' && renderField(
-              'Fecha de Entrega',
-              formData.fechaEntrega || '',
-              (text) => setFormData(prev => ({ ...prev, fechaEntrega: text })),
-              {
-                placeholder: 'dd/mm/yyyy',
-                disabled: true
-              }
-            )}
-          </View>
-
-          <Divider style={styles.divider} />
-
           {/* Observaciones */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📝 Observaciones</Text>
+            <Text style={styles.sectionTitle}>📝 Notas Adicionales</Text>
 
             {renderField(
               'Observaciones',
               formData.observaciones || '',
               (text) => setFormData(prev => ({ ...prev, observaciones: text })),
               {
-                placeholder: 'Notas adicionales sobre el artículo o reparación',
+                placeholder: 'Notas internas...',
                 multiline: true,
-                numberOfLines: 3,
-                style: [styles.input, styles.textArea]
+                numberOfLines: 2,
               }
             )}
           </View>
@@ -295,7 +286,7 @@ const ArticuloForm: React.FC = () => {
       <View style={styles.buttonContainer}>
         <Button
           mode="outlined"
-          onPress={() => navigation.goBack()}
+          onPress={() => navigation.navigate('Inventario' as never)}
           style={styles.cancelButton}
           disabled={loading}
         >
@@ -344,6 +335,9 @@ const styles = StyleSheet.create({
   fieldContainer: {
     marginBottom: 12,
   },
+  row: {
+    flexDirection: 'row',
+  },
   label: {
     fontSize: 14,
     fontWeight: '500',
@@ -361,28 +355,37 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     backgroundColor: '#ddd',
   },
-  switchContainer: {
-    marginBottom: 16,
+  imageSection: {
+    alignItems: 'center',
+    marginBottom: 20,
   },
-  switchLabel: {
-    fontSize: 16,
-    fontWeight: '500',
-    color: '#333',
-    marginBottom: 8,
+  imageContainer: {
+    width: 200,
+    height: 200,
+    borderRadius: 8,
+    backgroundColor: '#eee',
+    justifyContent: 'center',
+    alignItems: 'center',
+    overflow: 'hidden',
+    borderWidth: 1,
+    borderColor: '#ddd',
   },
-  switchRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  placeholderImage: {
     alignItems: 'center',
   },
-  switchValue: {
-    fontSize: 16,
+  placeholderText: {
+    marginTop: 8,
     color: '#666',
   },
   buttonContainer: {
     flexDirection: 'row',
     padding: 16,
     gap: 12,
+    marginBottom: 32,
   },
   cancelButton: {
     flex: 1,

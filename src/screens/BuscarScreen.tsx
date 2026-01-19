@@ -29,10 +29,10 @@ const BuscarScreen: React.FC = () => {
       <View style={styles.header}>
         <Text style={styles.title}>🔍 Buscar Artículos</Text>
         <Text style={styles.subtitle}>
-          Busca por RUT, nombre del cliente o número de bodega
+          Busca por nombre o número de bodega
         </Text>
       </View>
-      
+
       <Searchbar
         placeholder="Buscar artículos..."
         onChangeText={setSearchQuery}

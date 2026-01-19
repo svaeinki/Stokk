@@ -22,7 +22,6 @@ export default function App() {
     const initDatabase = async () => {
       try {
         await DatabaseManager.initDatabase();
-        console.log('✅ Base de datos inicializada correctamente');
       } catch (error) {
         console.error('❌ Error al inicializar base de datos:', error);
       } finally {

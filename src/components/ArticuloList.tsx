@@ -7,13 +7,13 @@ import {
   StyleSheet,
   Alert,
   RefreshControl,
-  TextInput,
+  Image,
   ActivityIndicator
 } from 'react-native';
 import { Card, Button, Searchbar, Chip, FAB } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
-import { calcularDiasEnBodega, obtenerClaseAlerta, formatearMoneda } from '../utils/Validation';
+import { formatearMoneda, generarNumeroBodega } from '../utils/Validation';
 
 interface ArticuloListProps {
   onEdit: (articulo: Articulo) => void;
@@ -25,7 +25,6 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [filter, setFilter] = useState<'todos' | 'enBodega' | 'entregados'>('todos');
 
   useEffect(() => {
     cargarArticulos();
@@ -38,7 +37,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
       setArticulos(data);
     } catch (error) {
       console.error('Error al cargar artículos:', error);
-      Alert.alert('Error', 'No se pudieron cargar los artículos');
+      Alert.alert('Error', 'No se pudieron cargar los productos');
     } finally {
       setLoading(false);
     }
@@ -59,7 +58,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
         const resultados = await DatabaseManager.buscarArticulos(query);
         setArticulos(resultados);
       } catch (error) {
-        console.error('Error al buscar artículos:', error);
+        console.error('Error al buscar:', error);
       }
     }
   };
@@ -67,7 +66,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
   const eliminarArticulo = async (id: number) => {
     Alert.alert(
       'Confirmar eliminación',
-      '¿Estás seguro de que deseas eliminar este artículo?',
+      '¿Estás seguro de que deseas eliminar este producto?',
       [
         { text: 'Cancelar', style: 'cancel' },
         {
@@ -78,8 +77,8 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
               await DatabaseManager.eliminarArticulo(id);
               await cargarArticulos();
             } catch (error) {
-              console.error('Error al eliminar artículo:', error);
-              Alert.alert('Error', 'No se pudo eliminar el artículo');
+              console.error('Error al eliminar:', error);
+              Alert.alert('Error', 'No se pudo eliminar el producto');
             }
           }
         }
@@ -87,76 +86,39 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
     );
   };
 
-  const cambiarEstado = async (articulo: Articulo) => {
-    const nuevoEstado = articulo.estado === 'En Bodega' ? 'Entregado' : 'En Bodega';
-    try {
-      await DatabaseManager.actualizarArticulo(articulo.id!, { estado: nuevoEstado });
-      await cargarArticulos();
-    } catch (error) {
-      console.error('Error al cambiar estado:', error);
-      Alert.alert('Error', 'No se pudo cambiar el estado');
-    }
-  };
-
-  const getFilteredArticulos = () => {
-    switch (filter) {
-      case 'enBodega':
-        return articulos.filter(a => a.estado === 'En Bodega');
-      case 'entregados':
-        return articulos.filter(a => a.estado === 'Entregado');
-      default:
-        return articulos;
-    }
-  };
-
-  const getAlertaColor = (fechaIngreso: string) => {
-    const clase = obtenerClaseAlerta(fechaIngreso);
-    switch (clase) {
-      case 'alerta-critica':
-        return '#f44336';
-      case 'alerta-warning':
-        return '#ff9800';
-      default:
-        return '#4caf50';
-    }
-  };
-
   const renderArticulo = ({ item }: { item: Articulo }) => (
     <Card style={styles.card}>
       <Card.Content>
         <View style={styles.header}>
-          <View style={styles.titleContainer}>
-            <Text style={styles.numeroBodega}>{item.numeroBodega}</Text>
-            <Chip
-              style={[
-                styles.estadoChip,
-                { backgroundColor: item.estado === 'En Bodega' ? '#4caf50' : '#9e9e9e' }
-              ]}
-              textStyle={{ color: 'white' }}
-            >
-              {item.estado}
-            </Chip>
+          <Text style={styles.numeroBodega}>{item.numeroBodega}</Text>
+          <Text style={styles.fechaIngreso}>{item.fechaIngreso}</Text>
+        </View>
+
+        <View style={styles.contentRow}>
+          {item.imagen ? (
+            <Image source={{ uri: item.imagen }} style={styles.thumbnail} />
+          ) : (
+            <View style={styles.placeholderThumbnail}>
+              <Icon name="image-not-supported" size={40} color="#ccc" />
+            </View>
+          )}
+
+          <View style={styles.infoContainer}>
+            <Text style={styles.nombreProducto}>{item.nombre}</Text>
+            <Text style={styles.descripcion} numberOfLines={2}>
+              {item.descripcion}
+            </Text>
+
+            <View style={styles.priceRow}>
+              <Text style={styles.precio}>
+                {formatearMoneda(item.precio)}
+              </Text>
+              <Chip icon="archive" style={styles.cantidadChip}>
+                Stock: {item.cantidad}
+              </Chip>
+            </View>
           </View>
-          <View style={[styles.alertaIndicator, { backgroundColor: getAlertaColor(item.fechaIngreso) }]} />
         </View>
-
-        <Text style={styles.cliente}>{item.nombreCliente}</Text>
-        <Text style={styles.rut}>{item.rut}</Text>
-        <Text style={styles.tipo}>{item.tipoArticulo}</Text>
-        <Text style={styles.descripcion}>{item.descripcion}</Text>
-
-        <View style={styles.footer}>
-          <Text style={styles.fecha}>
-            {calcularDiasEnBodega(item.fechaIngreso)}
-          </Text>
-          <Text style={styles.fechaIngreso}>
-            {item.fechaIngreso}
-          </Text>
-        </View>
-
-        {item.telefono && (
-          <Text style={styles.telefono}>📞 {item.telefono}</Text>
-        )}
 
         {item.observaciones && (
           <Text style={styles.observaciones}>📝 {item.observaciones}</Text>
@@ -164,39 +126,29 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
       </Card.Content>
 
       <Card.Actions style={styles.actions}>
-        <TouchableOpacity
-          style={[styles.actionButton, styles.editButton]}
+        <Button
+          mode="text"
           onPress={() => onEdit(item)}
+          textColor="#2196F3"
         >
-          <Icon name="edit" size={20} color="#fff" />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, styles.stateButton]}
-          onPress={() => cambiarEstado(item)}
-        >
-          <Icon
-            name={item.estado === 'En Bodega' ? 'check-circle' : 'undo'}
-            size={20}
-            color="#fff"
-          />
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[styles.actionButton, styles.deleteButton]}
+          Editar
+        </Button>
+        <Button
+          mode="text"
           onPress={() => eliminarArticulo(item.id!)}
+          textColor="#f44336"
         >
-          <Icon name="delete" size={20} color="#fff" />
-        </TouchableOpacity>
+          Eliminar
+        </Button>
       </Card.Actions>
     </Card>
   );
 
-  if (loading) {
+  if (loading && !refreshing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color="#D32F2F" />
-        <Text style={styles.loadingText}>Cargando artículos...</Text>
+        <Text style={styles.loadingText}>Cargando inventario...</Text>
       </View>
     );
   }
@@ -204,38 +156,14 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
   return (
     <View style={styles.container}>
       <Searchbar
-        placeholder="Buscar por RUT, nombre o número de bodega"
+        placeholder="Buscar por nombre o código..."
         onChangeText={buscarArticulos}
         value={searchQuery}
         style={styles.searchbar}
       />
 
-      <View style={styles.filters}>
-        <Chip
-          selected={filter === 'todos'}
-          onPress={() => setFilter('todos')}
-          style={styles.filterChip}
-        >
-          Todos ({articulos.length})
-        </Chip>
-        <Chip
-          selected={filter === 'enBodega'}
-          onPress={() => setFilter('enBodega')}
-          style={styles.filterChip}
-        >
-          En Bodega ({articulos.filter(a => a.estado === 'En Bodega').length})
-        </Chip>
-        <Chip
-          selected={filter === 'entregados'}
-          onPress={() => setFilter('entregados')}
-          style={styles.filterChip}
-        >
-          Entregados ({articulos.filter(a => a.estado === 'Entregado').length})
-        </Chip>
-      </View>
-
       <FlatList
-        data={getFilteredArticulos()}
+        data={articulos}
         renderItem={renderArticulo}
         keyExtractor={(item) => item.id?.toString() || ''}
         refreshControl={
@@ -245,9 +173,9 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
         ListEmptyComponent={
           <View style={styles.emptyContainer}>
             <Icon name="inventory" size={64} color="#ccc" />
-            <Text style={styles.emptyText}>No hay artículos</Text>
+            <Text style={styles.emptyText}>Inventario vacío</Text>
             <Text style={styles.emptySubtext}>
-              {searchQuery ? 'No se encontraron resultados' : 'Agrega tu primer artículo'}
+              {searchQuery ? 'No se encontraron resultados' : '¡Comienza agregando productos!'}
             </Text>
           </View>
         }
@@ -257,7 +185,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({ onEdit, onAdd }) => {
         style={styles.fab}
         icon="plus"
         onPress={onAdd}
-        label="Agregar Artículo"
+        label="Nuevo Producto"
       />
     </View>
   );
@@ -283,115 +211,91 @@ const styles = StyleSheet.create({
     margin: 16,
     marginBottom: 8,
   },
-  filters: {
-    flexDirection: 'row',
-    paddingHorizontal: 16,
-    paddingBottom: 8,
-    gap: 8,
-  },
-  filterChip: {
-    flex: 1,
-  },
   list: {
     padding: 16,
     paddingTop: 0,
+    paddingBottom: 80,
   },
   card: {
     marginBottom: 16,
-    elevation: 4,
+    elevation: 3,
+    backgroundColor: '#fff',
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 8,
-  },
-  titleContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    flex: 1,
+    marginBottom: 12,
   },
   numeroBodega: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    color: '#D32F2F',
-  },
-  estadoChip: {
-    height: 24,
-  },
-  alertaIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-  },
-  cliente: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#333',
-    marginBottom: 4,
-  },
-  rut: {
-    fontSize: 14,
-    color: '#666',
-    marginBottom: 8,
-  },
-  tipo: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#D32F2F',
-    marginBottom: 4,
-  },
-  descripcion: {
-    fontSize: 14,
-    color: '#333',
-    marginBottom: 8,
-  },
-  footer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  fecha: {
     fontSize: 12,
     color: '#666',
-    fontStyle: 'italic',
+    fontWeight: 'bold',
+    backgroundColor: '#eee',
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 4,
   },
   fechaIngreso: {
     fontSize: 12,
     color: '#999',
   },
-  telefono: {
-    fontSize: 12,
-    color: '#2196F3',
+  contentRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  thumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: '#eee',
+  },
+  placeholderThumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 8,
+    backgroundColor: '#f0f0f0',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  infoContainer: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  nombreProducto: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#333',
+    marginBottom: 4,
+  },
+  descripcion: {
+    fontSize: 14,
+    color: '#666',
+    marginBottom: 8,
+  },
+  priceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     marginTop: 4,
+  },
+  precio: {
+    fontSize: 18,
+    fontWeight: 'bold',
+    color: '#D32F2F',
+  },
+  cantidadChip: {
+    height: 28,
   },
   observaciones: {
     fontSize: 12,
     color: '#666',
-    marginTop: 4,
+    marginTop: 12,
     fontStyle: 'italic',
   },
   actions: {
     justifyContent: 'flex-end',
-    gap: 8,
-  },
-  actionButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  editButton: {
-    backgroundColor: '#2196F3',
-  },
-  stateButton: {
-    backgroundColor: '#4CAF50',
-  },
-  deleteButton: {
-    backgroundColor: '#f44336',
+    borderTopWidth: 1,
+    borderTopColor: '#f0f0f0',
   },
   fab: {
     position: 'absolute',
