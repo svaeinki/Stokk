@@ -1,18 +1,52 @@
 import React from 'react';
-import { View, StyleSheet, ScrollView, Text } from 'react-native';
+import { View, StyleSheet, ScrollView, Text, Alert } from 'react-native';
 import { Card, Button, Switch } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 
+import { useTheme } from '../context/ThemeContext';
+import DatabaseManager from '../database/DatabaseManager';
+
 const ConfigScreen: React.FC<any> = (props) => {
-  const [darkMode, setDarkMode] = React.useState(false);
+  const { isDark, toggleTheme, theme } = useTheme();
   const [notifications, setNotifications] = React.useState(true);
   const [autoBackup, setAutoBackup] = React.useState(false);
 
+  const handleReset = () => {
+    Alert.alert(
+      '¿Estás seguro?',
+      'Esta acción eliminará TODOS los productos y NO se puede deshacer.',
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        {
+          text: 'Sí, Eliminar Todo',
+          style: 'destructive',
+          onPress: () => {
+            Alert.alert(
+              'Confirmación Final',
+              '¿Realmente quieres borrar todo tu inventario?',
+              [
+                { text: 'Cancelar', style: 'cancel' },
+                {
+                  text: 'BORRAR TODO',
+                  style: 'destructive',
+                  onPress: async () => {
+                    await DatabaseManager.resetDatabase();
+                    Alert.alert('Éxito', 'Base de datos reiniciada.');
+                  }
+                }
+              ]
+            )
+          }
+        }
+      ]
+    );
+  };
+
   return (
-    <ScrollView style={styles.container}>
-      <Card style={styles.card}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
-          <Text style={styles.title}>⚙️ Configuración</Text>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>⚙️ Configuración</Text>
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>💎 Suscripción</Text>
@@ -31,12 +65,12 @@ const ConfigScreen: React.FC<any> = (props) => {
             <Text style={styles.sectionTitle}>🎨 Apariencia</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>Tema Oscuro</Text>
-                <Text style={styles.switchDescription}>Activar tema oscuro para la aplicación</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Tema Oscuro</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Activar tema oscuro para la aplicación</Text>
               </View>
               <Switch
-                value={darkMode}
-                onValueChange={setDarkMode}
+                value={isDark}
+                onValueChange={toggleTheme}
               />
             </View>
           </View>
@@ -108,11 +142,11 @@ const ConfigScreen: React.FC<any> = (props) => {
       <View style={styles.buttonContainer}>
         <Button
           mode="contained"
-          onPress={() => console.log('Limpiar caché')}
+          onPress={handleReset}
           style={styles.dangerButton}
-          buttonColor="#f44336"
+          buttonColor={theme.colors.error}
         >
-          Limpiar Caché
+          Borrar Todo (Reset)
         </Button>
       </View>
     </ScrollView>
@@ -145,7 +179,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   switchContainer: {
-    backgroundColor: '#fff',
     padding: 16,
     marginBottom: 8,
     borderRadius: 8,
@@ -160,12 +193,10 @@ const styles = StyleSheet.create({
   switchTitle: {
     fontSize: 16,
     fontWeight: '500',
-    color: '#333',
     marginBottom: 4,
   },
   switchDescription: {
     fontSize: 14,
-    color: '#666',
   },
   buttonContainer: {
     padding: 16,

@@ -14,20 +14,27 @@ import BuscarScreen from './src/screens/BuscarScreen';
 import IngresarScreen from './src/screens/IngresarScreen';
 import ConfigScreen from './src/screens/ConfigScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
+import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 
 const Tab = createBottomTabNavigator();
 const Stack = createNativeStackNavigator();
 
 function MainTabs() {
+  const { theme } = useTheme();
+
   return (
     <Tab.Navigator
       screenOptions={{
-        tabBarActiveTintColor: '#D32F2F',
-        tabBarInactiveTintColor: '#666',
+        tabBarActiveTintColor: theme.colors.primary,
+        tabBarInactiveTintColor: theme.colors.onSurfaceDisabled,
         headerStyle: {
-          backgroundColor: '#D32F2F',
+          backgroundColor: theme.colors.primary,
         },
-        headerTintColor: '#fff',
+        headerTintColor: theme.colors.onPrimary,
+        tabBarStyle: {
+          backgroundColor: theme.colors.surface,
+          borderTopColor: theme.colors.outline,
+        }
       }}
     >
       <Tab.Screen
@@ -75,7 +82,16 @@ function MainTabs() {
 }
 
 export default function App() {
+  return (
+    <ThemeProvider>
+      <AppContent />
+    </ThemeProvider>
+  );
+}
+
+function AppContent() {
   const [isReady, setIsReady] = useState(false);
+  const { theme, navigationTheme } = useTheme();
 
   useEffect(() => {
     const initDatabase = async () => {
@@ -93,16 +109,16 @@ export default function App() {
 
   if (!isReady) {
     return (
-      <View style={[styles.container, styles.centered]}>
-        <ActivityIndicator size="large" color="#D32F2F" />
-        <Text style={styles.loadingText}>Cargando...</Text>
+      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+        <ActivityIndicator size="large" color={theme.colors.primary} />
+        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>Cargando...</Text>
       </View>
     );
   }
 
   return (
-    <PaperProvider>
-      <NavigationContainer>
+    <PaperProvider theme={theme}>
+      <NavigationContainer theme={navigationTheme}>
         <Stack.Navigator>
           <Stack.Screen
             name="MainTabs"
@@ -119,7 +135,7 @@ export default function App() {
           />
         </Stack.Navigator>
       </NavigationContainer>
-      <StatusBar style="light" backgroundColor="#D32F2F" />
+      <StatusBar style="light" backgroundColor={theme.colors.primary} />
     </PaperProvider>
   );
 }
@@ -127,7 +143,6 @@ export default function App() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   centered: {
     justifyContent: 'center',
@@ -136,6 +151,5 @@ const styles = StyleSheet.create({
   loadingText: {
     marginTop: 16,
     fontSize: 16,
-    color: '#666',
   },
 });

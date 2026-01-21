@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   Alert,
@@ -12,13 +11,12 @@ import {
   Card,
   Button,
   TextInput,
-  HelperText,
+  Text,
   Divider
 } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
-import { useRoute, useNavigation } from '@react-navigation/native';
-import { RouteProp } from '@react-navigation/native';
+import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
 import { StackNavigationProp } from '@react-navigation/stack';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
 import {
@@ -26,6 +24,7 @@ import {
   validarFormularioArticulo
 } from '../utils/Validation';
 import SubscriptionService from '../services/SubscriptionService';
+import { useTheme } from '../context/ThemeContext';
 
 interface RouteParams {
   articulo?: Articulo;
@@ -38,6 +37,7 @@ const ArticuloForm: React.FC = () => {
   const route = useRoute<ArticuloFormRouteProp>();
   const navigation = useNavigation<ArticuloFormNavigationProp>();
   const articulo = route.params?.articulo;
+  const { theme } = useTheme();
 
   const [formData, setFormData] = useState<Partial<Articulo>>({
     nombre: '',
@@ -88,7 +88,6 @@ const ArticuloForm: React.FC = () => {
   };
 
   const pickImage = async () => {
-    // Solicitar permisos
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
@@ -148,13 +147,11 @@ const ArticuloForm: React.FC = () => {
       setLoading(true);
 
       if (articulo?.id) {
-        // Editar artículo existente
         await DatabaseManager.actualizarArticulo(articulo.id, formData);
         Alert.alert('Éxito', 'Producto actualizado correctamente', [
           { text: 'OK', onPress: () => navigation.navigate('Inventario' as never) }
         ]);
       } else {
-        // Crear nuevo artículo
         await DatabaseManager.insertarArticulo(formData as Omit<Articulo, 'id'>);
         Alert.alert('Éxito', 'Producto creado correctamente', [
           { text: 'OK', onPress: () => navigation.navigate('Inventario' as never) }
@@ -175,57 +172,56 @@ const ArticuloForm: React.FC = () => {
     props: any = {}
   ) => (
     <View style={styles.fieldContainer}>
-      <Text style={styles.label}>{label}</Text>
+      <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>{label}</Text>
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        style={styles.input}
+        style={[styles.input, { backgroundColor: theme.colors.surface }]}
         mode="outlined"
+        outlineColor={theme.colors.outline}
+        activeOutlineColor={theme.colors.primary}
+        textColor={theme.colors.onSurface}
         {...props}
       />
     </View>
   );
 
   return (
-    <ScrollView style={styles.container}>
-      <Card style={styles.card}>
+    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
-          <Text style={styles.title}>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>
             {articulo ? 'Editar Producto' : 'Nuevo Producto'}
           </Text>
 
-          {/* Imagen del Producto */}
           <View style={styles.imageSection}>
-            <TouchableOpacity onPress={pickImage} style={styles.imageContainer}>
+            <TouchableOpacity onPress={pickImage} style={[styles.imageContainer, { borderColor: theme.colors.outline, backgroundColor: theme.colors.surfaceVariant }]}>
               {formData.imagen ? (
                 <Image source={{ uri: formData.imagen }} style={styles.image} />
               ) : (
                 <View style={styles.placeholderImage}>
-                  <Icon name="add-a-photo" size={40} color="#666" />
-                  <Text style={styles.placeholderText}>Agregar Foto</Text>
+                  <Icon name="add-a-photo" size={40} color={theme.colors.onSurfaceVariant} />
+                  <Text style={[styles.placeholderText, { color: theme.colors.onSurfaceVariant }]}>Agregar Foto</Text>
                 </View>
               )}
             </TouchableOpacity>
             {formData.imagen && (
-              <Button mode="text" onPress={() => setFormData(prev => ({ ...prev, imagen: '' }))}>
+              <Button mode="text" onPress={() => setFormData(prev => ({ ...prev, imagen: '' }))} textColor={theme.colors.error}>
                 Eliminar Foto
               </Button>
             )}
           </View>
 
-          <Divider style={styles.divider} />
+          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
-          {/* Información del Producto */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📦 Datos del Producto</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>📦 Datos del Producto</Text>
 
             {renderField(
               'Nombre del Producto *',
               formData.nombre || '',
               (text) => setFormData(prev => ({ ...prev, nombre: text })),
-              {
-                placeholder: 'Ej: Zapatillas Nike Air'
-              }
+              { placeholder: 'Ej: Zapatillas Nike Air' }
             )}
 
             <View style={styles.row}>
@@ -262,7 +258,7 @@ const ArticuloForm: React.FC = () => {
                 placeholder: 'Detalles del producto...',
                 multiline: true,
                 numberOfLines: 3,
-                style: [styles.input, styles.textArea]
+                style: [styles.textArea, { backgroundColor: theme.colors.surface }]
               }
             )}
 
@@ -286,11 +282,10 @@ const ArticuloForm: React.FC = () => {
             )}
           </View>
 
-          <Divider style={styles.divider} />
+          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
-          {/* Observaciones */}
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>📝 Notas Adicionales</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>📝 Notas Adicionales</Text>
 
             {renderField(
               'Observaciones',
@@ -306,12 +301,12 @@ const ArticuloForm: React.FC = () => {
         </Card.Content>
       </Card>
 
-      {/* Botones de Acción */}
       <View style={styles.buttonContainer}>
         <Button
           mode="outlined"
           onPress={() => navigation.navigate('Inventario' as never)}
-          style={styles.cancelButton}
+          style={[styles.cancelButton, { borderColor: theme.colors.outline }]}
+          textColor={theme.colors.onSurface}
           disabled={loading}
         >
           Cancelar
@@ -320,7 +315,7 @@ const ArticuloForm: React.FC = () => {
         <Button
           mode="contained"
           onPress={handleSave}
-          style={styles.saveButton}
+          style={[styles.saveButton, { backgroundColor: theme.colors.primary }]}
           loading={loading}
           disabled={loading}
         >
@@ -334,16 +329,14 @@ const ArticuloForm: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   card: {
     margin: 16,
-    elevation: 4,
+    elevation: 2,
   },
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#D32F2F',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -353,7 +346,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 12,
   },
   fieldContainer: {
@@ -365,19 +357,18 @@ const styles = StyleSheet.create({
   label: {
     fontSize: 14,
     fontWeight: '500',
-    color: '#666',
     marginBottom: 4,
   },
   input: {
-    backgroundColor: '#fff',
+    // Background handled by theme
   },
   textArea: {
-    height: 80,
+    minHeight: 80,
     textAlignVertical: 'top',
   },
   divider: {
     marginVertical: 16,
-    backgroundColor: '#ddd',
+    height: 1,
   },
   imageSection: {
     alignItems: 'center',
@@ -387,12 +378,11 @@ const styles = StyleSheet.create({
     width: 200,
     height: 200,
     borderRadius: 8,
-    backgroundColor: '#eee',
+    borderWidth: 1,
+    borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: '#ddd',
   },
   image: {
     width: '100%',
@@ -403,7 +393,7 @@ const styles = StyleSheet.create({
   },
   placeholderText: {
     marginTop: 8,
-    color: '#666',
+    fontSize: 14,
   },
   buttonContainer: {
     flexDirection: 'row',
@@ -413,11 +403,9 @@ const styles = StyleSheet.create({
   },
   cancelButton: {
     flex: 1,
-    borderColor: '#D32F2F',
   },
   saveButton: {
     flex: 1,
-    backgroundColor: '#D32F2F',
   },
 });
 

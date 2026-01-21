@@ -5,9 +5,11 @@ import { MaterialIcons } from '@expo/vector-icons';
 import { PurchasesPackage } from 'react-native-purchases';
 import SubscriptionService from '../services/SubscriptionService';
 import { useNavigation } from '@react-navigation/native';
+import { useTheme } from '../context/ThemeContext';
 
 const PaywallScreen: React.FC = () => {
     const navigation = useNavigation();
+    const { theme } = useTheme();
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
@@ -56,28 +58,28 @@ const PaywallScreen: React.FC = () => {
 
     if (loading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#D32F2F" />
+            <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
+                <ActivityIndicator size="large" color={theme.colors.primary} />
             </View>
         );
     }
 
     return (
-        <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+        <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]} contentContainerStyle={styles.content}>
             <View style={styles.header}>
                 <MaterialIcons name="diamond" size={60} color="#FFD700" />
-                <Text style={styles.title}>Mejora a PRO</Text>
-                <Text style={styles.subtitle}>
+                <Text style={[styles.title, { color: theme.colors.onBackground }]}>Mejora a PRO</Text>
+                <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
                     Lleva tu negocio al siguiente nivel
                 </Text>
             </View>
 
-            <Card style={styles.benefitsCard}>
+            <Card style={[styles.benefitsCard, { backgroundColor: theme.colors.surface }]}>
                 <Card.Content>
                     {benefits.map((benefit, index) => (
                         <View key={index} style={styles.benefitRow}>
-                            <MaterialIcons name={benefit.icon as any} size={24} color="#D32F2F" />
-                            <Text style={styles.benefitText}>{benefit.text}</Text>
+                            <MaterialIcons name={benefit.icon as any} size={24} color={theme.colors.primary} />
+                            <Text style={[styles.benefitText, { color: theme.colors.onSurface }]}>{benefit.text}</Text>
                         </View>
                     ))}
                 </Card.Content>
@@ -100,8 +102,8 @@ const PaywallScreen: React.FC = () => {
                         </TouchableOpacity>
                     ))
                 ) : (
-                    <View style={styles.noOffers}>
-                        <Text style={styles.noOffersText}>
+                    <View style={[styles.noOffers, { backgroundColor: theme.colors.surfaceVariant }]}>
+                        <Text style={[styles.noOffersText, { color: theme.colors.onSurfaceVariant }]}>
                             No hay ofertas disponibles en este momento.
                             {'\n'}
                             (Configura RevenueCat para ver precios)
@@ -109,7 +111,7 @@ const PaywallScreen: React.FC = () => {
                         <Button
                             mode="contained"
                             onPress={() => navigation.goBack()}
-                            style={{ marginTop: 20, backgroundColor: '#666' }}
+                            style={{ marginTop: 20, backgroundColor: theme.colors.outline }}
                         >
                             Volver (Modo Demo)
                         </Button>
@@ -132,7 +134,6 @@ const PaywallScreen: React.FC = () => {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
-        backgroundColor: '#fff',
     },
     loadingContainer: {
         flex: 1,

@@ -189,6 +189,17 @@ class DatabaseManager {
       throw error;
     }
   }
+
+  async resetDatabase(): Promise<void> {
+    if (!this.db) throw new Error('Base de datos no inicializada');
+
+    try {
+      await this.db.runAsync('DELETE FROM articulos');
+    } catch (error) {
+      console.error('❌ Error al resetear base de datos:', error);
+      throw error;
+    }
+  }
 }
 
 export default new DatabaseManager();

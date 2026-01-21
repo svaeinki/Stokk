@@ -1,9 +1,11 @@
 import React from 'react';
 import { View, StyleSheet, Text, Alert } from 'react-native';
 import { Searchbar } from 'react-native-paper';
+import { useTheme } from '../context/ThemeContext';
 
 const BuscarScreen: React.FC = () => {
   const [searchQuery, setSearchQuery] = React.useState('');
+  const { theme } = useTheme();
 
   const handleEdit = (articulo: any) => {
     Alert.alert(
@@ -25,10 +27,10 @@ const BuscarScreen: React.FC = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.header}>
-        <Text style={styles.title}>🔍 Buscar Artículos</Text>
-        <Text style={styles.subtitle}>
+        <Text style={[styles.title, { color: theme.colors.primary }]}>🔍 Buscar Artículos</Text>
+        <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
           Busca por nombre o número de bodega
         </Text>
       </View>
@@ -43,7 +45,7 @@ const BuscarScreen: React.FC = () => {
 
       {/* Aquí irá el componente ArticuloList con la búsqueda */}
       <View style={styles.placeholder}>
-        <Text style={styles.placeholderText}>Resultados de búsqueda aparecerán aquí</Text>
+        <Text style={[styles.placeholderText, { color: theme.colors.onSurfaceVariant }]}>Resultados de búsqueda aparecerán aquí</Text>
       </View>
     </View>
   );
@@ -52,7 +54,6 @@ const BuscarScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   header: {
     padding: 16,
@@ -61,12 +62,10 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#D32F2F',
     marginBottom: 4,
   },
   subtitle: {
     fontSize: 14,
-    color: '#666',
   },
   searchbar: {
     margin: 16,
