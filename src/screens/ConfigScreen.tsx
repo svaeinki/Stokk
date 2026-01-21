@@ -3,7 +3,7 @@ import { View, StyleSheet, ScrollView, Text } from 'react-native';
 import { Card, Button, Switch } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 
-const ConfigScreen: React.FC = () => {
+const ConfigScreen: React.FC<any> = (props) => {
   const [darkMode, setDarkMode] = React.useState(false);
   const [notifications, setNotifications] = React.useState(true);
   const [autoBackup, setAutoBackup] = React.useState(false);
@@ -13,7 +13,20 @@ const ConfigScreen: React.FC = () => {
       <Card style={styles.card}>
         <Card.Content>
           <Text style={styles.title}>⚙️ Configuración</Text>
-          
+
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>💎 Suscripción</Text>
+            <View style={styles.switchContainer}>
+              <View style={styles.switchTextContainer}>
+                <Text style={styles.switchTitle}>Versión PRO</Text>
+                <Text style={styles.switchDescription}>Desbloquea inventario ilimitado</Text>
+              </View>
+              <Button mode="contained" onPress={() => (props.navigation as any).navigate('Paywall')} color="#FFD700" labelStyle={{ color: 'white' }}>
+                Mejorar
+              </Button>
+            </View>
+          </View>
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>🎨 Apariencia</Text>
             <View style={styles.switchContainer}>

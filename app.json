@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "inventario-mobile",
-    "slug": "inventario-mobile",
+    "slug": "napoli-mobile",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
@@ -33,6 +33,7 @@
     },
     "plugins": [
       "expo-router"
-    ]
+    ],
+    "owner": "svaeinki"
   }
 }

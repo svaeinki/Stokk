@@ -4,6 +4,7 @@ import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import DatabaseManager from './src/database/DatabaseManager';
 
@@ -12,8 +13,66 @@ import InventarioScreen from './src/screens/InventarioScreen';
 import BuscarScreen from './src/screens/BuscarScreen';
 import IngresarScreen from './src/screens/IngresarScreen';
 import ConfigScreen from './src/screens/ConfigScreen';
+import PaywallScreen from './src/screens/PaywallScreen';
 
 const Tab = createBottomTabNavigator();
+const Stack = createNativeStackNavigator();
+
+function MainTabs() {
+  return (
+    <Tab.Navigator
+      screenOptions={{
+        tabBarActiveTintColor: '#D32F2F',
+        tabBarInactiveTintColor: '#666',
+        headerStyle: {
+          backgroundColor: '#D32F2F',
+        },
+        headerTintColor: '#fff',
+      }}
+    >
+      <Tab.Screen
+        name="Inventario"
+        component={InventarioScreen}
+        options={{
+          headerTitle: '📦 Inventario',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="inventory" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Buscar"
+        component={BuscarScreen}
+        options={{
+          headerTitle: '🔍 Buscar',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="search" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Ingresar"
+        component={IngresarScreen}
+        options={{
+          headerTitle: '➕ Ingresar',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="add-circle" size={size} color={color} />
+          ),
+        }}
+      />
+      <Tab.Screen
+        name="Config"
+        component={ConfigScreen}
+        options={{
+          headerTitle: '⚙️ Configuración',
+          tabBarIcon: ({ color, size }) => (
+            <MaterialIcons name="settings" size={size} color={color} />
+          ),
+        }}
+      />
+    </Tab.Navigator>
+  );
+}
 
 export default function App() {
   const [isReady, setIsReady] = useState(false);
@@ -44,57 +103,21 @@ export default function App() {
   return (
     <PaperProvider>
       <NavigationContainer>
-        <Tab.Navigator
-          screenOptions={{
-            tabBarActiveTintColor: '#D32F2F',
-            tabBarInactiveTintColor: '#666',
-            headerStyle: {
-              backgroundColor: '#D32F2F',
-            },
-            headerTintColor: '#fff',
-          }}
-        >
-          <Tab.Screen
-            name="Inventario"
-            component={InventarioScreen}
+        <Stack.Navigator>
+          <Stack.Screen
+            name="MainTabs"
+            component={MainTabs}
+            options={{ headerShown: false }}
+          />
+          <Stack.Screen
+            name="Paywall"
+            component={PaywallScreen}
             options={{
-              headerTitle: '📦 Inventario',
-              tabBarIcon: ({ color, size }) => (
-                <MaterialIcons name="inventory" size={size} color={color} />
-              ),
+              presentation: 'modal',
+              headerShown: false
             }}
           />
-          <Tab.Screen
-            name="Buscar"
-            component={BuscarScreen}
-            options={{
-              headerTitle: '🔍 Buscar',
-              tabBarIcon: ({ color, size }) => (
-                <MaterialIcons name="search" size={size} color={color} />
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="Ingresar"
-            component={IngresarScreen}
-            options={{
-              headerTitle: '➕ Ingresar',
-              tabBarIcon: ({ color, size }) => (
-                <MaterialIcons name="add-circle" size={size} color={color} />
-              ),
-            }}
-          />
-          <Tab.Screen
-            name="Config"
-            component={ConfigScreen}
-            options={{
-              headerTitle: '⚙️ Configuración',
-              tabBarIcon: ({ color, size }) => (
-                <MaterialIcons name="settings" size={size} color={color} />
-              ),
-            }}
-          />
-        </Tab.Navigator>
+        </Stack.Navigator>
       </NavigationContainer>
       <StatusBar style="light" backgroundColor="#D32F2F" />
     </PaperProvider>

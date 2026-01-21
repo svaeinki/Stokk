@@ -98,6 +98,20 @@ class DatabaseManager {
     }
   }
 
+  async contarArticulos(): Promise<number> {
+    if (!this.db) throw new Error('Base de datos no inicializada');
+
+    try {
+      const result = await this.db.getFirstAsync<{ count: number }>(
+        'SELECT COUNT(*) as count FROM articulos'
+      );
+      return result?.count || 0;
+    } catch (error) {
+      console.error('❌ Error al contar artículos:', error);
+      return 0;
+    }
+  }
+
   async buscarArticulos(termino: string): Promise<Articulo[]> {
     if (!this.db) throw new Error('Base de datos no inicializada');
 

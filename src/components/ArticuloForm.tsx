@@ -25,6 +25,7 @@ import {
   generarNumeroBodega,
   validarFormularioArticulo
 } from '../utils/Validation';
+import SubscriptionService from '../services/SubscriptionService';
 
 interface RouteParams {
   articulo?: Articulo;
@@ -60,8 +61,31 @@ const ArticuloForm: React.FC = () => {
         ...prev,
         numeroBodega: generarNumeroBodega()
       }));
+      checkLimit();
     }
   }, [articulo]);
+
+  const checkLimit = async () => {
+    try {
+      const count = await DatabaseManager.contarArticulos();
+      const isPro = await SubscriptionService.isPro();
+
+      // Límite gratuito: 20 artículos
+      if (count >= 20 && !isPro) {
+        Alert.alert(
+          'Límite Alcanzado',
+          'Has llegado al límite de 20 productos de la versión gratuita. \n\n¡Actualiza a PRO para tener almacenamiento ilimitado!',
+          [
+            { text: 'Cancelar', onPress: () => navigation.goBack(), style: 'cancel' },
+            { text: 'Ver Planes', onPress: () => navigation.navigate('Paywall' as never) }
+          ],
+          { cancelable: false }
+        );
+      }
+    } catch (error) {
+      console.error('Error verificando límites:', error);
+    }
+  };
 
   const pickImage = async () => {
     // Solicitar permisos
