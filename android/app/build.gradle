@@ -87,9 +87,9 @@ android {
     buildToolsVersion rootProject.ext.buildToolsVersion
     compileSdk rootProject.ext.compileSdkVersion
 
-    namespace 'com.svaeinki.inventariomobile'
+    namespace 'com.svaeinki.stokk'
     defaultConfig {
-        applicationId 'com.svaeinki.inventariomobile'
+        applicationId 'com.svaeinki.stokk'
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
         versionCode 1

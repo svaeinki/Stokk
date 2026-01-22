@@ -1,7 +1,0 @@
-** BUILD FAILED **
-
-
-The following build commands failed:
-	PhaseScriptExecution [CP-User]\ Generate\ Specs /Users/diego/Library/Developer/Xcode/DerivedData/inventariomobile-fqoitslfiyzgguefktiyvmnkljah/Build/Intermediates.noindex/Pods.build/Debug-iphonesimulator/ReactCodegen.build/Script-46EB2E00026160.sh (in target 'ReactCodegen' from project 'Pods')
-	Building workspace inventariomobile with scheme inventariomobile and configuration Debug
-(2 failures)
