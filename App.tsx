@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
@@ -16,12 +17,14 @@ import IngresarScreen from './src/screens/IngresarScreen';
 import ConfigScreen from './src/screens/ConfigScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import './src/i18n'; // Initialize i18n
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
 function MainTabs() {
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   return (
     <Tab.Navigator
@@ -42,40 +45,44 @@ function MainTabs() {
         name="Inventario"
         component={InventarioScreen}
         options={{
-          headerTitle: '📦 Inventario',
+          headerTitle: `📦 ${t('navigation.inventory')}`,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="inventory" size={size} color={color} />
           ),
+          title: t('navigation.inventory'),
         }}
       />
       <Tab.Screen
         name="Buscar"
         component={BuscarScreen}
         options={{
-          headerTitle: '🔍 Buscar',
+          headerTitle: `🔍 ${t('navigation.search')}`,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="search" size={size} color={color} />
           ),
+          title: t('navigation.search'),
         }}
       />
       <Tab.Screen
         name="Ingresar"
         component={IngresarScreen}
         options={{
-          headerTitle: '➕ Ingresar',
+          headerTitle: `➕ ${t('navigation.add')}`,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="add-circle" size={size} color={color} />
           ),
+          title: t('navigation.add'),
         }}
       />
       <Tab.Screen
         name="Config"
         component={ConfigScreen}
         options={{
-          headerTitle: '⚙️ Configuración',
+          headerTitle: `⚙️ ${t('navigation.config')}`,
           tabBarIcon: ({ color, size }) => (
             <MaterialIcons name="settings" size={size} color={color} />
           ),
+          title: t('navigation.config'),
         }}
       />
     </Tab.Navigator>
@@ -94,6 +101,7 @@ function AppContent() {
   const [isReady, setIsReady] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
   const { theme, navigationTheme } = useTheme();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const initDatabase = async () => {
@@ -101,7 +109,7 @@ function AppContent() {
         await DatabaseManager.initDatabase();
         setIsReady(true);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : 'Error desconocido';
+        const errorMessage = error instanceof Error ? error.message : t('common.error');
         setDbError(errorMessage);
         setIsReady(true);
       }
@@ -114,7 +122,7 @@ function AppContent() {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>Cargando...</Text>
+        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>{t('common.loading')}</Text>
       </View>
     );
   }
@@ -123,11 +131,10 @@ function AppContent() {
     return (
       <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
         <MaterialIcons name="error-outline" size={64} color={theme.colors.error} />
-        <Text style={[styles.errorTitle, { color: theme.colors.onSurface }]}>Error de Base de Datos</Text>
+        <Text style={[styles.errorTitle, { color: theme.colors.onSurface }]}>{t('common.error')}</Text>
         <Text style={[styles.errorText, { color: theme.colors.onSurfaceVariant }]}>
-          No se pudo inicializar el almacenamiento local.
+          {dbError}
         </Text>
-        <Text style={[styles.errorDetail, { color: theme.colors.outline }]}>{dbError}</Text>
       </View>
     );
   }

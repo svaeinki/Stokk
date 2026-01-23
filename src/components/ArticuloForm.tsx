@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   View,
   StyleSheet,
@@ -73,11 +74,11 @@ const ArticuloForm: React.FC = () => {
       // Límite gratuito: 20 artículos
       if (count >= FREE_TIER_PRODUCT_LIMIT && !isPro) {
         Alert.alert(
-          'Límite Alcanzado',
-          `Has llegado al límite de ${FREE_TIER_PRODUCT_LIMIT} productos de la versión gratuita. \n\n¡Actualiza a PRO para tener almacenamiento ilimitado!`,
+          t('limit.title'),
+          t('limit.message', { limit: FREE_TIER_PRODUCT_LIMIT }),
           [
-            { text: 'Cancelar', onPress: () => navigation.goBack(), style: 'cancel' },
-            { text: 'Ver Planes', onPress: () => navigation.navigate('Paywall') }
+            { text: t('common.cancel'), onPress: () => navigation.goBack(), style: 'cancel' },
+            { text: t('limit.view_plans'), onPress: () => navigation.navigate('Paywall') }
           ],
           { cancelable: false }
         );
@@ -95,13 +96,13 @@ const ArticuloForm: React.FC = () => {
     }
   };
 
-  const showPermissionDeniedAlert = (tipo: 'cámara' | 'galería') => {
+  const showPermissionDeniedAlert = (tipo: 'camera' | 'gallery') => {
     Alert.alert(
-      'Permiso Requerido',
-      `Para usar la ${tipo}, necesitas habilitar el permiso en la configuración de tu dispositivo.`,
+      t('permissions.required_title'),
+      t('permissions.required_msg', { type: t(`permissions.${tipo}`) }),
       [
-        { text: 'Cancelar', style: 'cancel' },
-        { text: 'Abrir Configuración', onPress: openSettings }
+        { text: t('common.cancel'), style: 'cancel' },
+        { text: t('permissions.open_settings'), onPress: openSettings }
       ]
     );
   };
@@ -110,7 +111,7 @@ const ArticuloForm: React.FC = () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
-      showPermissionDeniedAlert('cámara');
+      showPermissionDeniedAlert('camera');
       return;
     }
 
@@ -130,7 +131,7 @@ const ArticuloForm: React.FC = () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
-      showPermissionDeniedAlert('galería');
+      showPermissionDeniedAlert('gallery');
       return;
     }
 
@@ -148,12 +149,12 @@ const ArticuloForm: React.FC = () => {
 
   const pickImage = () => {
     Alert.alert(
-      'Seleccionar Imagen',
-      '¿De dónde quieres obtener la imagen?',
+      t('permissions.select_image_title'),
+      t('permissions.select_image_msg'),
       [
-        { text: 'Tomar Foto', onPress: takePhoto },
-        { text: 'Galería', onPress: pickFromGallery },
-        { text: 'Cancelar', style: 'cancel' }
+        { text: t('permissions.take_photo'), onPress: takePhoto },
+        { text: t('permissions.pick_gallery'), onPress: pickFromGallery },
+        { text: t('common.cancel'), style: 'cancel' }
       ]
     );
   };
@@ -163,12 +164,14 @@ const ArticuloForm: React.FC = () => {
 
   // ... (imports remain the same)
 
+  const { t } = useTranslation();
+
   const handleSave = async () => {
     const validation = validarFormularioArticulo(formData);
 
     if (!validation.isValid) {
       setErrors(validation.errors);
-      Alert.alert('Error de validación', validation.errors.join('\n'));
+      Alert.alert(t('product.validation_error'), validation.errors.join('\n'));
       return;
     }
 
@@ -201,18 +204,18 @@ const ArticuloForm: React.FC = () => {
       // 2. Guardado en Base de Datos
       if (articulo?.id) {
         await DatabaseManager.actualizarArticulo(articulo.id, articuloAGuardar);
-        Alert.alert('Éxito', 'Producto actualizado correctamente', [
-          { text: 'OK', onPress: () => navigation.navigate('Inventario') }
+        Alert.alert(t('common.success'), t('product.updated_success'), [
+          { text: t('common.ok'), onPress: () => navigation.navigate('Inventario') }
         ]);
       } else {
         await DatabaseManager.insertarArticulo(articuloAGuardar as Omit<Articulo, 'id'>);
-        Alert.alert('Éxito', 'Producto creado correctamente', [
-          { text: 'OK', onPress: () => navigation.navigate('Inventario') }
+        Alert.alert(t('common.success'), t('product.created_success'), [
+          { text: t('common.ok'), onPress: () => navigation.navigate('Inventario') }
         ]);
       }
     } catch (error) {
       Logger.error('Error al guardar', error);
-      Alert.alert('Error', 'No se pudo guardar el producto');
+      Alert.alert(t('common.error'), t('product.save_error'));
     } finally {
       setLoading(false);
     }
@@ -244,7 +247,7 @@ const ArticuloForm: React.FC = () => {
       <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
           <Text style={[styles.title, { color: theme.colors.primary }]}>
-            {articulo ? 'Editar Producto' : 'Nuevo Producto'}
+            {articulo ? t('product.edit_title') : t('product.new_title')}
           </Text>
 
           <View style={styles.imageSection}>
@@ -254,13 +257,13 @@ const ArticuloForm: React.FC = () => {
               ) : (
                 <View style={styles.placeholderImage}>
                   <Icon name="add-a-photo" size={40} color={theme.colors.onSurfaceVariant} />
-                  <Text style={[styles.placeholderText, { color: theme.colors.onSurfaceVariant }]}>Agregar Foto</Text>
+                  <Text style={[styles.placeholderText, { color: theme.colors.onSurfaceVariant }]}>{t('product.add_photo')}</Text>
                 </View>
               )}
             </TouchableOpacity>
             {formData.imagen && (
               <Button mode="text" onPress={() => setFormData(prev => ({ ...prev, imagen: '' }))} textColor={theme.colors.error}>
-                Eliminar Foto
+                {t('product.delete_photo')}
               </Button>
             )}
           </View>
@@ -268,19 +271,19 @@ const ArticuloForm: React.FC = () => {
           <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>📦 Datos del Producto</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>{t('product.section_data')}</Text>
 
             {renderField(
-              'Nombre del Producto *',
+              t('product.name_label'),
               formData.nombre || '',
               (text) => setFormData(prev => ({ ...prev, nombre: text })),
-              { placeholder: 'Ej: Zapatillas Nike Air' }
+              { placeholder: t('product.placeholder_name') }
             )}
 
             <View style={styles.row}>
               <View style={{ flex: 1, marginRight: 8 }}>
                 {renderField(
-                  'Precio *',
+                  t('product.price_label'),
                   formData.precio?.toString() || '',
                   (text) => setFormData(prev => ({ ...prev, precio: parseInt(text) || 0 })),
                   {
@@ -292,7 +295,7 @@ const ArticuloForm: React.FC = () => {
               </View>
               <View style={{ flex: 1, marginLeft: 8 }}>
                 {renderField(
-                  'Cantidad *',
+                  t('product.quantity_label'),
                   formData.cantidad?.toString() || '',
                   (text) => setFormData(prev => ({ ...prev, cantidad: parseInt(text) || 0 })),
                   {
@@ -304,11 +307,11 @@ const ArticuloForm: React.FC = () => {
             </View>
 
             {renderField(
-              'Descripción',
+              t('product.description_label'),
               formData.descripcion || '',
               (text) => setFormData(prev => ({ ...prev, descripcion: text })),
               {
-                placeholder: 'Detalles del producto...',
+                placeholder: t('product.placeholder_desc'),
                 multiline: true,
                 numberOfLines: 3,
                 style: [styles.textArea, { backgroundColor: theme.colors.surface }]
@@ -316,7 +319,7 @@ const ArticuloForm: React.FC = () => {
             )}
 
             {renderField(
-              'Ubicación / Código *',
+              t('product.location_label'),
               formData.numeroBodega || '',
               (text) => setFormData(prev => ({ ...prev, numeroBodega: text })),
               {
@@ -338,14 +341,14 @@ const ArticuloForm: React.FC = () => {
           <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>📝 Notas Adicionales</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>{t('product.section_notes')}</Text>
 
             {renderField(
-              'Observaciones',
+              t('product.notes_label'),
               formData.observaciones || '',
               (text) => setFormData(prev => ({ ...prev, observaciones: text })),
               {
-                placeholder: 'Notas internas...',
+                placeholder: t('product.placeholder_notes'),
                 multiline: true,
                 numberOfLines: 2,
               }
@@ -362,7 +365,7 @@ const ArticuloForm: React.FC = () => {
           textColor={theme.colors.onSurface}
           disabled={loading}
         >
-          Cancelar
+          {t('common.cancel')}
         </Button>
 
         <Button
@@ -372,7 +375,7 @@ const ArticuloForm: React.FC = () => {
           loading={loading}
           disabled={loading}
         >
-          {articulo ? 'Actualizar' : 'Guardar'}
+          {articulo ? t('common.update') : t('common.save')}
         </Button>
       </View>
     </ScrollView>

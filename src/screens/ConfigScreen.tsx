@@ -7,20 +7,27 @@ import DatabaseManager from '../database/DatabaseManager';
 import { ConfigScreenNavigationProp } from '../types/navigation';
 import { COLORS } from '../constants/app';
 import Logger from '../utils/Logger';
+import { useTranslation } from 'react-i18next';
+import { changeLanguage } from '../i18n';
 
 const ConfigScreen: React.FC = () => {
   const navigation = useNavigation<ConfigScreenNavigationProp>();
   const { isDark, toggleTheme, theme } = useTheme();
   const [isResetting, setIsResetting] = useState(false);
+  const { t, i18n } = useTranslation();
+
+  const handleLanguageChange = (lang: string) => {
+    changeLanguage(lang);
+  };
 
   const performReset = async () => {
     setIsResetting(true);
     try {
       await DatabaseManager.resetDatabase();
-      Alert.alert('Éxito', 'Base de datos reiniciada correctamente.');
+      Alert.alert(t('common.success'), t('config.delete_all_success'));
     } catch (error) {
       Logger.error('Error al resetear base de datos', error);
-      Alert.alert('Error', 'No se pudo reiniciar la base de datos. Intenta de nuevo.');
+      Alert.alert(t('common.error'), t('config.delete_all_error'));
     } finally {
       setIsResetting(false);
     }
@@ -28,26 +35,15 @@ const ConfigScreen: React.FC = () => {
 
   const handleReset = () => {
     Alert.alert(
-      '¿Estás seguro?',
-      'Esta acción eliminará TODOS los productos y NO se puede deshacer.',
+      t('config.delete_all_confirm_title'),
+      t('config.delete_all_confirm_msg'),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Sí, Eliminar Todo',
+          text: t('config.delete_all'),
           style: 'destructive',
           onPress: () => {
-            Alert.alert(
-              'Confirmación Final',
-              '¿Realmente quieres borrar todo tu inventario?',
-              [
-                { text: 'Cancelar', style: 'cancel' },
-                {
-                  text: 'BORRAR TODO',
-                  style: 'destructive',
-                  onPress: performReset
-                }
-              ]
-            )
+            performReset();
           }
         }
       ]
@@ -58,27 +54,49 @@ const ConfigScreen: React.FC = () => {
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
-          <Text style={[styles.title, { color: theme.colors.primary }]}>⚙️ Configuración</Text>
+          <Text style={[styles.title, { color: theme.colors.primary }]}>⚙️ {t('config.title')}</Text>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>💎 Suscripción</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>💎 {t('config.subscription')}</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Versión PRO</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Desbloquea inventario ilimitado</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>{t('config.pro')}</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>{t('config.manage_subscription')}</Text>
               </View>
               <Button mode="contained" onPress={() => navigation.navigate('Paywall')} buttonColor={COLORS.gold} labelStyle={{ color: theme.colors.surface }}>
-                Mejorar
+                {t('config.upgrade')}
               </Button>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>🎨 Apariencia</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>🌐 {t('config.language')}</Text>
+            <View style={styles.switchContainer}>
+              <View style={styles.languageRow}>
+                <Button
+                  mode={i18n.language.startsWith('es') ? 'contained' : 'outlined'}
+                  onPress={() => handleLanguageChange('es')}
+                  style={styles.langButton}
+                >
+                  {t('config.spanish')}
+                </Button>
+                <Button
+                  mode={i18n.language.startsWith('en') ? 'contained' : 'outlined'}
+                  onPress={() => handleLanguageChange('en')}
+                  style={styles.langButton}
+                >
+                  {t('config.english')}
+                </Button>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>🎨 {t('config.preferences')}</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Tema Oscuro</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Activar tema oscuro para la aplicación</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>{t('config.theme')}</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>{isDark ? 'Dark Mode' : 'Light Mode'}</Text>
               </View>
               <Switch
                 value={isDark}
@@ -88,57 +106,23 @@ const ConfigScreen: React.FC = () => {
           </View>
 
           <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>🔔 Notificaciones</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>ℹ️ {t('config.app_info')}</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Notificaciones Push</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>💾 Respaldo de Datos</Text>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Backup Automático</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
-              </View>
-            </View>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📥 Exportar Datos</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
-              </View>
-            </View>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📤 Importar Datos</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>ℹ️ Acerca de</Text>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📱 Versión</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📱 {t('config.version')}</Text>
                 <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>1.0.0</Text>
               </View>
             </View>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>❓ Ayuda</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📧 {t('config.contact')}</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>support@stokk.app</Text>
               </View>
             </View>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📧 Contacto</Text>
-                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
-              </View>
-            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>💾 {t('config.data_management')}</Text>
           </View>
         </Card.Content>
       </Card>
@@ -152,7 +136,7 @@ const ConfigScreen: React.FC = () => {
           loading={isResetting}
           disabled={isResetting}
         >
-          {isResetting ? 'Borrando...' : 'Borrar Todo (Reset)'}
+          {isResetting ? t('common.loading') : t('config.delete_all')}
         </Button>
       </View>
     </ScrollView>
@@ -188,6 +172,14 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  languageRow: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 8,
+  },
+  langButton: {
+    flex: 1,
   },
   switchTextContainer: {
     flex: 1,

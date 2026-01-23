@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { View, FlatList, StyleSheet, Alert, Image, RefreshControl } from 'react-native';
 import { Card, Text, IconButton, Chip, FAB } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
@@ -23,6 +24,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
   filter = 'todos'
 }) => {
   const { theme } = useTheme();
+  const { t } = useTranslation();
   const [articulos, setArticulos] = useState<Articulo[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -48,7 +50,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
       setArticulos(data);
     } catch (error) {
       Logger.error('Error al cargar artículos', error);
-      Alert.alert('Error', 'No se pudieron cargar los productos');
+      Alert.alert(t('common.error'), t('list.error_loading', 'No se pudieron cargar los productos'));
     } finally {
       setLoading(false);
     }
@@ -60,14 +62,14 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
     setRefreshing(false);
   };
 
-  const handleDelete = useCallback((id: number) => {
+  const handleDelete = useCallback((id: number, nombre: string) => {
     Alert.alert(
-      'Confirmar eliminación',
-      '¿Estás seguro de que deseas eliminar este producto?',
+      t('list.delete_confirm_title'),
+      t('list.delete_confirm_msg', { name: nombre }),
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -75,13 +77,13 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
               await cargarArticulos();
             } catch (error) {
               Logger.error('Error al eliminar', error);
-              Alert.alert('Error', 'No se pudo eliminar el producto');
+              Alert.alert(t('common.error'), t('list.delete_error'));
             }
           }
         }
       ]
     );
-  }, []);
+  }, [t]);
 
   const renderArticulo = useCallback(({ item }: { item: Articulo }) => (
     <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} onPress={() => onEdit(item)}>
@@ -121,7 +123,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
         <IconButton
           icon="delete"
           iconColor={theme.colors.error}
-          onPress={() => item.id !== undefined && handleDelete(item.id)}
+          onPress={() => item.id !== undefined && handleDelete(item.id, item.nombre)}
         />
       </Card.Actions>
     </Card>
@@ -146,9 +148,9 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
           !loading ? (
             <View style={styles.emptyContainer}>
               <Icon name="inventory" size={64} color={theme.colors.outline} />
-              <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>Inventario vacío</Text>
+              <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>{t('list.empty_title')}</Text>
               <Text style={[styles.emptySubtext, { color: theme.colors.onSurfaceVariant }]}>
-                {searchQuery ? 'No se encontraron resultados' : '¡Comienza agregando productos!'}
+                {searchQuery ? t('list.empty_search_msg', 'No se encontraron resultados') : t('list.empty_msg')}
               </Text>
             </View>
           ) : null
@@ -160,7 +162,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
         icon="plus"
         color={theme.colors.onPrimary}
         onPress={onAdd}
-        label="Nuevo Producto"
+        label={t('product.new_title')}
       />
     </View>
   );

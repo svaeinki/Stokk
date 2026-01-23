@@ -17,9 +17,12 @@ interface Benefit {
     text: string;
 }
 
+import { useTranslation } from 'react-i18next';
+
 const PaywallScreen: React.FC = () => {
     const navigation = useNavigation<PaywallScreenNavigationProp>();
     const { theme } = useTheme();
+    const { t } = useTranslation();
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
@@ -46,24 +49,24 @@ const PaywallScreen: React.FC = () => {
         try {
             const success = await SubscriptionService.purchasePackage(pack);
             if (success) {
-                Alert.alert('¡Gracias!', 'Has desbloqueado todas las funciones Pro.', [
-                    { text: 'OK', onPress: () => navigation.goBack() }
+                Alert.alert(t('paywall.purchase_success'), t('paywall.purchase_success_msg', 'Has desbloqueado todas las funciones Pro.'), [
+                    { text: t('common.ok'), onPress: () => navigation.goBack() }
                 ]);
             } else {
                 // El usuario canceló o hubo un error manejado
             }
         } catch (error) {
-            Alert.alert('Error', 'No se pudo completar la compra.');
+            Alert.alert(t('common.error'), t('paywall.purchase_error'));
         } finally {
             setPurchasing(false);
         }
     };
 
     const benefits: Benefit[] = [
-        { icon: 'inventory', text: `Inventario Ilimitado (Más de ${FREE_TIER_PRODUCT_LIMIT} items)` },
-        { icon: 'cloud-upload', text: 'Respaldo en la Nube (Próximamente)' },
-        { icon: 'support-agent', text: 'Soporte Prioritario' },
-        { icon: 'photo-camera', text: 'Fotos en Alta Calidad' },
+        { icon: 'inventory', text: t('paywall.feature_1_title') },
+        { icon: 'cloud-upload', text: 'Respaldo en la Nube (Próximamente)' }, // TODO: Add to json if needed, or keep hardcoded for now as it says "Coming Soon"
+        { icon: 'support-agent', text: t('paywall.feature_3_title') },
+        { icon: 'photo-camera', text: 'Fotos en Alta Calidad' }, // TODO: Add to json
     ];
 
     if (loading) {
@@ -78,9 +81,9 @@ const PaywallScreen: React.FC = () => {
         <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]} contentContainerStyle={styles.content}>
             <View style={styles.header}>
                 <MaterialIcons name="diamond" size={60} color={COLORS.gold} />
-                <Text style={[styles.title, { color: theme.colors.onBackground }]}>Mejora a PRO</Text>
+                <Text style={[styles.title, { color: theme.colors.onBackground }]}>{t('common.upgrade_to_pro', 'Mejora a PRO')}</Text>
                 <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
-                    Lleva tu negocio al siguiente nivel
+                    {t('paywall.subtitle')}
                 </Text>
             </View>
 
@@ -114,16 +117,16 @@ const PaywallScreen: React.FC = () => {
                 ) : (
                     <View style={[styles.noOffers, { backgroundColor: theme.colors.surfaceVariant }]}>
                         <Text style={[styles.noOffersText, { color: theme.colors.onSurfaceVariant }]}>
-                            No hay ofertas disponibles en este momento.
+                            {t('paywall.no_offers')}
                             {'\n'}
-                            (Configura RevenueCat para ver precios)
+                            {t('paywall.no_offers_subtitle')}
                         </Text>
                         <Button
                             mode="contained"
                             onPress={() => navigation.goBack()}
                             style={{ marginTop: 20, backgroundColor: theme.colors.outline }}
                         >
-                            Volver (Modo Demo)
+                            {t('paywall.back_demo')}
                         </Button>
                     </View>
                 )}
@@ -135,7 +138,7 @@ const PaywallScreen: React.FC = () => {
                 textColor={theme.colors.onSurfaceVariant}
                 style={styles.closeButton}
             >
-                Quizás más tarde
+                {t('paywall.maybe_later')}
             </Button>
         </ScrollView>
     );

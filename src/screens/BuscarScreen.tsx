@@ -8,9 +8,12 @@ import DatabaseManager, { Articulo } from '../database/DatabaseManager';
 import { formatearMoneda } from '../utils/Validation';
 import { BuscarScreenNavigationProp } from '../types/navigation';
 
+import { useTranslation } from 'react-i18next';
+
 const BuscarScreen: React.FC = () => {
   const navigation = useNavigation<BuscarScreenNavigationProp>();
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [articulos, setArticulos] = useState<Articulo[]>([]);
@@ -49,7 +52,7 @@ const BuscarScreen: React.FC = () => {
       const resultados = await DatabaseManager.buscarArticulos(query.trim());
       setArticulos(resultados);
     } catch (error) {
-      Alert.alert('Error', 'No se pudo realizar la búsqueda');
+      Alert.alert(t('common.error'), t('list.error_loading', 'No se pudo realizar la búsqueda'));
     } finally {
       setLoading(false);
     }
@@ -75,12 +78,15 @@ const BuscarScreen: React.FC = () => {
 
   const handleDelete = async (id: number) => {
     Alert.alert(
-      'Confirmar eliminación',
-      '¿Estás seguro de que deseas eliminar este producto?',
+      t('list.delete_confirm_title'),
+      t('list.delete_confirm_msg', { name: t('search.this_product', 'este producto') }), // fallback "este producto" if name not avail here, but typically we want the name from item. However, handler here only takes ID.
+      // Wait, the original code had "este producto" hardcoded in the message body, not using item name in the alert logic at that specific line.
+      // Actually original was: '¿Estás seguro de que deseas eliminar este producto?'
+      // So I will use a generic message or adjust.
       [
-        { text: 'Cancelar', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Eliminar',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
@@ -88,7 +94,7 @@ const BuscarScreen: React.FC = () => {
               // Actualizar lista después de eliminar
               buscar(searchQuery);
             } catch (error) {
-              Alert.alert('Error', 'No se pudo eliminar el producto');
+              Alert.alert(t('common.error'), t('list.delete_error'));
             }
           }
         }
@@ -122,7 +128,7 @@ const BuscarScreen: React.FC = () => {
               style={[styles.codigo, { color: theme.colors.onSurfaceVariant }]}
               numberOfLines={1}
             >
-              Código: {item.numeroBodega}
+              {t('product.location_label').split('/')[1].trim()}: {item.numeroBodega}
             </Text>
             <View style={styles.priceRow}>
               <Text style={[styles.precio, { color: theme.colors.primary }]}>
@@ -162,10 +168,10 @@ const BuscarScreen: React.FC = () => {
         <View style={styles.emptyContainer}>
           <Icon name="search" size={64} color={theme.colors.outline} />
           <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-            Busca productos
+            {t('search.placeholder_title', 'Busca productos')}
           </Text>
           <Text style={[styles.emptySubtext, { color: theme.colors.outline }]}>
-            Escribe el nombre o código de bodega
+            {t('search.placeholder_subtitle', 'Escribe el nombre o código de bodega')}
           </Text>
         </View>
       );
@@ -175,10 +181,10 @@ const BuscarScreen: React.FC = () => {
       <View style={styles.emptyContainer}>
         <Icon name="search-off" size={64} color={theme.colors.outline} />
         <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-          Sin resultados
+          {t('list.empty_search_msg')}
         </Text>
         <Text style={[styles.emptySubtext, { color: theme.colors.outline }]}>
-          No se encontraron productos para "{searchQuery}"
+          "{searchQuery}"
         </Text>
       </View>
     );
@@ -188,7 +194,7 @@ const BuscarScreen: React.FC = () => {
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <View style={styles.searchContainer}>
         <Searchbar
-          placeholder="Buscar por nombre o código..."
+          placeholder={t('search.placeholder')}
           onChangeText={handleSearch}
           value={searchQuery}
           style={[styles.searchbar, { backgroundColor: theme.colors.surface }]}
@@ -203,7 +209,7 @@ const BuscarScreen: React.FC = () => {
         />
         {hasSearched && articulos.length > 0 && (
           <Text style={[styles.resultCount, { color: theme.colors.onSurfaceVariant }]}>
-            {articulos.length} {articulos.length === 1 ? 'resultado' : 'resultados'}
+            {articulos.length} {articulos.length === 1 ? t('search.result', 'resultado') : t('search.results', 'resultados')}
           </Text>
         )}
       </View>
