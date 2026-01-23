@@ -6,7 +6,6 @@ import Purchases, {
     LOG_LEVEL,
     PURCHASES_ERROR_CODE,
 } from 'react-native-purchases';
-import { Platform } from 'react-native';
 import Logger from '../utils/Logger';
 
 // RevenueCat API Keys

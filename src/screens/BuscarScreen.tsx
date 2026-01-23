@@ -20,26 +20,14 @@ const BuscarScreen: React.FC = () => {
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const searchQueryRef = useRef(searchQuery);
 
-  // Recargar cuando la pantalla obtiene foco (por si se editó un producto)
-  useFocusEffect(
-    useCallback(() => {
-      if (searchQuery.trim()) {
-        buscar(searchQuery);
-      }
-    }, [])
-  );
-
-  // Limpiar timeout al desmontar
+  // Keep ref in sync with state
   useEffect(() => {
-    return () => {
-      if (debounceRef.current) {
-        clearTimeout(debounceRef.current);
-      }
-    };
-  }, []);
+    searchQueryRef.current = searchQuery;
+  }, [searchQuery]);
 
-  const buscar = async (query: string) => {
+  const buscar = useCallback(async (query: string) => {
     if (!query.trim()) {
       setArticulos([]);
       setHasSearched(false);
@@ -56,7 +44,25 @@ const BuscarScreen: React.FC = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [t]);
+
+  // Recargar cuando la pantalla obtiene foco (por si se editó un producto)
+  useFocusEffect(
+    useCallback(() => {
+      if (searchQueryRef.current.trim()) {
+        buscar(searchQueryRef.current);
+      }
+    }, [buscar])
+  );
+
+  // Limpiar timeout al desmontar
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
+    };
+  }, []);
 
   const handleSearch = (query: string) => {
     setSearchQuery(query);
@@ -79,10 +85,7 @@ const BuscarScreen: React.FC = () => {
   const handleDelete = async (id: number) => {
     Alert.alert(
       t('list.delete_confirm_title'),
-      t('list.delete_confirm_msg', { name: t('search.this_product', 'este producto') }), // fallback "este producto" if name not avail here, but typically we want the name from item. However, handler here only takes ID.
-      // Wait, the original code had "este producto" hardcoded in the message body, not using item name in the alert logic at that specific line.
-      // Actually original was: '¿Estás seguro de que deseas eliminar este producto?'
-      // So I will use a generic message or adjust.
+      t('list.delete_confirm_msg', { name: t('search.this_product') }),
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
