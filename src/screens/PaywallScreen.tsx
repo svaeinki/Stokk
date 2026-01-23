@@ -1,44 +1,107 @@
-import React, { useEffect, useState } from 'react';
-import { View, StyleSheet, Text, ScrollView, Alert, TouchableOpacity } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, StyleSheet, Text, ScrollView, Alert, TouchableOpacity, Linking } from 'react-native';
 import { Button, Card, ActivityIndicator } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { PurchasesPackage } from 'react-native-purchases';
+import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import SubscriptionService from '../services/SubscriptionService';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import Logger from '../utils/Logger';
 import { PaywallScreenNavigationProp } from '../types/navigation';
 import { FREE_TIER_PRODUCT_LIMIT, COLORS } from '../constants/app';
+import { useTranslation } from 'react-i18next';
 
 type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
 
 interface Benefit {
     icon: MaterialIconName;
-    text: string;
+    title: string;
+    description: string;
 }
-
-import { useTranslation } from 'react-i18next';
 
 const PaywallScreen: React.FC = () => {
     const navigation = useNavigation<PaywallScreenNavigationProp>();
-    const { theme } = useTheme();
+    const { theme, isDark } = useTheme();
     const { t } = useTranslation();
+
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
+    const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
+    const [useNativePaywall, setUseNativePaywall] = useState(true);
 
     useEffect(() => {
-        loadOfferings();
+        initializePaywall();
     }, []);
+
+    const initializePaywall = async () => {
+        try {
+            // First try to present native RevenueCat paywall
+            if (useNativePaywall) {
+                const result = await presentNativePaywall();
+                if (result !== 'fallback') {
+                    return;
+                }
+            }
+
+            // Fallback to custom paywall
+            await loadOfferings();
+        } catch (error) {
+            Logger.error('Error initializing paywall', error);
+            await loadOfferings();
+        }
+    };
+
+    const presentNativePaywall = async (): Promise<'purchased' | 'cancelled' | 'fallback'> => {
+        try {
+            const paywallResult = await RevenueCatUI.presentPaywall();
+
+            switch (paywallResult) {
+                case PAYWALL_RESULT.PURCHASED:
+                case PAYWALL_RESULT.RESTORED:
+                    Alert.alert(
+                        t('paywall.purchase_success'),
+                        t('paywall.purchase_success_msg'),
+                        [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
+                    );
+                    return 'purchased';
+
+                case PAYWALL_RESULT.CANCELLED:
+                    navigation.goBack();
+                    return 'cancelled';
+
+                case PAYWALL_RESULT.NOT_PRESENTED:
+                default:
+                    // Fall back to custom paywall
+                    setUseNativePaywall(false);
+                    return 'fallback';
+            }
+        } catch (error) {
+            Logger.warn('Native paywall not available, using custom paywall', error);
+            setUseNativePaywall(false);
+            return 'fallback';
+        }
+    };
 
     const loadOfferings = async () => {
         try {
-            // Intentar inicializar si no lo está
+            setLoading(true);
             await SubscriptionService.initialize();
-            const offerings = await SubscriptionService.getOfferings();
-            setPackages(offerings);
+            const availablePackages = await SubscriptionService.getPackages();
+            setPackages(availablePackages);
+
+            // Auto-select yearly as best value
+            const yearlyPkg = availablePackages.find(p =>
+                p.packageType === 'ANNUAL' || p.identifier.includes('yearly')
+            );
+            if (yearlyPkg) {
+                setSelectedPackage(yearlyPkg.identifier);
+            } else if (availablePackages.length > 0) {
+                setSelectedPackage(availablePackages[0].identifier);
+            }
         } catch (error) {
-            Logger.error('Error cargando ofertas', error);
+            Logger.error('Error loading offerings', error);
         } finally {
             setLoading(false);
         }
@@ -47,99 +110,295 @@ const PaywallScreen: React.FC = () => {
     const handlePurchase = async (pack: PurchasesPackage) => {
         setPurchasing(true);
         try {
-            const success = await SubscriptionService.purchasePackage(pack);
-            if (success) {
-                Alert.alert(t('paywall.purchase_success'), t('paywall.purchase_success_msg', 'Has desbloqueado todas las funciones Pro.'), [
-                    { text: t('common.ok'), onPress: () => navigation.goBack() }
-                ]);
+            const result = await SubscriptionService.purchasePackage(pack);
+
+            if (result.success) {
+                Alert.alert(
+                    t('paywall.purchase_success'),
+                    t('paywall.purchase_success_msg'),
+                    [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
+                );
+            } else if (result.error === 'cancelled') {
+                // User cancelled, do nothing
+            } else if (result.error === 'pending') {
+                Alert.alert(
+                    t('paywall.payment_pending_title'),
+                    t('paywall.payment_pending_msg')
+                );
+            } else if (result.error === 'already_purchased') {
+                Alert.alert(
+                    t('paywall.already_purchased_title'),
+                    t('paywall.already_purchased_msg'),
+                    [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
+                );
             } else {
-                // El usuario canceló o hubo un error manejado
+                Alert.alert(t('common.error'), result.error || t('paywall.purchase_error'));
             }
         } catch (error) {
+            Logger.error('Purchase error', error);
             Alert.alert(t('common.error'), t('paywall.purchase_error'));
         } finally {
             setPurchasing(false);
         }
     };
 
+    const handleRestore = async () => {
+        setPurchasing(true);
+        try {
+            const result = await SubscriptionService.restorePurchases();
+
+            if (result.isPro) {
+                Alert.alert(
+                    t('config.restore_success'),
+                    t('paywall.restore_success_msg'),
+                    [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
+                );
+            } else {
+                Alert.alert(
+                    t('paywall.no_purchases_title'),
+                    t('paywall.no_purchases_msg')
+                );
+            }
+        } catch (error) {
+            Logger.error('Restore error', error);
+            Alert.alert(t('common.error'), t('config.restore_error'));
+        } finally {
+            setPurchasing(false);
+        }
+    };
+
+    const openPrivacyPolicy = () => {
+        Linking.openURL('https://stokk.app/privacy');
+    };
+
+    const openTerms = () => {
+        Linking.openURL('https://stokk.app/terms');
+    };
+
     const benefits: Benefit[] = [
-        { icon: 'inventory', text: t('paywall.feature_1_title') },
-        { icon: 'cloud-upload', text: 'Respaldo en la Nube (Próximamente)' }, // TODO: Add to json if needed, or keep hardcoded for now as it says "Coming Soon"
-        { icon: 'support-agent', text: t('paywall.feature_3_title') },
-        { icon: 'photo-camera', text: 'Fotos en Alta Calidad' }, // TODO: Add to json
+        {
+            icon: 'all-inclusive',
+            title: t('paywall.feature_1_title'),
+            description: t('paywall.feature_1_desc'),
+        },
+        {
+            icon: 'block',
+            title: t('paywall.feature_2_title'),
+            description: t('paywall.feature_2_desc'),
+        },
+        {
+            icon: 'support-agent',
+            title: t('paywall.feature_3_title'),
+            description: t('paywall.feature_3_desc'),
+        },
+        {
+            icon: 'cloud-upload',
+            title: t('paywall.feature_4_title'),
+            description: t('paywall.feature_4_desc'),
+        },
     ];
 
-    if (loading) {
+    const getPackageLabel = (pack: PurchasesPackage): string => {
+        switch (pack.packageType) {
+            case 'MONTHLY':
+                return t('paywall.monthly');
+            case 'ANNUAL':
+                return t('paywall.yearly');
+            case 'LIFETIME':
+                return t('paywall.lifetime');
+            default:
+                return pack.product.title;
+        }
+    };
+
+    const getPackageSavings = (pack: PurchasesPackage): string | null => {
+        if (pack.packageType === 'ANNUAL') {
+            return t('paywall.save_percent', { percent: '50%' });
+        }
+        if (pack.packageType === 'LIFETIME') {
+            return t('paywall.best_value');
+        }
+        return null;
+    };
+
+    // Show loading while trying native paywall or loading packages
+    if (loading && useNativePaywall) {
         return (
             <View style={[styles.loadingContainer, { backgroundColor: theme.colors.background }]}>
                 <ActivityIndicator size="large" color={theme.colors.primary} />
+                <Text style={[styles.loadingText, { color: theme.colors.onSurfaceVariant }]}>
+                    {t('paywall.loading_products')}
+                </Text>
             </View>
         );
     }
 
+    // Custom fallback paywall
     return (
-        <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]} contentContainerStyle={styles.content}>
+        <ScrollView
+            style={[styles.container, { backgroundColor: theme.colors.background }]}
+            contentContainerStyle={styles.content}
+            showsVerticalScrollIndicator={false}
+        >
+            {/* Header */}
             <View style={styles.header}>
-                <MaterialIcons name="diamond" size={60} color={COLORS.gold} />
-                <Text style={[styles.title, { color: theme.colors.onBackground }]}>{t('common.upgrade_to_pro', 'Mejora a PRO')}</Text>
+                <View style={[styles.iconContainer, { backgroundColor: COLORS.gold + '20' }]}>
+                    <MaterialIcons name="diamond" size={48} color={COLORS.gold} />
+                </View>
+                <Text style={[styles.title, { color: theme.colors.onBackground }]}>
+                    {t('paywall.title')}
+                </Text>
                 <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
                     {t('paywall.subtitle')}
                 </Text>
             </View>
 
+            {/* Benefits */}
             <Card style={[styles.benefitsCard, { backgroundColor: theme.colors.surface }]}>
                 <Card.Content>
                     {benefits.map((benefit, index) => (
                         <View key={index} style={styles.benefitRow}>
-                            <MaterialIcons name={benefit.icon} size={24} color={theme.colors.primary} />
-                            <Text style={[styles.benefitText, { color: theme.colors.onSurface }]}>{benefit.text}</Text>
+                            <View style={[styles.benefitIcon, { backgroundColor: theme.colors.primaryContainer }]}>
+                                <MaterialIcons name={benefit.icon} size={24} color={theme.colors.primary} />
+                            </View>
+                            <View style={styles.benefitText}>
+                                <Text style={[styles.benefitTitle, { color: theme.colors.onSurface }]}>
+                                    {benefit.title}
+                                </Text>
+                                <Text style={[styles.benefitDesc, { color: theme.colors.onSurfaceVariant }]}>
+                                    {benefit.description}
+                                </Text>
+                            </View>
                         </View>
                     ))}
                 </Card.Content>
             </Card>
 
+            {/* Packages */}
             <View style={styles.packagesContainer}>
-                {packages.length > 0 ? (
-                    packages.map((pack) => (
-                        <TouchableOpacity
-                            key={pack.identifier}
-                            onPress={() => handlePurchase(pack)}
-                            style={[styles.packageButton, { backgroundColor: theme.colors.primary }]}
-                            disabled={purchasing}
-                        >
-                            <View style={styles.packageInfo}>
-                                <Text style={[styles.packageTitle, { color: theme.colors.onPrimary }]}>{pack.product.title}</Text>
-                                <Text style={[styles.packagePrice, { color: theme.colors.onPrimary }]}>{pack.product.priceString}</Text>
-                            </View>
-                            <Text style={[styles.packageDesc, { color: theme.colors.onPrimary }]}>{pack.product.description}</Text>
-                        </TouchableOpacity>
-                    ))
-                ) : (
-                    <View style={[styles.noOffers, { backgroundColor: theme.colors.surfaceVariant }]}>
-                        <Text style={[styles.noOffersText, { color: theme.colors.onSurfaceVariant }]}>
-                            {t('paywall.no_offers')}
-                            {'\n'}
-                            {t('paywall.no_offers_subtitle')}
-                        </Text>
+                {loading ? (
+                    <ActivityIndicator size="large" color={theme.colors.primary} />
+                ) : packages.length > 0 ? (
+                    <>
+                        {packages.map((pack) => {
+                            const isSelected = selectedPackage === pack.identifier;
+                            const savings = getPackageSavings(pack);
+
+                            return (
+                                <TouchableOpacity
+                                    key={pack.identifier}
+                                    onPress={() => setSelectedPackage(pack.identifier)}
+                                    style={[
+                                        styles.packageCard,
+                                        {
+                                            backgroundColor: isSelected ? theme.colors.primaryContainer : theme.colors.surface,
+                                            borderColor: isSelected ? theme.colors.primary : theme.colors.outline,
+                                            borderWidth: isSelected ? 2 : 1,
+                                        },
+                                    ]}
+                                    disabled={purchasing}
+                                >
+                                    {savings && (
+                                        <View style={[styles.savingsBadge, { backgroundColor: COLORS.gold }]}>
+                                            <Text style={styles.savingsText}>{savings}</Text>
+                                        </View>
+                                    )}
+                                    <View style={styles.packageContent}>
+                                        <View style={styles.packageLeft}>
+                                            <View style={[
+                                                styles.radioOuter,
+                                                { borderColor: isSelected ? theme.colors.primary : theme.colors.outline }
+                                            ]}>
+                                                {isSelected && (
+                                                    <View style={[styles.radioInner, { backgroundColor: theme.colors.primary }]} />
+                                                )}
+                                            </View>
+                                            <View style={styles.packageInfo}>
+                                                <Text style={[styles.packageLabel, { color: theme.colors.onSurface }]}>
+                                                    {getPackageLabel(pack)}
+                                                </Text>
+                                                <Text style={[styles.packageDesc, { color: theme.colors.onSurfaceVariant }]}>
+                                                    {pack.product.description}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                        <View style={styles.packageRight}>
+                                            <Text style={[styles.packagePrice, { color: theme.colors.primary }]}>
+                                                {pack.product.priceString}
+                                            </Text>
+                                            {pack.packageType === 'ANNUAL' && (
+                                                <Text style={[styles.pricePerMonth, { color: theme.colors.onSurfaceVariant }]}>
+                                                    {t('paywall.per_month', { price: `$${(pack.product.price / 12).toFixed(2)}` })}
+                                                </Text>
+                                            )}
+                                        </View>
+                                    </View>
+                                </TouchableOpacity>
+                            );
+                        })}
+
+                        {/* Purchase Button */}
                         <Button
                             mode="contained"
-                            onPress={() => navigation.goBack()}
-                            style={{ marginTop: 20, backgroundColor: theme.colors.outline }}
+                            onPress={() => {
+                                const pack = packages.find(p => p.identifier === selectedPackage);
+                                if (pack) handlePurchase(pack);
+                            }}
+                            style={[styles.purchaseButton, { backgroundColor: theme.colors.primary }]}
+                            labelStyle={styles.purchaseButtonLabel}
+                            loading={purchasing}
+                            disabled={purchasing || !selectedPackage}
                         >
-                            {t('paywall.back_demo')}
+                            {t('paywall.continue')}
                         </Button>
+                    </>
+                ) : (
+                    <View style={[styles.noOffers, { backgroundColor: theme.colors.surfaceVariant }]}>
+                        <MaterialIcons name="info-outline" size={48} color={theme.colors.onSurfaceVariant} />
+                        <Text style={[styles.noOffersText, { color: theme.colors.onSurfaceVariant }]}>
+                            {t('paywall.no_offers')}
+                        </Text>
+                        <Text style={[styles.noOffersSubtext, { color: theme.colors.outline }]}>
+                            {t('paywall.no_offers_subtitle')}
+                        </Text>
                     </View>
                 )}
             </View>
 
-            <Button
-                mode="text"
-                onPress={() => navigation.goBack()}
-                textColor={theme.colors.onSurfaceVariant}
-                style={styles.closeButton}
-            >
-                {t('paywall.maybe_later')}
-            </Button>
+            {/* Restore & Links */}
+            <View style={styles.footer}>
+                <Button
+                    mode="text"
+                    onPress={handleRestore}
+                    textColor={theme.colors.primary}
+                    disabled={purchasing}
+                >
+                    {t('paywall.restore')}
+                </Button>
+
+                <View style={styles.legalLinks}>
+                    <TouchableOpacity onPress={openTerms}>
+                        <Text style={[styles.legalLink, { color: theme.colors.onSurfaceVariant }]}>
+                            {t('paywall.terms')}
+                        </Text>
+                    </TouchableOpacity>
+                    <Text style={[styles.legalSeparator, { color: theme.colors.outline }]}>•</Text>
+                    <TouchableOpacity onPress={openPrivacyPolicy}>
+                        <Text style={[styles.legalLink, { color: theme.colors.onSurfaceVariant }]}>
+                            {t('paywall.privacy')}
+                        </Text>
+                    </TouchableOpacity>
+                </View>
+
+                <Button
+                    mode="text"
+                    onPress={() => navigation.goBack()}
+                    textColor={theme.colors.onSurfaceVariant}
+                    style={styles.closeButton}
+                >
+                    {t('paywall.maybe_later')}
+                </Button>
+            </View>
         </ScrollView>
     );
 };
@@ -153,18 +412,30 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
     },
+    loadingText: {
+        marginTop: 16,
+        fontSize: 16,
+    },
     content: {
         padding: 24,
         paddingTop: 60,
+        paddingBottom: 40,
     },
     header: {
         alignItems: 'center',
-        marginBottom: 32,
+        marginBottom: 24,
+    },
+    iconContainer: {
+        width: 80,
+        height: 80,
+        borderRadius: 40,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginBottom: 16,
     },
     title: {
-        fontSize: 32,
+        fontSize: 28,
         fontWeight: 'bold',
-        marginTop: 16,
     },
     subtitle: {
         fontSize: 16,
@@ -172,56 +443,144 @@ const styles = StyleSheet.create({
         textAlign: 'center',
     },
     benefitsCard: {
-        marginBottom: 32,
-        elevation: 4,
+        marginBottom: 24,
+        elevation: 2,
     },
     benefitRow: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'flex-start',
         marginBottom: 16,
     },
+    benefitIcon: {
+        width: 44,
+        height: 44,
+        borderRadius: 22,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
     benefitText: {
+        flex: 1,
+    },
+    benefitTitle: {
         fontSize: 16,
-        marginLeft: 12,
+        fontWeight: '600',
+        marginBottom: 2,
+    },
+    benefitDesc: {
+        fontSize: 14,
+        lineHeight: 20,
     },
     packagesContainer: {
-        gap: 16,
+        marginBottom: 16,
     },
-    packageButton: {
+    packageCard: {
         padding: 16,
         borderRadius: 12,
-        elevation: 2,
+        marginBottom: 12,
+        position: 'relative',
+        overflow: 'hidden',
     },
-    packageInfo: {
+    savingsBadge: {
+        position: 'absolute',
+        top: 0,
+        right: 0,
+        paddingHorizontal: 12,
+        paddingVertical: 4,
+        borderBottomLeftRadius: 8,
+    },
+    savingsText: {
+        color: '#000',
+        fontSize: 12,
+        fontWeight: 'bold',
+    },
+    packageContent: {
         flexDirection: 'row',
         justifyContent: 'space-between',
         alignItems: 'center',
-        marginBottom: 4,
     },
-    packageTitle: {
-        fontSize: 18,
-        fontWeight: 'bold',
+    packageLeft: {
+        flexDirection: 'row',
+        alignItems: 'center',
         flex: 1,
     },
-    packagePrice: {
-        fontSize: 20,
-        fontWeight: 'bold',
+    radioOuter: {
+        width: 24,
+        height: 24,
+        borderRadius: 12,
+        borderWidth: 2,
+        justifyContent: 'center',
+        alignItems: 'center',
+        marginRight: 12,
+    },
+    radioInner: {
+        width: 12,
+        height: 12,
+        borderRadius: 6,
+    },
+    packageInfo: {
+        flex: 1,
+    },
+    packageLabel: {
+        fontSize: 16,
+        fontWeight: '600',
     },
     packageDesc: {
+        fontSize: 13,
+        marginTop: 2,
+    },
+    packageRight: {
+        alignItems: 'flex-end',
+    },
+    packagePrice: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    pricePerMonth: {
+        fontSize: 12,
+        marginTop: 2,
+    },
+    purchaseButton: {
+        marginTop: 8,
+        paddingVertical: 6,
+        borderRadius: 12,
+    },
+    purchaseButtonLabel: {
+        fontSize: 16,
+        fontWeight: '600',
+    },
+    footer: {
+        alignItems: 'center',
+    },
+    legalLinks: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        marginTop: 12,
+    },
+    legalLink: {
         fontSize: 14,
-        opacity: 0.9,
+    },
+    legalSeparator: {
+        marginHorizontal: 8,
     },
     closeButton: {
-        marginTop: 24,
+        marginTop: 16,
     },
     noOffers: {
-        padding: 20,
+        padding: 32,
         alignItems: 'center',
-        borderRadius: 8,
+        borderRadius: 12,
     },
     noOffersText: {
+        fontSize: 16,
+        fontWeight: '600',
+        marginTop: 16,
         textAlign: 'center',
-        lineHeight: 22,
+    },
+    noOffersSubtext: {
+        fontSize: 14,
+        marginTop: 8,
+        textAlign: 'center',
     },
 });
 

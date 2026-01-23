@@ -9,8 +9,9 @@ Aplicación móvil React Native + Expo para gestión de inventario. Diseñada pa
 - **Imágenes**: Captura desde cámara o galería
 - **Base de datos SQLite**: Datos persistentes offline
 - **Tema oscuro/claro**: Persistente en AsyncStorage
+- **Multiidioma**: Español e Inglés (i18next)
 - **Modelo freemium**: Límite de 20 productos en versión gratuita
-- **RevenueCat**: Sistema de suscripciones integrado
+- **RevenueCat**: Sistema de suscripciones con paywall nativo
 
 ## Tech Stack
 
@@ -22,6 +23,7 @@ Aplicación móvil React Native + Expo para gestión de inventario. Diseñada pa
 | React Native Paper | Material Design 3 |
 | React Navigation | v7 |
 | expo-sqlite | SQLite local |
+| i18next | Internacionalización |
 | RevenueCat | Suscripciones |
 
 ## Estructura del Proyecto
@@ -35,6 +37,11 @@ src/
 │   └── ThemeContext.tsx    # Tema con persistencia
 ├── database/          # Capa de datos
 │   └── DatabaseManager.ts  # CRUD SQLite
+├── i18n/              # Internacionalización
+│   ├── index.ts            # Configuración i18next
+│   └── locales/            # Archivos de traducción
+│       ├── es.json
+│       └── en.json
 ├── screens/           # Pantallas
 │   ├── InventarioScreen.tsx
 │   ├── BuscarScreen.tsx
@@ -42,7 +49,8 @@ src/
 │   ├── ConfigScreen.tsx
 │   └── PaywallScreen.tsx
 ├── services/          # Servicios externos
-│   └── SubscriptionService.ts  # RevenueCat con caché
+│   ├── SubscriptionService.ts  # RevenueCat
+│   └── ImageService.ts         # Gestión de imágenes
 ├── utils/             # Utilidades
 │   ├── Validation.ts       # Validación y formateo
 │   └── Logger.ts           # Logger centralizado
@@ -79,8 +87,9 @@ npm run ios            # Ejecutar en iOS
 npm run web            # Ejecutar en web
 
 # Builds de producción (requiere EAS CLI)
-eas build --profile production --platform android
-eas build --profile production --platform ios
+eas build --profile development --platform ios
+eas build --profile development --platform android
+eas build --profile production --platform all
 ```
 
 ## Base de Datos
@@ -107,35 +116,121 @@ CREATE INDEX idx_numeroBodega ON articulos(numeroBodega);
 
 ## Configuración de RevenueCat
 
+### 1. Crear cuenta y proyecto
+
 1. Crear cuenta en [RevenueCat](https://www.revenuecat.com/)
-2. Configurar app en Google Play Console
-3. Crear productos de suscripción
-4. Obtener API keys
-5. Actualizar `src/services/SubscriptionService.ts`:
+2. Crear un nuevo proyecto en el dashboard
+3. Copiar la API Key pública del proyecto
+
+### 2. Configurar en App Store Connect (iOS)
+
+1. Ir a [App Store Connect](https://appstoreconnect.apple.com/)
+2. Crear la app si no existe
+3. En **Monetization > Subscriptions**, crear un grupo de suscripciones
+4. Crear los siguientes productos:
+   - `monthly` - Suscripción mensual
+   - `yearly` - Suscripción anual
+   - `lifetime` - Compra única (Non-Consumable)
+5. En RevenueCat, conectar App Store Connect:
+   - Settings > Apps > iOS > App Store Connect API
+
+### 3. Configurar en Google Play Console (Android)
+
+1. Ir a [Google Play Console](https://play.google.com/console/)
+2. Crear la app si no existe
+3. En **Monetize > Products > Subscriptions**, crear:
+   - `monthly` - Suscripción mensual
+   - `yearly` - Suscripción anual
+4. En **Monetize > Products > In-app products**, crear:
+   - `lifetime` - Producto de por vida
+5. En RevenueCat, conectar Google Play:
+   - Settings > Apps > Android > Google Play Console API
+
+### 4. Configurar RevenueCat Dashboard
+
+1. **Crear Entitlement:**
+   - Ir a Project > Entitlements
+   - Crear entitlement con identificador: `Stokk Pro`
+
+2. **Vincular productos al entitlement:**
+   - En cada producto (iOS y Android), asignar el entitlement `Stokk Pro`
+
+3. **Crear Offering:**
+   - Ir a Project > Offerings
+   - El offering `default` debe contener los 3 paquetes:
+     - Monthly (`$rc_monthly`)
+     - Annual (`$rc_annual`)
+     - Lifetime (`$rc_lifetime`)
+
+4. **Configurar Paywall (opcional):**
+   - Ir a Project > Paywalls
+   - Crear un paywall y asignarlo al offering default
+   - Esto habilitará el paywall nativo de RevenueCat
+
+### 5. Actualizar API Key en el código
+
+En `src/services/SubscriptionService.ts`:
 
 ```typescript
-const API_KEYS = {
-    apple: 'appl_TU_API_KEY_REAL',
-    google: 'goog_TU_API_KEY_REAL',
-};
+const API_KEY = 'tu_api_key_publica';
 ```
+
+### 6. Testing
+
+**iOS Sandbox:**
+1. En App Store Connect > Users and Access > Sandbox Testers
+2. Crear un tester de sandbox
+3. En el dispositivo, cerrar sesión de la App Store
+4. Al comprar, usar las credenciales del sandbox tester
+
+**Android License Testing:**
+1. En Google Play Console > Setup > License testing
+2. Agregar emails de testers
+3. Los testers verán precios de prueba
 
 ## Modelo Freemium
 
 | Característica | Free | Pro |
 |----------------|:----:|:---:|
 | Productos | 20 máx | Ilimitado |
-| Búsqueda | Sí | Sí |
-| Fotos | Sí | Sí |
-| Temas | Sí | Sí |
+| Búsqueda | ✓ | ✓ |
+| Fotos | ✓ | ✓ |
+| Temas | ✓ | ✓ |
+| Soporte prioritario | ✗ | ✓ |
 
 ## Arquitectura
 
-- **Patrón Singleton**: DatabaseManager, SubscriptionService
+- **Patrón Singleton**: DatabaseManager, SubscriptionService, ImageService
 - **Context API**: ThemeContext para tema global
 - **Memoización**: ArticuloList optimizado con useCallback y memo
 - **Logger centralizado**: Silenciado automáticamente en producción
-- **Type-safe**: TypeScript estricto, sin `any`
+- **Type-safe**: TypeScript estricto
+- **i18n**: Idioma persistido en AsyncStorage, fallback a locale del dispositivo
+
+## Checklist Pre-Producción
+
+### Configuración
+- [ ] API Key de RevenueCat configurada
+- [ ] Productos creados en App Store Connect
+- [ ] Productos creados en Google Play Console
+- [ ] Entitlement `Stokk Pro` configurado
+- [ ] Offering con los 3 paquetes
+
+### Legal
+- [ ] Página de Política de Privacidad (https://stokk.app/privacy)
+- [ ] Página de Términos de Uso (https://stokk.app/terms)
+
+### Assets
+- [ ] Icono de app (1024x1024)
+- [ ] Splash screen
+- [ ] Screenshots para App Store
+- [ ] Screenshots para Play Store
+
+### Testing
+- [ ] Probar compras en sandbox (iOS)
+- [ ] Probar compras con license testing (Android)
+- [ ] Probar restaurar compras
+- [ ] Probar límite de 20 productos
 
 ## Plataformas Soportadas
 

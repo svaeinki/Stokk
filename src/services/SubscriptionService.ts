@@ -1,136 +1,382 @@
-import Purchases, { CustomerInfo, PurchasesPackage, PurchasesError } from 'react-native-purchases';
+import Purchases, {
+    CustomerInfo,
+    PurchasesOffering,
+    PurchasesPackage,
+    PurchasesError,
+    LOG_LEVEL,
+    PURCHASES_ERROR_CODE,
+} from 'react-native-purchases';
 import { Platform } from 'react-native';
 import Logger from '../utils/Logger';
 
-// TODO: Reemplaza con tus llaves reales de RevenueCat
-const API_KEYS = {
-    apple: 'appl_YOUR_APPLE_KEY',
-    google: 'goog_YOUR_GOOGLE_KEY',
-};
+// RevenueCat API Keys
+const API_KEY = 'REDACTED_REVENUECAT_TEST_KEY';
 
-// Tiempo de caché en milisegundos (5 minutos)
+// Entitlement identifier configured in RevenueCat dashboard
+const PRO_ENTITLEMENT_ID = 'Stokk Pro';
+
+// Product identifiers
+export const PRODUCT_IDS = {
+    MONTHLY: 'monthly',
+    YEARLY: 'yearly',
+    LIFETIME: 'lifetime',
+} as const;
+
+// Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
 
 interface ProStatusCache {
     isPro: boolean;
     timestamp: number;
+    expirationDate?: string;
+}
+
+export interface SubscriptionStatus {
+    isPro: boolean;
+    expirationDate?: string;
+    willRenew: boolean;
+    productIdentifier?: string;
+    isLifetime: boolean;
 }
 
 class SubscriptionService {
     private isInitialized = false;
     private proStatusCache: ProStatusCache | null = null;
+    private customerInfoListener: ((info: CustomerInfo) => void) | null = null;
 
+    /**
+     * Initialize RevenueCat SDK
+     * Should be called once at app startup
+     */
     async initialize(): Promise<void> {
-        if (this.isInitialized) return;
+        if (this.isInitialized) {
+            Logger.debug('RevenueCat already initialized');
+            return;
+        }
 
         try {
-            if (Platform.OS === 'ios') {
-                Purchases.configure({ apiKey: API_KEYS.apple });
-            } else if (Platform.OS === 'android') {
-                Purchases.configure({ apiKey: API_KEYS.google });
+            // Enable debug logs in development
+            if (__DEV__) {
+                Purchases.setLogLevel(LOG_LEVEL.DEBUG);
             }
+
+            // Configure RevenueCat
+            Purchases.configure({ apiKey: API_KEY });
+
+            // Set up customer info listener for real-time updates
+            Purchases.addCustomerInfoUpdateListener((info) => {
+                Logger.info('Customer info updated');
+                this.handleCustomerInfoUpdate(info);
+            });
+
             this.isInitialized = true;
+            Logger.info('RevenueCat initialized successfully');
+
+            // Pre-fetch customer info
+            await this.getCustomerInfo();
         } catch (error) {
-            Logger.warn('Error inicializando RevenueCat (Probablemente falta API Key real)', error);
+            Logger.error('Error initializing RevenueCat', error);
+            throw error;
         }
     }
 
+    /**
+     * Handle customer info updates from RevenueCat
+     */
+    private handleCustomerInfoUpdate(customerInfo: CustomerInfo): void {
+        const isPro = this.checkProEntitlement(customerInfo);
+        this.updateCache(isPro, customerInfo);
+
+        // Notify any listeners
+        if (this.customerInfoListener) {
+            this.customerInfoListener(customerInfo);
+        }
+    }
+
+    /**
+     * Set a listener for customer info updates
+     */
+    setCustomerInfoListener(listener: (info: CustomerInfo) => void): void {
+        this.customerInfoListener = listener;
+    }
+
+    /**
+     * Remove the customer info listener
+     */
+    removeCustomerInfoListener(): void {
+        this.customerInfoListener = null;
+    }
+
+    /**
+     * Get current customer info from RevenueCat
+     */
     async getCustomerInfo(): Promise<CustomerInfo | null> {
-        try {
-            return await Purchases.getCustomerInfo();
-        } catch (error) {
-            Logger.error('Error obteniendo info del cliente', error);
-            return null;
-        }
-    }
-
-    async getOfferings(): Promise<PurchasesPackage[]> {
-        try {
-            const offerings = await Purchases.getOfferings();
-            if (offerings.current !== null && offerings.current.availablePackages.length !== 0) {
-                return offerings.current.availablePackages;
-            }
-        } catch (error) {
-            Logger.error('Error obteniendo ofertas', error);
-        }
-        return [];
-    }
-
-    async purchasePackage(pack: PurchasesPackage): Promise<boolean> {
-        try {
-            const { customerInfo } = await Purchases.purchasePackage(pack);
-            const isPro = this.checkProStatus(customerInfo);
-
-            // Actualizar caché después de compra exitosa
-            this.updateCache(isPro);
-
-            return isPro;
-        } catch (error) {
-            const purchaseError = error as PurchasesError;
-            if (!purchaseError.userCancelled) {
-                Logger.error('Error en la compra', error);
-            }
-            return false;
-        }
-    }
-
-    async isPro(forceRefresh = false): Promise<boolean> {
-        if (!this.isInitialized) return false;
-
-        // Verificar caché si no se fuerza actualización
-        if (!forceRefresh && this.isCacheValid() && this.proStatusCache !== null) {
-            return this.proStatusCache.isPro;
+        if (!this.isInitialized) {
+            Logger.warn('RevenueCat not initialized, attempting initialization...');
+            await this.initialize();
         }
 
         try {
             const customerInfo = await Purchases.getCustomerInfo();
-            const isPro = this.checkProStatus(customerInfo);
-
-            // Actualizar caché
-            this.updateCache(isPro);
-
-            return isPro;
+            this.handleCustomerInfoUpdate(customerInfo);
+            return customerInfo;
         } catch (error) {
-            // Si hay error pero tenemos caché, usar caché
-            if (this.proStatusCache !== null) {
-                return this.proStatusCache.isPro;
-            }
-            return false;
+            Logger.error('Error getting customer info', error);
+            return null;
         }
     }
 
-    // Invalidar caché (útil después de restaurar compras)
-    invalidateCache(): void {
-        this.proStatusCache = null;
+    /**
+     * Get available subscription offerings
+     */
+    async getOfferings(): Promise<PurchasesOffering | null> {
+        if (!this.isInitialized) {
+            await this.initialize();
+        }
+
+        try {
+            const offerings = await Purchases.getOfferings();
+
+            if (offerings.current) {
+                Logger.info(`Found ${offerings.current.availablePackages.length} packages`);
+                return offerings.current;
+            }
+
+            Logger.warn('No current offering found');
+            return null;
+        } catch (error) {
+            Logger.error('Error getting offerings', error);
+            return null;
+        }
     }
 
-    // Restaurar compras
-    async restorePurchases(): Promise<boolean> {
+    /**
+     * Get all available packages from the current offering
+     */
+    async getPackages(): Promise<PurchasesPackage[]> {
+        const offering = await this.getOfferings();
+        return offering?.availablePackages ?? [];
+    }
+
+    /**
+     * Purchase a specific package
+     */
+    async purchasePackage(pack: PurchasesPackage): Promise<{ success: boolean; customerInfo?: CustomerInfo; error?: string }> {
+        if (!this.isInitialized) {
+            await this.initialize();
+        }
+
+        try {
+            const { customerInfo } = await Purchases.purchasePackage(pack);
+            const isPro = this.checkProEntitlement(customerInfo);
+
+            this.updateCache(isPro, customerInfo);
+            Logger.info(`Purchase successful, isPro: ${isPro}`);
+
+            return { success: isPro, customerInfo };
+        } catch (error) {
+            const purchaseError = error as PurchasesError;
+
+            // User cancelled - not an error
+            if (purchaseError.code === PURCHASES_ERROR_CODE.PURCHASE_CANCELLED_ERROR) {
+                Logger.info('Purchase cancelled by user');
+                return { success: false, error: 'cancelled' };
+            }
+
+            // Payment pending (e.g., waiting for parental approval)
+            if (purchaseError.code === PURCHASES_ERROR_CODE.PAYMENT_PENDING_ERROR) {
+                Logger.info('Payment pending');
+                return { success: false, error: 'pending' };
+            }
+
+            // Already purchased
+            if (purchaseError.code === PURCHASES_ERROR_CODE.PRODUCT_ALREADY_PURCHASED_ERROR) {
+                Logger.info('Product already purchased');
+                // Restore and return success
+                const restored = await this.restorePurchases();
+                return { success: restored.isPro, error: 'already_purchased' };
+            }
+
+            Logger.error('Purchase error', purchaseError);
+            return { success: false, error: purchaseError.message };
+        }
+    }
+
+    /**
+     * Check if user has Pro entitlement
+     */
+    async isPro(forceRefresh = false): Promise<boolean> {
+        if (!this.isInitialized) {
+            try {
+                await this.initialize();
+            } catch {
+                return false;
+            }
+        }
+
+        // Return cached value if valid and not forcing refresh
+        if (!forceRefresh && this.isCacheValid()) {
+            return this.proStatusCache!.isPro;
+        }
+
+        try {
+            const customerInfo = await Purchases.getCustomerInfo();
+            const isPro = this.checkProEntitlement(customerInfo);
+            this.updateCache(isPro, customerInfo);
+            return isPro;
+        } catch (error) {
+            Logger.error('Error checking pro status', error);
+            // Return cached value if available, otherwise false
+            return this.proStatusCache?.isPro ?? false;
+        }
+    }
+
+    /**
+     * Get detailed subscription status
+     */
+    async getSubscriptionStatus(): Promise<SubscriptionStatus> {
+        const customerInfo = await this.getCustomerInfo();
+
+        if (!customerInfo) {
+            return {
+                isPro: false,
+                willRenew: false,
+                isLifetime: false,
+            };
+        }
+
+        const entitlement = customerInfo.entitlements.active[PRO_ENTITLEMENT_ID];
+        const isPro = !!entitlement;
+
+        if (!isPro) {
+            return {
+                isPro: false,
+                willRenew: false,
+                isLifetime: false,
+            };
+        }
+
+        return {
+            isPro: true,
+            expirationDate: entitlement.expirationDate ?? undefined,
+            willRenew: entitlement.willRenew,
+            productIdentifier: entitlement.productIdentifier,
+            isLifetime: entitlement.expirationDate === null,
+        };
+    }
+
+    /**
+     * Restore previous purchases
+     */
+    async restorePurchases(): Promise<{ isPro: boolean; error?: string }> {
+        if (!this.isInitialized) {
+            await this.initialize();
+        }
+
         try {
             const customerInfo = await Purchases.restorePurchases();
-            const isPro = this.checkProStatus(customerInfo);
-            this.updateCache(isPro);
-            return isPro;
+            const isPro = this.checkProEntitlement(customerInfo);
+            this.updateCache(isPro, customerInfo);
+
+            Logger.info(`Restore completed, isPro: ${isPro}`);
+            return { isPro };
         } catch (error) {
-            Logger.error('Error restaurando compras', error);
-            return false;
+            const restoreError = error as PurchasesError;
+            Logger.error('Error restoring purchases', restoreError);
+            return { isPro: false, error: restoreError.message };
         }
     }
 
-    private checkProStatus(customerInfo: CustomerInfo): boolean {
-        return customerInfo.entitlements.active['pro'] !== undefined;
+    /**
+     * Invalidate the cache (useful after subscription changes)
+     */
+    invalidateCache(): void {
+        this.proStatusCache = null;
+        Logger.debug('Pro status cache invalidated');
     }
 
+    /**
+     * Log in a user with a custom app user ID
+     * Use this when you have your own user authentication
+     */
+    async logIn(appUserID: string): Promise<CustomerInfo | null> {
+        if (!this.isInitialized) {
+            await this.initialize();
+        }
+
+        try {
+            const { customerInfo } = await Purchases.logIn(appUserID);
+            this.handleCustomerInfoUpdate(customerInfo);
+            Logger.info(`Logged in as ${appUserID}`);
+            return customerInfo;
+        } catch (error) {
+            Logger.error('Error logging in', error);
+            return null;
+        }
+    }
+
+    /**
+     * Log out the current user
+     */
+    async logOut(): Promise<CustomerInfo | null> {
+        if (!this.isInitialized) {
+            return null;
+        }
+
+        try {
+            const customerInfo = await Purchases.logOut();
+            this.invalidateCache();
+            Logger.info('Logged out');
+            return customerInfo;
+        } catch (error) {
+            Logger.error('Error logging out', error);
+            return null;
+        }
+    }
+
+    /**
+     * Get the current app user ID
+     */
+    async getAppUserID(): Promise<string | null> {
+        if (!this.isInitialized) {
+            return null;
+        }
+
+        try {
+            return await Purchases.getAppUserID();
+        } catch (error) {
+            Logger.error('Error getting app user ID', error);
+            return null;
+        }
+    }
+
+    /**
+     * Check if the user has the Pro entitlement
+     */
+    private checkProEntitlement(customerInfo: CustomerInfo): boolean {
+        const hasEntitlement = customerInfo.entitlements.active[PRO_ENTITLEMENT_ID] !== undefined;
+        Logger.debug(`Pro entitlement check: ${hasEntitlement}`);
+        return hasEntitlement;
+    }
+
+    /**
+     * Check if the cache is still valid
+     */
     private isCacheValid(): boolean {
-        if (this.proStatusCache === null) return false;
+        if (!this.proStatusCache) return false;
         const now = Date.now();
         return (now - this.proStatusCache.timestamp) < CACHE_DURATION;
     }
 
-    private updateCache(isPro: boolean): void {
+    /**
+     * Update the cache with new subscription status
+     */
+    private updateCache(isPro: boolean, customerInfo: CustomerInfo): void {
+        const entitlement = customerInfo.entitlements.active[PRO_ENTITLEMENT_ID];
         this.proStatusCache = {
             isPro,
             timestamp: Date.now(),
+            expirationDate: entitlement?.expirationDate ?? undefined,
         };
     }
 }

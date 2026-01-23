@@ -4,8 +4,10 @@ import Logger from '../utils/Logger';
 const IMAGES_DIR = (FileSystem.documentDirectory || '') + 'images/';
 
 class ImageService {
+    private initialized: Promise<void>;
+
     constructor() {
-        this.ensureDirExists();
+        this.initialized = this.ensureDirExists();
     }
 
     // Asegurar que el directorio de imágenes exista
@@ -20,7 +22,7 @@ class ImageService {
     // Guardar imagen desde una URI temporal a permanente
     async saveImage(tempUri: string): Promise<string | null> {
         try {
-            await this.ensureDirExists();
+            await this.initialized;
 
             const fileName = tempUri.split('/').pop() || `image_${Date.now()}.jpg`;
             const newPath = IMAGES_DIR + fileName;

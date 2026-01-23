@@ -8,6 +8,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import DatabaseManager from './src/database/DatabaseManager';
+import SubscriptionService from './src/services/SubscriptionService';
+import Logger from './src/utils/Logger';
 import { RootStackParamList, TabParamList } from './src/types/navigation';
 
 // Importar pantallas
@@ -104,9 +106,16 @@ function AppContent() {
   const { t } = useTranslation();
 
   useEffect(() => {
-    const initDatabase = async () => {
+    const initApp = async () => {
       try {
+        // Initialize database
         await DatabaseManager.initDatabase();
+
+        // Initialize RevenueCat (non-blocking)
+        SubscriptionService.initialize().catch((error) => {
+          Logger.warn('RevenueCat initialization failed (non-blocking)', error);
+        });
+
         setIsReady(true);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : t('common.error');
@@ -115,7 +124,7 @@ function AppContent() {
       }
     };
 
-    initDatabase();
+    initApp();
   }, []);
 
   if (!isReady) {

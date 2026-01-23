@@ -39,6 +39,7 @@ const ArticuloForm: React.FC = () => {
   const navigation = useNavigation<IngresarScreenNavigationProp>();
   const articulo = route.params?.articulo;
   const { theme } = useTheme();
+  const { t } = useTranslation();
 
   const [formData, setFormData] = useState<Partial<Articulo>>({
     nombre: '',
@@ -158,13 +159,6 @@ const ArticuloForm: React.FC = () => {
       ]
     );
   };
-
-
-
-
-  // ... (imports remain the same)
-
-  const { t } = useTranslation();
 
   const handleSave = async () => {
     const validation = validarFormularioArticulo(formData);

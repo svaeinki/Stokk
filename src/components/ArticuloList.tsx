@@ -29,11 +29,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  useEffect(() => {
-    cargarArticulos();
-  }, [refreshTrigger, searchQuery, filter]);
-
-  const cargarArticulos = async () => {
+  const cargarArticulos = useCallback(async () => {
     try {
       setLoading(true);
       let data: Articulo[] = [];
@@ -54,13 +50,17 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [searchQuery, filter, t]);
 
-  const onRefresh = async () => {
+  useEffect(() => {
+    cargarArticulos();
+  }, [refreshTrigger, cargarArticulos]);
+
+  const onRefresh = useCallback(async () => {
     setRefreshing(true);
     await cargarArticulos();
     setRefreshing(false);
-  };
+  }, [cargarArticulos]);
 
   const handleDelete = useCallback((id: number, nombre: string) => {
     Alert.alert(
@@ -83,7 +83,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
         }
       ]
     );
-  }, [t]);
+  }, [t, cargarArticulos]);
 
   const renderArticulo = useCallback(({ item }: { item: Articulo }) => (
     <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} onPress={() => onEdit(item)}>

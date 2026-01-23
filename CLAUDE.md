@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-Stokk is a React Native + Expo inventory management mobile app with offline SQLite storage. The app is bilingual (UI in Spanish) and targets both iOS (11.0+) and Android (API 21+).
+Stokk is a React Native + Expo inventory management mobile app with offline SQLite storage. The app supports English and Spanish (i18n via i18next) and targets both iOS (11.0+) and Android (API 21+).
 
 ## Development Commands
 
@@ -36,6 +36,7 @@ eas build --profile production --platform all
 - **UI:** React Native Paper (Material Design 3)
 - **Navigation:** React Navigation v7 (bottom tabs + native stack)
 - **Storage:** expo-sqlite (SQLite), AsyncStorage
+- **i18n:** i18next + react-i18next + expo-localization
 - **Subscriptions:** RevenueCat (react-native-purchases)
 
 ### Source Structure (`src/`)
@@ -45,9 +46,10 @@ eas build --profile production --platform all
 | `components/` | Reusable UI components (`ArticuloForm`, `ArticuloList`) |
 | `context/` | React Context providers (`ThemeContext` for dark/light mode) |
 | `database/` | `DatabaseManager.ts` - singleton SQLite CRUD operations |
+| `i18n/` | Internationalization setup and locale files (`locales/es.json`, `locales/en.json`) |
 | `screens/` | Screen components (Inventario, Buscar, Ingresar, Config, Paywall) |
-| `services/` | External service integrations (`SubscriptionService` for RevenueCat) |
-| `utils/` | Validation and formatting utilities |
+| `services/` | `SubscriptionService` (RevenueCat), `ImageService` (camera/gallery) |
+| `utils/` | `Validation.ts` (formatting), `Logger.ts` (silenced in production) |
 
 ### Navigation Structure
 ```
@@ -68,8 +70,9 @@ Single table `articulos` with fields: id, nombre, descripcion, precio (integer),
 
 - **DatabaseManager:** Singleton pattern with lazy initialization. All CRUD methods are async and use prepared statements.
 - **ThemeContext:** Provides both Paper theme and Navigation theme, respects system color scheme.
+- **i18n:** Language persisted in AsyncStorage, falls back to device locale then Spanish. Use `useTranslation()` hook and `t('key')` for translations.
 - **Currency:** Prices stored as integers (Chilean Pesos), formatted with `Validation.ts` utilities.
-- **Free tier limit:** 20 products max without subscription.
+- **Free tier limit:** 20 products max without subscription (constant in `src/constants/app.ts`).
 
 ## Configuration Notes
 

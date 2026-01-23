@@ -5,7 +5,7 @@
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "light",
+    "userInterfaceStyle": "automatic",
     "newArchEnabled": false,
     "splash": {
       "image": "./assets/splash-icon.png",
@@ -14,14 +14,22 @@
     },
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.svaeinki.stokk"
+      "bundleIdentifier": "com.svaeinki.stokk",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Stokk needs camera access to take photos of your products",
+        "NSPhotoLibraryUsageDescription": "Stokk needs photo library access to select product images"
+      }
     },
     "android": {
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#ffffff"
       },
-      "package": "com.svaeinki.stokk"
+      "package": "com.svaeinki.stokk",
+      "permissions": [
+        "android.permission.CAMERA",
+        "com.android.vending.BILLING"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -32,7 +40,22 @@
       }
     },
     "plugins": [
-      "expo-router"
+      "expo-router",
+      [
+        "expo-image-picker",
+        {
+          "photosPermission": "Stokk needs access to your photos to add product images",
+          "cameraPermission": "Stokk needs access to your camera to take product photos"
+        }
+      ],
+      [
+        "react-native-purchases",
+        {
+          "android": {
+            "enableGooglePlayStoreIntegration": true
+          }
+        }
+      ]
     ],
     "owner": "svaeinki"
   }
