@@ -29,6 +29,7 @@ import SubscriptionService from '../services/SubscriptionService';
 import { useTheme } from '../context/ThemeContext';
 import { TabParamList, IngresarScreenNavigationProp } from '../types/navigation';
 import { FREE_TIER_PRODUCT_LIMIT } from '../constants/app';
+import ImageService from '../services/ImageService';
 
 type IngresarRouteProp = RouteProp<TabParamList, 'Ingresar'>;
 
@@ -157,6 +158,11 @@ const ArticuloForm: React.FC = () => {
     );
   };
 
+
+
+
+  // ... (imports remain the same)
+
   const handleSave = async () => {
     const validation = validarFormularioArticulo(formData);
 
@@ -168,14 +174,38 @@ const ArticuloForm: React.FC = () => {
 
     try {
       setLoading(true);
+      let finalImageUri = formData.imagen;
 
+      // 1. Manejo de persistencia de imagen
+      if (formData.imagen && formData.imagen !== articulo?.imagen) {
+        // Si hay una imagen nueva o cambió, guardarla permanentemente
+        const savedUri = await ImageService.saveImage(formData.imagen);
+        if (savedUri) {
+          finalImageUri = savedUri;
+        }
+
+        // Si estamos editando y había una imagen anterior diferente, borrar la vieja
+        if (articulo?.imagen && articulo.imagen !== formData.imagen) {
+          await ImageService.deleteImage(articulo.imagen);
+        }
+      } else if (!formData.imagen && articulo?.imagen) {
+        // Si se eliminó la imagen en la edición, borrar el archivo anterior
+        await ImageService.deleteImage(articulo.imagen);
+      }
+
+      const articuloAGuardar = {
+        ...formData,
+        imagen: finalImageUri,
+      };
+
+      // 2. Guardado en Base de Datos
       if (articulo?.id) {
-        await DatabaseManager.actualizarArticulo(articulo.id, formData);
+        await DatabaseManager.actualizarArticulo(articulo.id, articuloAGuardar);
         Alert.alert('Éxito', 'Producto actualizado correctamente', [
           { text: 'OK', onPress: () => navigation.navigate('Inventario') }
         ]);
       } else {
-        await DatabaseManager.insertarArticulo(formData as Omit<Articulo, 'id'>);
+        await DatabaseManager.insertarArticulo(articuloAGuardar as Omit<Articulo, 'id'>);
         Alert.alert('Éxito', 'Producto creado correctamente', [
           { text: 'OK', onPress: () => navigation.navigate('Inventario') }
         ]);

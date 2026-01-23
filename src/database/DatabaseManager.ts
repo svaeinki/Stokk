@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 import Logger from '../utils/Logger';
+import ImageService from '../services/ImageService';
 
 export interface Articulo {
   id?: number;
@@ -183,10 +184,24 @@ class DatabaseManager {
     }
   }
 
+
+
   async eliminarArticulo(id: number): Promise<void> {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
+      // 1. Obtener la imagen antes de borrar
+      const registro = await this.db.getFirstAsync<{ imagen: string | null }>(
+        'SELECT imagen FROM articulos WHERE id = ?',
+        [id]
+      );
+
+      // 2. Borrar archivo físico si existe
+      if (registro?.imagen) {
+        await ImageService.deleteImage(registro.imagen);
+      }
+
+      // 3. Borrar de la BD
       await this.db.runAsync('DELETE FROM articulos WHERE id = ?', [id]);
     } catch (error) {
       Logger.error('Error al eliminar artículo', error);
@@ -198,6 +213,10 @@ class DatabaseManager {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
+      // 1. Limpiar todas las imágenes físicas
+      await ImageService.clearAllImages();
+
+      // 2. Borrar datos
       await this.db.runAsync('DELETE FROM articulos');
     } catch (error) {
       Logger.error('Error al resetear base de datos', error);
