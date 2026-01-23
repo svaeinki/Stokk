@@ -10,44 +10,114 @@ import {
     DarkTheme as NavigationDarkTheme,
     DefaultTheme as NavigationDefaultTheme,
 } from '@react-navigation/native';
+import { PALETTE } from '../constants/app';
 
 const THEME_STORAGE_KEY = '@stokk_theme_preference';
-
-// Definir colores personalizados
-const PRIMARY_COLOR = '#D32F2F';
 
 const { LightTheme: NavLightTheme, DarkTheme: NavDarkTheme } = adaptNavigationTheme({
     reactNavigationLight: NavigationDefaultTheme,
     reactNavigationDark: NavigationDarkTheme,
 });
 
+// Tema claro con nueva paleta
 const PaperLightTheme = {
     ...MD3LightTheme,
     colors: {
         ...MD3LightTheme.colors,
-        primary: PRIMARY_COLOR,
+        // Colores principales
+        primary: PALETTE.smartBlue,
         onPrimary: '#FFFFFF',
-        background: '#F5F5F5',
+        primaryContainer: PALETTE.icyAqua,
+        onPrimaryContainer: PALETTE.smartBlue,
+
+        // Colores secundarios
+        secondary: PALETTE.darkCyan,
+        onSecondary: '#FFFFFF',
+        secondaryContainer: PALETTE.pearlAqua,
+        onSecondaryContainer: '#004D51',
+
+        // Colores terciarios
+        tertiary: PALETTE.steelBlue,
+        onTertiary: '#FFFFFF',
+        tertiaryContainer: '#D6E8F5',
+        onTertiaryContainer: '#1A3A50',
+
+        // Superficies
+        background: '#F8FBFC',
+        onBackground: '#1A1C1E',
         surface: '#FFFFFF',
+        onSurface: '#1A1C1E',
+        surfaceVariant: PALETTE.icyAqua,
+        onSurfaceVariant: '#42474E',
+
+        // Otros
+        outline: PALETTE.steelBlue,
+        outlineVariant: '#C2C7CE',
+        error: '#BA1A1A',
+        onError: '#FFFFFF',
+        errorContainer: '#FFDAD6',
+        onErrorContainer: '#410002',
+
         elevation: {
             ...MD3LightTheme.colors.elevation,
-            level1: '#FFFFFF',
-        }
+            level0: 'transparent',
+            level1: '#F3F8F9',
+            level2: '#EEF5F7',
+            level3: '#E9F2F4',
+            level4: '#E7F0F2',
+            level5: '#E4EEF0',
+        },
     },
 };
 
+// Tema oscuro con nueva paleta
 const PaperDarkTheme = {
     ...MD3DarkTheme,
     colors: {
         ...MD3DarkTheme.colors,
-        primary: '#EF5350',
-        onPrimary: '#000000',
-        background: '#121212',
-        surface: '#1E1E1E',
+        // Colores principales (más brillantes para modo oscuro)
+        primary: PALETTE.smartBlueDark,
+        onPrimary: '#002B5C',
+        primaryContainer: '#1A4A8A',
+        onPrimaryContainer: PALETTE.icyAquaDark,
+
+        // Colores secundarios
+        secondary: PALETTE.darkCyanDark,
+        onSecondary: '#003739',
+        secondaryContainer: '#004F52',
+        onSecondaryContainer: PALETTE.pearlAquaDark,
+
+        // Colores terciarios
+        tertiary: PALETTE.steelBlueDark,
+        onTertiary: '#1A3A50',
+        tertiaryContainer: '#2E5470',
+        onTertiaryContainer: '#D6E8F5',
+
+        // Superficies
+        background: '#0F1416',
+        onBackground: '#E1E3E5',
+        surface: '#1A1E20',
+        onSurface: '#E1E3E5',
+        surfaceVariant: '#2A3438',
+        onSurfaceVariant: '#C2C7CE',
+
+        // Otros
+        outline: PALETTE.steelBlueDark,
+        outlineVariant: '#42474E',
+        error: '#FFB4AB',
+        onError: '#690005',
+        errorContainer: '#93000A',
+        onErrorContainer: '#FFDAD6',
+
         elevation: {
             ...MD3DarkTheme.colors.elevation,
-            level1: '#2C2C2C',
-        }
+            level0: 'transparent',
+            level1: '#1E2628',
+            level2: '#232B2E',
+            level3: '#283134',
+            level4: '#2A3336',
+            level5: '#2D383B',
+        },
     },
 };
 
@@ -63,12 +133,14 @@ const CombinedDarkTheme = {
 
 type ThemePreference = 'light' | 'dark' | 'system';
 
+type AppTheme = typeof CombinedLightTheme | typeof CombinedDarkTheme;
+
 type ThemeContextType = {
     isDark: boolean;
     themePreference: ThemePreference;
     setThemePreference: (preference: ThemePreference) => void;
     toggleTheme: () => void;
-    theme: typeof CombinedLightTheme;
+    theme: AppTheme;
     navigationTheme: typeof NavLightTheme;
     isLoaded: boolean;
 };
