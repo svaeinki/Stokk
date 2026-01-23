@@ -1,4 +1,5 @@
 import { Articulo } from '../database/DatabaseManager';
+import Logger from './Logger';
 
 // ============================================
 // VALIDACIÓN DE RUT CHILENO
@@ -46,7 +47,7 @@ export const calcularDiasEnBodega = (fechaIngreso: string): string => {
     if (dias < 365) return `Hace ${Math.floor(dias / 30)} meses`;
     return `Hace ${Math.floor(dias / 365)} años`;
   } catch (error) {
-    console.error('Error calculando días:', error);
+    Logger.error('Error calculando días', error);
     return 'N/A';
   }
 };

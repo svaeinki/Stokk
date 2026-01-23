@@ -5,7 +5,9 @@ import {
   ScrollView,
   Alert,
   Image,
-  TouchableOpacity
+  TouchableOpacity,
+  Linking,
+  Platform
 } from 'react-native';
 import {
   Card,
@@ -17,25 +19,22 @@ import {
 import Icon from '@expo/vector-icons/MaterialIcons';
 import * as ImagePicker from 'expo-image-picker';
 import { useRoute, useNavigation, RouteProp } from '@react-navigation/native';
-import { StackNavigationProp } from '@react-navigation/stack';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
+import Logger from '../utils/Logger';
 import {
   generarNumeroBodega,
   validarFormularioArticulo
 } from '../utils/Validation';
 import SubscriptionService from '../services/SubscriptionService';
 import { useTheme } from '../context/ThemeContext';
+import { TabParamList, IngresarScreenNavigationProp } from '../types/navigation';
+import { FREE_TIER_PRODUCT_LIMIT } from '../constants/app';
 
-interface RouteParams {
-  articulo?: Articulo;
-}
-
-type ArticuloFormRouteProp = RouteProp<{ ArticuloForm: RouteParams }, 'ArticuloForm'>;
-type ArticuloFormNavigationProp = StackNavigationProp<{ ArticuloForm: RouteParams }, 'ArticuloForm'>;
+type IngresarRouteProp = RouteProp<TabParamList, 'Ingresar'>;
 
 const ArticuloForm: React.FC = () => {
-  const route = useRoute<ArticuloFormRouteProp>();
-  const navigation = useNavigation<ArticuloFormNavigationProp>();
+  const route = useRoute<IngresarRouteProp>();
+  const navigation = useNavigation<IngresarScreenNavigationProp>();
   const articulo = route.params?.articulo;
   const { theme } = useTheme();
 
@@ -71,64 +70,88 @@ const ArticuloForm: React.FC = () => {
       const isPro = await SubscriptionService.isPro();
 
       // Límite gratuito: 20 artículos
-      if (count >= 20 && !isPro) {
+      if (count >= FREE_TIER_PRODUCT_LIMIT && !isPro) {
         Alert.alert(
           'Límite Alcanzado',
-          'Has llegado al límite de 20 productos de la versión gratuita. \n\n¡Actualiza a PRO para tener almacenamiento ilimitado!',
+          `Has llegado al límite de ${FREE_TIER_PRODUCT_LIMIT} productos de la versión gratuita. \n\n¡Actualiza a PRO para tener almacenamiento ilimitado!`,
           [
             { text: 'Cancelar', onPress: () => navigation.goBack(), style: 'cancel' },
-            { text: 'Ver Planes', onPress: () => navigation.navigate('Paywall' as never) }
+            { text: 'Ver Planes', onPress: () => navigation.navigate('Paywall') }
           ],
           { cancelable: false }
         );
       }
     } catch (error) {
-      console.error('Error verificando límites:', error);
+      Logger.error('Error verificando límites', error);
     }
   };
 
-  const pickImage = async () => {
+  const openSettings = () => {
+    if (Platform.OS === 'ios') {
+      Linking.openURL('app-settings:');
+    } else {
+      Linking.openSettings();
+    }
+  };
+
+  const showPermissionDeniedAlert = (tipo: 'cámara' | 'galería') => {
+    Alert.alert(
+      'Permiso Requerido',
+      `Para usar la ${tipo}, necesitas habilitar el permiso en la configuración de tu dispositivo.`,
+      [
+        { text: 'Cancelar', style: 'cancel' },
+        { text: 'Abrir Configuración', onPress: openSettings }
+      ]
+    );
+  };
+
+  const takePhoto = async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
-      Alert.alert('Permiso denegado', 'Necesitamos permiso para usar la cámara');
+      showPermissionDeniedAlert('cámara');
       return;
     }
 
+    const result = await ImagePicker.launchCameraAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setFormData(prev => ({ ...prev, imagen: result.assets[0].uri }));
+    }
+  };
+
+  const pickFromGallery = async () => {
+    const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+
+    if (status !== 'granted') {
+      showPermissionDeniedAlert('galería');
+      return;
+    }
+
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ImagePicker.MediaTypeOptions.Images,
+      allowsEditing: true,
+      aspect: [4, 3],
+      quality: 0.7,
+    });
+
+    if (!result.canceled && result.assets[0]) {
+      setFormData(prev => ({ ...prev, imagen: result.assets[0].uri }));
+    }
+  };
+
+  const pickImage = () => {
     Alert.alert(
       'Seleccionar Imagen',
-      '¿Qué deseas hacer?',
+      '¿De dónde quieres obtener la imagen?',
       [
-        {
-          text: 'Tomar Foto',
-          onPress: async () => {
-            const result = await ImagePicker.launchCameraAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [4, 3],
-              quality: 0.5,
-            });
-
-            if (!result.canceled) {
-              setFormData(prev => ({ ...prev, imagen: result.assets[0].uri }));
-            }
-          }
-        },
-        {
-          text: 'Galería',
-          onPress: async () => {
-            const result = await ImagePicker.launchImageLibraryAsync({
-              mediaTypes: ImagePicker.MediaTypeOptions.Images,
-              allowsEditing: true,
-              aspect: [4, 3],
-              quality: 0.5,
-            });
-
-            if (!result.canceled) {
-              setFormData(prev => ({ ...prev, imagen: result.assets[0].uri }));
-            }
-          }
-        },
+        { text: 'Tomar Foto', onPress: takePhoto },
+        { text: 'Galería', onPress: pickFromGallery },
         { text: 'Cancelar', style: 'cancel' }
       ]
     );
@@ -149,16 +172,16 @@ const ArticuloForm: React.FC = () => {
       if (articulo?.id) {
         await DatabaseManager.actualizarArticulo(articulo.id, formData);
         Alert.alert('Éxito', 'Producto actualizado correctamente', [
-          { text: 'OK', onPress: () => navigation.navigate('Inventario' as never) }
+          { text: 'OK', onPress: () => navigation.navigate('Inventario') }
         ]);
       } else {
         await DatabaseManager.insertarArticulo(formData as Omit<Articulo, 'id'>);
         Alert.alert('Éxito', 'Producto creado correctamente', [
-          { text: 'OK', onPress: () => navigation.navigate('Inventario' as never) }
+          { text: 'OK', onPress: () => navigation.navigate('Inventario') }
         ]);
       }
     } catch (error) {
-      console.error('Error al guardar:', error);
+      Logger.error('Error al guardar', error);
       Alert.alert('Error', 'No se pudo guardar el producto');
     } finally {
       setLoading(false);
@@ -304,7 +327,7 @@ const ArticuloForm: React.FC = () => {
       <View style={styles.buttonContainer}>
         <Button
           mode="outlined"
-          onPress={() => navigation.navigate('Inventario' as never)}
+          onPress={() => navigation.navigate('Inventario')}
           style={[styles.cancelButton, { borderColor: theme.colors.outline }]}
           textColor={theme.colors.onSurface}
           disabled={loading}

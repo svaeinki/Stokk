@@ -1,15 +1,30 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, StyleSheet, ScrollView, Text, Alert } from 'react-native';
 import { Card, Button, Switch } from 'react-native-paper';
-import Icon from '@expo/vector-icons/MaterialIcons';
-
+import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import DatabaseManager from '../database/DatabaseManager';
+import { ConfigScreenNavigationProp } from '../types/navigation';
+import { COLORS } from '../constants/app';
+import Logger from '../utils/Logger';
 
-const ConfigScreen: React.FC<any> = (props) => {
+const ConfigScreen: React.FC = () => {
+  const navigation = useNavigation<ConfigScreenNavigationProp>();
   const { isDark, toggleTheme, theme } = useTheme();
-  const [notifications, setNotifications] = React.useState(true);
-  const [autoBackup, setAutoBackup] = React.useState(false);
+  const [isResetting, setIsResetting] = useState(false);
+
+  const performReset = async () => {
+    setIsResetting(true);
+    try {
+      await DatabaseManager.resetDatabase();
+      Alert.alert('Éxito', 'Base de datos reiniciada correctamente.');
+    } catch (error) {
+      Logger.error('Error al resetear base de datos', error);
+      Alert.alert('Error', 'No se pudo reiniciar la base de datos. Intenta de nuevo.');
+    } finally {
+      setIsResetting(false);
+    }
+  };
 
   const handleReset = () => {
     Alert.alert(
@@ -29,10 +44,7 @@ const ConfigScreen: React.FC<any> = (props) => {
                 {
                   text: 'BORRAR TODO',
                   style: 'destructive',
-                  onPress: async () => {
-                    await DatabaseManager.resetDatabase();
-                    Alert.alert('Éxito', 'Base de datos reiniciada.');
-                  }
+                  onPress: performReset
                 }
               ]
             )
@@ -49,20 +61,20 @@ const ConfigScreen: React.FC<any> = (props) => {
           <Text style={[styles.title, { color: theme.colors.primary }]}>⚙️ Configuración</Text>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💎 Suscripción</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>💎 Suscripción</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>Versión PRO</Text>
-                <Text style={styles.switchDescription}>Desbloquea inventario ilimitado</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Versión PRO</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Desbloquea inventario ilimitado</Text>
               </View>
-              <Button mode="contained" onPress={() => (props.navigation as any).navigate('Paywall')} color="#FFD700" labelStyle={{ color: 'white' }}>
+              <Button mode="contained" onPress={() => navigation.navigate('Paywall')} buttonColor={COLORS.gold} labelStyle={{ color: theme.colors.surface }}>
                 Mejorar
               </Button>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🎨 Apariencia</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>🎨 Apariencia</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
                 <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Tema Oscuro</Text>
@@ -76,63 +88,55 @@ const ConfigScreen: React.FC<any> = (props) => {
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>🔔 Notificaciones</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>🔔 Notificaciones</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>Notificaciones Push</Text>
-                <Text style={styles.switchDescription}>Recibir alertas sobre artículos antiguos</Text>
-              </View>
-              <Switch
-                value={notifications}
-                onValueChange={setNotifications}
-              />
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>💾 Respaldo de Datos</Text>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>Backup Automático</Text>
-                <Text style={styles.switchDescription}>Sincronizar datos con la nube</Text>
-              </View>
-              <Switch
-                value={autoBackup}
-                onValueChange={setAutoBackup}
-              />
-            </View>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>📥 Exportar Datos</Text>
-                <Text style={styles.switchDescription}>Exportar toda la base de datos</Text>
-              </View>
-            </View>
-            <View style={styles.switchContainer}>
-              <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>📤 Importar Datos</Text>
-                <Text style={styles.switchDescription}>Importar desde archivo de respaldo</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Notificaciones Push</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
               </View>
             </View>
           </View>
 
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>ℹ️ Acerca de</Text>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>💾 Respaldo de Datos</Text>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>📱 Versión</Text>
-                <Text style={styles.switchDescription}>1.0.0</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>Backup Automático</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
               </View>
             </View>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>❓ Ayuda</Text>
-                <Text style={styles.switchDescription}>Ver guía de uso</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📥 Exportar Datos</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
               </View>
             </View>
             <View style={styles.switchContainer}>
               <View style={styles.switchTextContainer}>
-                <Text style={styles.switchTitle}>📧 Contacto</Text>
-                <Text style={styles.switchDescription}>Soporte técnico</Text>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📤 Importar Datos</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.section}>
+            <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>ℹ️ Acerca de</Text>
+            <View style={styles.switchContainer}>
+              <View style={styles.switchTextContainer}>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📱 Versión</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>1.0.0</Text>
+              </View>
+            </View>
+            <View style={styles.switchContainer}>
+              <View style={styles.switchTextContainer}>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>❓ Ayuda</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
+              </View>
+            </View>
+            <View style={styles.switchContainer}>
+              <View style={styles.switchTextContainer}>
+                <Text style={[styles.switchTitle, { color: theme.colors.onSurface }]}>📧 Contacto</Text>
+                <Text style={[styles.switchDescription, { color: theme.colors.onSurfaceVariant }]}>Próximamente</Text>
               </View>
             </View>
           </View>
@@ -145,8 +149,10 @@ const ConfigScreen: React.FC<any> = (props) => {
           onPress={handleReset}
           style={styles.dangerButton}
           buttonColor={theme.colors.error}
+          loading={isResetting}
+          disabled={isResetting}
         >
-          Borrar Todo (Reset)
+          {isResetting ? 'Borrando...' : 'Borrar Todo (Reset)'}
         </Button>
       </View>
     </ScrollView>
@@ -156,7 +162,6 @@ const ConfigScreen: React.FC<any> = (props) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
   card: {
     margin: 16,
@@ -165,7 +170,6 @@ const styles = StyleSheet.create({
   title: {
     fontSize: 24,
     fontWeight: 'bold',
-    color: '#D32F2F',
     textAlign: 'center',
     marginBottom: 24,
   },
@@ -175,7 +179,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: '600',
-    color: '#333',
     marginBottom: 12,
   },
   switchContainer: {

@@ -1,10 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, memo } from 'react';
 import { View, FlatList, StyleSheet, Alert, Image, RefreshControl } from 'react-native';
 import { Card, Text, IconButton, Chip, FAB } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { useTheme } from '../context/ThemeContext';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
 import { formatearMoneda } from '../utils/Validation';
+import Logger from '../utils/Logger';
 
 interface ArticuloListProps {
   refreshTrigger?: number;
@@ -46,7 +47,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
 
       setArticulos(data);
     } catch (error) {
-      console.error('Error al cargar artículos:', error);
+      Logger.error('Error al cargar artículos', error);
       Alert.alert('Error', 'No se pudieron cargar los productos');
     } finally {
       setLoading(false);
@@ -59,7 +60,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
     setRefreshing(false);
   };
 
-  const handleDelete = async (id: number) => {
+  const handleDelete = useCallback((id: number) => {
     Alert.alert(
       'Confirmar eliminación',
       '¿Estás seguro de que deseas eliminar este producto?',
@@ -73,21 +74,21 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
               await DatabaseManager.eliminarArticulo(id);
               await cargarArticulos();
             } catch (error) {
-              console.error('Error al eliminar:', error);
+              Logger.error('Error al eliminar', error);
               Alert.alert('Error', 'No se pudo eliminar el producto');
             }
           }
         }
       ]
     );
-  };
+  }, []);
 
-  const renderArticulo = ({ item }: { item: Articulo }) => (
+  const renderArticulo = useCallback(({ item }: { item: Articulo }) => (
     <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} onPress={() => onEdit(item)}>
       <Card.Content style={styles.cardContent}>
         <View style={styles.contentRow}>
           {item.imagen ? (
-            <Image source={{ uri: item.imagen }} style={styles.thumbnail} />
+            <Image source={{ uri: item.imagen }} style={[styles.thumbnail, { backgroundColor: theme.colors.surfaceVariant }]} />
           ) : (
             <View style={[styles.placeholderThumbnail, { backgroundColor: theme.colors.surfaceVariant }]}>
               <Icon name="image-not-supported" size={40} color={theme.colors.onSurfaceVariant} />
@@ -120,10 +121,15 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
         <IconButton
           icon="delete"
           iconColor={theme.colors.error}
-          onPress={() => handleDelete(item.id!)}
+          onPress={() => item.id !== undefined && handleDelete(item.id)}
         />
       </Card.Actions>
     </Card>
+  ), [theme, onEdit, handleDelete]);
+
+  const keyExtractor = useCallback(
+    (item: Articulo) => item.id?.toString() ?? `temp-${item.numeroBodega}`,
+    []
   );
 
   return (
@@ -131,7 +137,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
       <FlatList
         data={articulos}
         renderItem={renderArticulo}
-        keyExtractor={(item) => item.id?.toString() || ''}
+        keyExtractor={keyExtractor}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />
         }
@@ -185,7 +191,6 @@ const styles = StyleSheet.create({
     width: 80,
     height: 80,
     borderRadius: 8,
-    backgroundColor: '#eee',
   },
   placeholderThumbnail: {
     width: 80,
@@ -244,4 +249,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default ArticuloList;
+export default memo(ArticuloList);

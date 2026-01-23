@@ -1,31 +1,32 @@
 import React from 'react';
 import { View, StyleSheet, Alert } from 'react-native';
 import ArticuloList from '../components/ArticuloList';
-import DatabaseManager from '../database/DatabaseManager';
-
+import { Articulo } from '../database/DatabaseManager';
 import { useNavigation } from '@react-navigation/native';
+import { InventarioScreenNavigationProp } from '../types/navigation';
+import { useTheme } from '../context/ThemeContext';
 
 const InventarioScreen: React.FC = () => {
-  const navigation = useNavigation();
+  const navigation = useNavigation<InventarioScreenNavigationProp>();
+  const { theme } = useTheme();
 
-  const handleEdit = (articulo: any) => {
+  const handleEdit = (articulo: Articulo) => {
     Alert.alert(
       'Editar Artículo',
       `¿Deseas editar el artículo ${articulo.numeroBodega}?`,
       [
         { text: 'Cancelar', style: 'cancel' },
-        { text: 'Editar', onPress: () => console.log('Editar:', articulo) }
+        { text: 'Editar', onPress: () => navigation.navigate('Ingresar', { articulo }) }
       ]
     );
   };
 
   const handleAdd = () => {
-    // @ts-ignore - La navegación de tabs maneja esto
     navigation.navigate('Ingresar');
   };
 
   return (
-    <View style={styles.container}>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
       <ArticuloList
         onEdit={handleEdit}
         onAdd={handleAdd}
@@ -37,7 +38,6 @@ const InventarioScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f5f5',
   },
 });
 

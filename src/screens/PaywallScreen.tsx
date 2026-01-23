@@ -6,9 +6,19 @@ import { PurchasesPackage } from 'react-native-purchases';
 import SubscriptionService from '../services/SubscriptionService';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
+import Logger from '../utils/Logger';
+import { PaywallScreenNavigationProp } from '../types/navigation';
+import { FREE_TIER_PRODUCT_LIMIT, COLORS } from '../constants/app';
+
+type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
+
+interface Benefit {
+    icon: MaterialIconName;
+    text: string;
+}
 
 const PaywallScreen: React.FC = () => {
-    const navigation = useNavigation();
+    const navigation = useNavigation<PaywallScreenNavigationProp>();
     const { theme } = useTheme();
     const [packages, setPackages] = useState<PurchasesPackage[]>([]);
     const [loading, setLoading] = useState(true);
@@ -25,7 +35,7 @@ const PaywallScreen: React.FC = () => {
             const offerings = await SubscriptionService.getOfferings();
             setPackages(offerings);
         } catch (error) {
-            console.error('Error cargando ofertas:', error);
+            Logger.error('Error cargando ofertas', error);
         } finally {
             setLoading(false);
         }
@@ -49,8 +59,8 @@ const PaywallScreen: React.FC = () => {
         }
     };
 
-    const benefits = [
-        { icon: 'inventory', text: 'Inventario Ilimitado (Más de 20 items)' },
+    const benefits: Benefit[] = [
+        { icon: 'inventory', text: `Inventario Ilimitado (Más de ${FREE_TIER_PRODUCT_LIMIT} items)` },
         { icon: 'cloud-upload', text: 'Respaldo en la Nube (Próximamente)' },
         { icon: 'support-agent', text: 'Soporte Prioritario' },
         { icon: 'photo-camera', text: 'Fotos en Alta Calidad' },
@@ -67,7 +77,7 @@ const PaywallScreen: React.FC = () => {
     return (
         <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]} contentContainerStyle={styles.content}>
             <View style={styles.header}>
-                <MaterialIcons name="diamond" size={60} color="#FFD700" />
+                <MaterialIcons name="diamond" size={60} color={COLORS.gold} />
                 <Text style={[styles.title, { color: theme.colors.onBackground }]}>Mejora a PRO</Text>
                 <Text style={[styles.subtitle, { color: theme.colors.onSurfaceVariant }]}>
                     Lleva tu negocio al siguiente nivel
@@ -78,7 +88,7 @@ const PaywallScreen: React.FC = () => {
                 <Card.Content>
                     {benefits.map((benefit, index) => (
                         <View key={index} style={styles.benefitRow}>
-                            <MaterialIcons name={benefit.icon as any} size={24} color={theme.colors.primary} />
+                            <MaterialIcons name={benefit.icon} size={24} color={theme.colors.primary} />
                             <Text style={[styles.benefitText, { color: theme.colors.onSurface }]}>{benefit.text}</Text>
                         </View>
                     ))}
@@ -91,14 +101,14 @@ const PaywallScreen: React.FC = () => {
                         <TouchableOpacity
                             key={pack.identifier}
                             onPress={() => handlePurchase(pack)}
-                            style={styles.packageButton}
+                            style={[styles.packageButton, { backgroundColor: theme.colors.primary }]}
                             disabled={purchasing}
                         >
                             <View style={styles.packageInfo}>
-                                <Text style={styles.packageTitle}>{pack.product.title}</Text>
-                                <Text style={styles.packagePrice}>{pack.product.priceString}</Text>
+                                <Text style={[styles.packageTitle, { color: theme.colors.onPrimary }]}>{pack.product.title}</Text>
+                                <Text style={[styles.packagePrice, { color: theme.colors.onPrimary }]}>{pack.product.priceString}</Text>
                             </View>
-                            <Text style={styles.packageDesc}>{pack.product.description}</Text>
+                            <Text style={[styles.packageDesc, { color: theme.colors.onPrimary }]}>{pack.product.description}</Text>
                         </TouchableOpacity>
                     ))
                 ) : (
@@ -122,7 +132,7 @@ const PaywallScreen: React.FC = () => {
             <Button
                 mode="text"
                 onPress={() => navigation.goBack()}
-                color="#666"
+                textColor={theme.colors.onSurfaceVariant}
                 style={styles.closeButton}
             >
                 Quizás más tarde
@@ -151,19 +161,16 @@ const styles = StyleSheet.create({
     title: {
         fontSize: 32,
         fontWeight: 'bold',
-        color: '#333',
         marginTop: 16,
     },
     subtitle: {
         fontSize: 16,
-        color: '#666',
         marginTop: 8,
         textAlign: 'center',
     },
     benefitsCard: {
         marginBottom: 32,
         elevation: 4,
-        backgroundColor: '#fff',
     },
     benefitRow: {
         flexDirection: 'row',
@@ -173,13 +180,11 @@ const styles = StyleSheet.create({
     benefitText: {
         fontSize: 16,
         marginLeft: 12,
-        color: '#333',
     },
     packagesContainer: {
         gap: 16,
     },
     packageButton: {
-        backgroundColor: '#D32F2F',
         padding: 16,
         borderRadius: 12,
         elevation: 2,
@@ -193,17 +198,15 @@ const styles = StyleSheet.create({
     packageTitle: {
         fontSize: 18,
         fontWeight: 'bold',
-        color: '#fff',
         flex: 1,
     },
     packagePrice: {
         fontSize: 20,
         fontWeight: 'bold',
-        color: '#fff',
     },
     packageDesc: {
-        color: 'rgba(255,255,255,0.9)',
         fontSize: 14,
+        opacity: 0.9,
     },
     closeButton: {
         marginTop: 24,
@@ -211,12 +214,10 @@ const styles = StyleSheet.create({
     noOffers: {
         padding: 20,
         alignItems: 'center',
-        backgroundColor: '#f5f5f5',
         borderRadius: 8,
     },
     noOffersText: {
         textAlign: 'center',
-        color: '#666',
         lineHeight: 22,
     },
 });

@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import Logger from '../utils/Logger';
 
 export interface Articulo {
   id?: number;
@@ -21,7 +22,7 @@ class DatabaseManager {
       this.db = await SQLite.openDatabaseAsync('mi_inventario.db');
       await this.createTables();
     } catch (error) {
-      console.error('❌ Error al inicializar base de datos:', error);
+      Logger.error('Error al inicializar base de datos', error);
       throw error;
     }
   }
@@ -77,9 +78,12 @@ class DatabaseManager {
         ]
       );
 
-      return result.lastInsertRowId!;
+      if (result.lastInsertRowId === undefined) {
+        throw new Error('No se pudo obtener el ID del artículo insertado');
+      }
+      return result.lastInsertRowId;
     } catch (error) {
-      console.error('❌ Error al insertar artículo:', error);
+      Logger.error('Error al insertar artículo', error);
       throw error;
     }
   }
@@ -93,7 +97,7 @@ class DatabaseManager {
       );
       return articulos;
     } catch (error) {
-      console.error('❌ Error al obtener artículos:', error);
+      Logger.error('Error al obtener artículos', error);
       throw error;
     }
   }
@@ -107,7 +111,7 @@ class DatabaseManager {
       );
       return result?.count || 0;
     } catch (error) {
-      console.error('❌ Error al contar artículos:', error);
+      Logger.error('Error al contar artículos', error);
       return 0;
     }
   }
@@ -124,7 +128,7 @@ class DatabaseManager {
       );
       return articulos;
     } catch (error) {
-      console.error('❌ Error al buscar artículos:', error);
+      Logger.error('Error al buscar artículos', error);
       throw error;
     }
   }
@@ -174,7 +178,7 @@ class DatabaseManager {
       );
 
     } catch (error) {
-      console.error('❌ Error al actualizar artículo:', error);
+      Logger.error('Error al actualizar artículo', error);
       throw error;
     }
   }
@@ -185,7 +189,7 @@ class DatabaseManager {
     try {
       await this.db.runAsync('DELETE FROM articulos WHERE id = ?', [id]);
     } catch (error) {
-      console.error('❌ Error al eliminar artículo:', error);
+      Logger.error('Error al eliminar artículo', error);
       throw error;
     }
   }
@@ -196,7 +200,7 @@ class DatabaseManager {
     try {
       await this.db.runAsync('DELETE FROM articulos');
     } catch (error) {
-      console.error('❌ Error al resetear base de datos:', error);
+      Logger.error('Error al resetear base de datos', error);
       throw error;
     }
   }
