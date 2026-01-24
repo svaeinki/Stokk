@@ -15,6 +15,7 @@ dist/
 
 # Local env files
 .env*.local
+.env.production
 
 # iOS
 ios/Pods/

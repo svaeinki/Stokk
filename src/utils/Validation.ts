@@ -78,35 +78,85 @@ export const generarNumeroBodega = (): string => {
   return `B${timestamp.slice(-6)}${random}`;
 };
 
+import { 
+  validarArticulo, 
+  validarArticuloParaActualizar,
+  CrearArticuloInput, 
+  ActualizarArticuloInput 
+} from '../validation/schemas';
+import { createValidationError } from '../types/errors';
+
 // ============================================
-// VALIDACIÓN DE FORMULARIOS
+// VALIDACIÓN DE FORMULARIOS CON ZOD
 // ============================================
 
 export const validarFormularioArticulo = (articulo: Partial<Articulo>): { isValid: boolean; errors: string[] } => {
-  const errors: string[] = [];
-
-  if (!articulo.nombre || articulo.nombre.trim() === '') {
-    errors.push('El nombre del producto es obligatorio');
+  // Si es un nuevo artículo (sin id), usar schema de creación
+  if (!articulo.id) {
+    const resultado = validarArticulo(articulo);
+    
+    if (resultado.success) {
+      return { isValid: true, errors: [] };
+  } else {
+    const errors = resultado.error.issues.map((issue: any) => `${issue.path.join('.')}: ${issue.message}`);
+    return { isValid: false, errors };
+  }
   }
 
-  if (articulo.precio === undefined || articulo.precio < 0) {
-    errors.push('El precio debe ser mayor o igual a 0');
+  // Para actualizaciones, validar solo los campos proporcionados
+  const resultado = validarArticuloParaActualizar(articulo);
+  
+  if (resultado.success) {
+    return { isValid: true, errors: [] };
+  } else {
+    const errors = resultado.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
+    return { isValid: false, errors };
   }
+};
 
-  if (articulo.cantidad === undefined || articulo.cantidad < 0) {
-    errors.push('La cantidad debe ser mayor o igual a 0');
+// Validación tipada para creación de artículos
+export const validarCreacionArticulo = (data: CrearArticuloInput): { isValid: boolean; errors: string[] } => {
+  const resultado = validarArticulo(data);
+  
+  if (resultado.success) {
+    return { isValid: true, errors: [] };
+  } else {
+    const errors = resultado.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
+    return { isValid: false, errors };
   }
+};
 
-  if (!articulo.numeroBodega || articulo.numeroBodega.trim() === '') {
-    errors.push('El número de bodega es obligatorio');
+// Validación tipada para actualización de artículos
+export const validarActualizacionArticulo = (data: ActualizarArticuloInput): { isValid: boolean; errors: string[] } => {
+  const resultado = validarArticuloParaActualizar(data);
+  
+  if (resultado.success) {
+    return { isValid: true, errors: [] };
+  } else {
+    const errors = resultado.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
+    return { isValid: false, errors };
   }
+};
 
-  if (!articulo.fechaIngreso) {
-    errors.push('La fecha de ingreso es obligatoria');
+// Validación con error types mejorados
+export const validarArticuloConTipos = (articulo: Partial<Articulo>) => {
+  const resultado = !articulo.id ? validarArticulo(articulo) : validarArticuloParaActualizar(articulo);
+  
+  if (resultado.success) {
+    return { 
+      success: true as const,
+      data: resultado.data 
+    };
+  } else {
+    const error = createValidationError(
+      'Validación de artículo fallida',
+      'articulo',
+      resultado.error.issues.map((issue: any) => issue.message)
+    );
+    
+    return { 
+      success: false as const,
+      error 
+    };
   }
-
-  return {
-    isValid: errors.length === 0,
-    errors
-  };
 };

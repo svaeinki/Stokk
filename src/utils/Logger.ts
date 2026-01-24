@@ -3,6 +3,8 @@
  * En producción (__DEV__ = false), los logs se silencian automáticamente.
  */
 
+import { StokkError } from '../types/errors';
+
 const isDev = __DEV__;
 
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
@@ -29,7 +31,7 @@ const shouldLog = (level: LogLevel): boolean => {
   return LOG_LEVELS[level] >= LOG_LEVELS[config.minLevel];
 };
 
-const formatMessage = (level: LogLevel, message: string): string => {
+const formatMessage = (level: LogLevel, message: string, error?: StokkError): string => {
   const timestamp = new Date().toISOString().slice(11, 19);
   const prefix = {
     debug: '🔍',
@@ -37,7 +39,39 @@ const formatMessage = (level: LogLevel, message: string): string => {
     warn: '⚠️',
     error: '❌',
   }[level];
-  return `${prefix} [${timestamp}] ${message}`;
+  
+  let formattedMessage = `${prefix} [${timestamp}] ${message}`;
+  
+  if (error) {
+    formattedMessage += ` [${error.type || 'Unknown'}]`;
+    if (error.code) {
+      formattedMessage += ` (${error.code})`;
+    }
+    if (error.context) {
+      formattedMessage += ` Context: ${error.context}`;
+    }
+  }
+  
+  return formattedMessage;
+};
+
+const formatErrorObject = (error: StokkError | unknown): unknown => {
+  if (!error) return undefined;
+  
+  if (error instanceof Error && 'type' in error) {
+    const typedError = error as StokkError;
+    return {
+      name: typedError.name,
+      message: typedError.message,
+      type: typedError.type,
+      code: typedError.code,
+      context: typedError.context,
+      timestamp: typedError.timestamp,
+      details: typedError.details,
+    };
+  }
+  
+  return error;
 };
 
 export const Logger = {
@@ -59,10 +93,44 @@ export const Logger = {
     }
   },
 
-  error: (message: string, ...args: unknown[]) => {
+  error: (message: string, error?: StokkError | unknown, ...args: unknown[]) => {
     if (shouldLog('error')) {
-      console.error(formatMessage('error', message), ...args);
+      const typedError = error as StokkError;
+      console.error(
+        formatMessage('error', message, typedError), 
+        formatErrorObject(error),
+        ...args
+      );
     }
+  },
+
+  // Specialized logging methods for different error types
+  databaseError: (message: string, error: StokkError | unknown) => {
+    Logger.error(`[DATABASE] ${message}`, error);
+  },
+
+  networkError: (message: string, error: StokkError | unknown) => {
+    Logger.error(`[NETWORK] ${message}`, error);
+  },
+
+  validationError: (message: string, error: StokkError | unknown) => {
+    Logger.warn(`[VALIDATION] ${message}`, error);
+  },
+
+  permissionError: (message: string, error: StokkError | unknown) => {
+    Logger.warn(`[PERMISSION] ${message}`, error);
+  },
+
+  imageError: (message: string, error: StokkError | unknown) => {
+    Logger.error(`[IMAGE] ${message}`, error);
+  },
+
+  subscriptionError: (message: string, error: StokkError | unknown) => {
+    Logger.error(`[SUBSCRIPTION] ${message}`, error);
+  },
+
+  fileSystemError: (message: string, error: StokkError | unknown) => {
+    Logger.error(`[FILESYSTEM] ${message}`, error);
   },
 
   // Para configuración dinámica si es necesario

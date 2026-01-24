@@ -8,8 +8,12 @@ import Purchases, {
 } from 'react-native-purchases';
 import Logger from '../utils/Logger';
 
-// RevenueCat API Keys
-const API_KEY = 'REDACTED_REVENUECAT_TEST_KEY';
+// RevenueCat API Keys from environment variables
+const API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '';
+
+if (!API_KEY) {
+    throw new Error('RevenueCat API key is not configured. Please set EXPO_PUBLIC_REVENUECAT_API_KEY in your environment variables.');
+}
 
 // Entitlement identifier configured in RevenueCat dashboard
 const PRO_ENTITLEMENT_ID = 'Stokk Pro';
