@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, StyleSheet, Text } from 'react-native';
-import { TextInput, Divider } from 'react-native-paper';
+import { TextInput, Divider, TextInputProps } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { Articulo } from '../../database/DatabaseManager';
@@ -24,7 +24,7 @@ const DataSection: React.FC<DataSectionProps> = ({
     label: string,
     value: string,
     onChangeText: (text: string) => void,
-    props: any = {}
+    props: Partial<TextInputProps> = {}
   ) => (
     <View style={styles.fieldContainer}>
       <Text style={[styles.label, { color: theme.colors.onSurfaceVariant }]}>

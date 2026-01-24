@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useTranslation } from 'react-i18next';
@@ -31,7 +31,7 @@ export const useArticuloForm = ({
     imagen: '',
     numeroBodega: '',
     observaciones: '',
-    fechaIngreso: new Date().toLocaleDateString('es-CL'),
+    fechaIngreso: new Date().toISOString(),
   });
 
   const [loading, setLoading] = useState(false);
@@ -51,8 +51,11 @@ export const useArticuloForm = ({
 
   const checkLimit = async () => {
     try {
-      const count = await DatabaseManager.contarArticulos();
-      const isPro = await SubscriptionService.isPro();
+      // Fetch count and subscription status in parallel
+      const [count, isPro] = await Promise.all([
+        DatabaseManager.contarArticulos(),
+        SubscriptionService.isPro()
+      ]);
 
       if (count >= FREE_TIER_PRODUCT_LIMIT && !isPro) {
         Alert.alert(
@@ -60,7 +63,7 @@ export const useArticuloForm = ({
           t('limit.message', { limit: FREE_TIER_PRODUCT_LIMIT }),
           [
             { text: t('common.cancel'), onPress: () => navigation.goBack(), style: 'cancel' },
-            { text: t('limit.view_plans'), onPress: () => navigation.navigate('Paywall' as any) }
+            { text: t('limit.view_plans'), onPress: () => navigation.navigate('Paywall') }
           ],
           { cancelable: false }
         );
@@ -70,11 +73,11 @@ export const useArticuloForm = ({
     }
   };
 
-  const handleFieldChange = (field: keyof Articulo, value: string | number) => {
+  const handleFieldChange = useCallback((field: keyof Articulo, value: string | number) => {
     setFormData((prev: Partial<Articulo>) => ({ ...prev, [field]: value }));
-  };
+  }, []);
 
-  const handleSave = async () => {
+  const handleSave = useCallback(async () => {
     const validation = validarFormularioArticulo(formData);
 
     if (!validation.isValid) {
@@ -124,11 +127,11 @@ export const useArticuloForm = ({
     } finally {
       setLoading(false);
     }
-  };
+  }, [formData, initialArticulo, navigation, t]);
 
-  const handleCancel = () => {
+  const handleCancel = useCallback(() => {
     navigation.navigate('Inventario');
-  };
+  }, [navigation]);
 
   return {
     formData,

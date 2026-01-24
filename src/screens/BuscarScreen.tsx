@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef, useEffect } from 'react';
+import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
 import { View, StyleSheet, FlatList, Image, RefreshControl, Alert } from 'react-native';
 import { Searchbar, Card, Text, IconButton, Chip } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
@@ -21,11 +21,6 @@ const BuscarScreen: React.FC = () => {
   const [hasSearched, setHasSearched] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const searchQueryRef = useRef(searchQuery);
-
-  // Keep ref in sync with state
-  useEffect(() => {
-    searchQueryRef.current = searchQuery;
-  }, [searchQuery]);
 
   const buscar = useCallback(async (query: string) => {
     if (!query.trim()) {
@@ -64,8 +59,9 @@ const BuscarScreen: React.FC = () => {
     };
   }, []);
 
-  const handleSearch = (query: string) => {
+  const handleSearch = useCallback((query: string) => {
     setSearchQuery(query);
+    searchQueryRef.current = query;
 
     // Limpiar timeout anterior
     if (debounceRef.current) {
@@ -76,7 +72,16 @@ const BuscarScreen: React.FC = () => {
     debounceRef.current = setTimeout(() => {
       buscar(query);
     }, 300);
-  };
+  }, [buscar]);
+
+  const handleClearSearch = useCallback(() => {
+    setSearchQuery('');
+    searchQueryRef.current = '';
+    setArticulos([]);
+    setHasSearched(false);
+  }, []);
+
+  const refreshColors = useMemo(() => [theme.colors.primary], [theme.colors.primary]);
 
   const handleEdit = (articulo: Articulo) => {
     navigation.navigate('Ingresar', { articulo });
@@ -105,7 +110,13 @@ const BuscarScreen: React.FC = () => {
     );
   };
 
-  const renderArticulo = ({ item }: { item: Articulo }) => (
+  const renderArticulo = ({ item }: { item: Articulo }) => {
+    const locationLabel = t('product.location_label');
+    const locationPrefix = locationLabel.includes('/')
+      ? locationLabel.split('/')[1].trim()
+      : locationLabel;
+
+    return (
     <Card
       style={[styles.card, { backgroundColor: theme.colors.surface }]}
       onPress={() => handleEdit(item)}
@@ -131,7 +142,7 @@ const BuscarScreen: React.FC = () => {
               style={[styles.codigo, { color: theme.colors.onSurfaceVariant }]}
               numberOfLines={1}
             >
-              {t('product.location_label').split('/')[1].trim()}: {item.numeroBodega}
+              {locationPrefix}: {item.numeroBodega}
             </Text>
             <View style={styles.priceRow}>
               <Text style={[styles.precio, { color: theme.colors.primary }]}>
@@ -163,7 +174,8 @@ const BuscarScreen: React.FC = () => {
         />
       </Card.Actions>
     </Card>
-  );
+    );
+  };
 
   const renderEmptyState = () => {
     if (!hasSearched) {
@@ -204,11 +216,7 @@ const BuscarScreen: React.FC = () => {
           iconColor={theme.colors.onSurfaceVariant}
           inputStyle={{ color: theme.colors.onSurface }}
           placeholderTextColor={theme.colors.onSurfaceVariant}
-          onClearIconPress={() => {
-            setSearchQuery('');
-            setArticulos([]);
-            setHasSearched(false);
-          }}
+          onClearIconPress={handleClearSearch}
         />
         {hasSearched && articulos.length > 0 && (
           <Text style={[styles.resultCount, { color: theme.colors.onSurfaceVariant }]}>
@@ -226,7 +234,7 @@ const BuscarScreen: React.FC = () => {
           <RefreshControl
             refreshing={loading}
             onRefresh={() => buscar(searchQuery)}
-            colors={[theme.colors.primary]}
+            colors={refreshColors}
             tintColor={theme.colors.primary}
           />
         }

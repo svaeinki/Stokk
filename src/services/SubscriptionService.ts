@@ -11,10 +11,6 @@ import Logger from '../utils/Logger';
 // RevenueCat API Keys from environment variables
 const API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '';
 
-if (!API_KEY) {
-    throw new Error('RevenueCat API key is not configured. Please set EXPO_PUBLIC_REVENUECAT_API_KEY in your environment variables.');
-}
-
 // Entitlement identifier configured in RevenueCat dashboard
 const PRO_ENTITLEMENT_ID = 'Stokk Pro';
 
@@ -46,6 +42,7 @@ class SubscriptionService {
     private isInitialized = false;
     private proStatusCache: ProStatusCache | null = null;
     private customerInfoListener: ((info: CustomerInfo) => void) | null = null;
+    private hasApiKey = () => !!API_KEY;
 
     /**
      * Initialize RevenueCat SDK
@@ -58,6 +55,11 @@ class SubscriptionService {
         }
 
         try {
+            if (!API_KEY) {
+                Logger.warn('RevenueCat API key is not configured. Skipping initialization.');
+                return;
+            }
+
             // Enable debug logs in development
             if (__DEV__) {
                 Purchases.setLogLevel(LOG_LEVEL.DEBUG);
@@ -114,6 +116,9 @@ class SubscriptionService {
      * Get current customer info from RevenueCat
      */
     async getCustomerInfo(): Promise<CustomerInfo | null> {
+        if (!this.hasApiKey()) {
+            return null;
+        }
         if (!this.isInitialized) {
             Logger.warn('RevenueCat not initialized, attempting initialization...');
             await this.initialize();
@@ -133,6 +138,9 @@ class SubscriptionService {
      * Get available subscription offerings
      */
     async getOfferings(): Promise<PurchasesOffering | null> {
+        if (!this.hasApiKey()) {
+            return null;
+        }
         if (!this.isInitialized) {
             await this.initialize();
         }
@@ -157,6 +165,9 @@ class SubscriptionService {
      * Get all available packages from the current offering
      */
     async getPackages(): Promise<PurchasesPackage[]> {
+        if (!this.hasApiKey()) {
+            return [];
+        }
         const offering = await this.getOfferings();
         return offering?.availablePackages ?? [];
     }
@@ -165,6 +176,9 @@ class SubscriptionService {
      * Purchase a specific package
      */
     async purchasePackage(pack: PurchasesPackage): Promise<{ success: boolean; customerInfo?: CustomerInfo; error?: string }> {
+        if (!this.hasApiKey()) {
+            return { success: false, error: 'not_configured' };
+        }
         if (!this.isInitialized) {
             await this.initialize();
         }
@@ -209,6 +223,9 @@ class SubscriptionService {
      * Check if user has Pro entitlement
      */
     async isPro(forceRefresh = false): Promise<boolean> {
+        if (!this.hasApiKey()) {
+            return false;
+        }
         if (!this.isInitialized) {
             try {
                 await this.initialize();
@@ -238,6 +255,13 @@ class SubscriptionService {
      * Get detailed subscription status
      */
     async getSubscriptionStatus(): Promise<SubscriptionStatus> {
+        if (!this.hasApiKey()) {
+            return {
+                isPro: false,
+                willRenew: false,
+                isLifetime: false,
+            };
+        }
         const customerInfo = await this.getCustomerInfo();
 
         if (!customerInfo) {
@@ -272,6 +296,9 @@ class SubscriptionService {
      * Restore previous purchases
      */
     async restorePurchases(): Promise<{ isPro: boolean; error?: string }> {
+        if (!this.hasApiKey()) {
+            return { isPro: false, error: 'not_configured' };
+        }
         if (!this.isInitialized) {
             await this.initialize();
         }
@@ -303,6 +330,9 @@ class SubscriptionService {
      * Use this when you have your own user authentication
      */
     async logIn(appUserID: string): Promise<CustomerInfo | null> {
+        if (!this.hasApiKey()) {
+            return null;
+        }
         if (!this.isInitialized) {
             await this.initialize();
         }
@@ -322,6 +352,9 @@ class SubscriptionService {
      * Log out the current user
      */
     async logOut(): Promise<CustomerInfo | null> {
+        if (!this.hasApiKey()) {
+            return null;
+        }
         if (!this.isInitialized) {
             return null;
         }
@@ -341,6 +374,9 @@ class SubscriptionService {
      * Get the current app user ID
      */
     async getAppUserID(): Promise<string | null> {
+        if (!this.hasApiKey()) {
+            return null;
+        }
         if (!this.isInitialized) {
             return null;
         }

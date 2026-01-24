@@ -21,7 +21,7 @@
         "enterpriseProvisioning": "universal"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "app-bundle"
       }
     }
   },

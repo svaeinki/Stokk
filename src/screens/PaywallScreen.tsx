@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Text, ScrollView, Alert, TouchableOpacity, Linking } from 'react-native';
 import { Button, Card, ActivityIndicator } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
@@ -107,7 +107,7 @@ const PaywallScreen: React.FC = () => {
         }
     };
 
-    const handlePurchase = async (pack: PurchasesPackage) => {
+    const handlePurchase = useCallback(async (pack: PurchasesPackage) => {
         setPurchasing(true);
         try {
             const result = await SubscriptionService.purchasePackage(pack);
@@ -140,9 +140,9 @@ const PaywallScreen: React.FC = () => {
         } finally {
             setPurchasing(false);
         }
-    };
+    }, [navigation, t]);
 
-    const handleRestore = async () => {
+    const handleRestore = useCallback(async () => {
         setPurchasing(true);
         try {
             const result = await SubscriptionService.restorePurchases();
@@ -165,17 +165,17 @@ const PaywallScreen: React.FC = () => {
         } finally {
             setPurchasing(false);
         }
-    };
+    }, [navigation, t]);
 
-    const openPrivacyPolicy = () => {
+    const openPrivacyPolicy = useCallback(() => {
         Linking.openURL('https://stokk.app/privacy');
-    };
+    }, []);
 
-    const openTerms = () => {
+    const openTerms = useCallback(() => {
         Linking.openURL('https://stokk.app/terms');
-    };
+    }, []);
 
-    const benefits: Benefit[] = [
+    const benefits: Benefit[] = useMemo(() => [
         {
             icon: 'all-inclusive',
             title: t('paywall.feature_1_title'),
@@ -196,7 +196,7 @@ const PaywallScreen: React.FC = () => {
             title: t('paywall.feature_4_title'),
             description: t('paywall.feature_4_desc'),
         },
-    ];
+    ], [t]);
 
     const getPackageLabel = (pack: PurchasesPackage): string => {
         switch (pack.packageType) {

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
 import {
   View,
@@ -65,7 +65,7 @@ const ArticuloForm: React.FC = () => {
     );
   };
 
-  const takePhoto = async () => {
+  const takePhoto = useCallback(async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
 
     if (status !== 'granted') {
@@ -91,9 +91,9 @@ const ArticuloForm: React.FC = () => {
     } finally {
       setImagePickerLoading(false);
     }
-  };
+  }, [handleFieldChange, t]);
 
-  const pickFromGallery = async () => {
+  const pickFromGallery = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
 
     if (status !== 'granted') {
@@ -119,9 +119,9 @@ const ArticuloForm: React.FC = () => {
     } finally {
       setImagePickerLoading(false);
     }
-  };
+  }, [handleFieldChange, t]);
 
-  const pickImage = () => {
+  const pickImage = useCallback(() => {
     Alert.alert(
       t('permissions.select_image_title'),
       t('permissions.select_image_msg'),
@@ -131,11 +131,11 @@ const ArticuloForm: React.FC = () => {
         { text: t('common.cancel'), style: 'cancel' }
       ]
     );
-  };
+  }, [t, takePhoto, pickFromGallery]);
 
-  const handleClearImage = () => {
+  const handleClearImage = useCallback(() => {
     handleFieldChange('imagen', '');
-  };
+  }, [handleFieldChange]);
 
   return (
     <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>

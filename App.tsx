@@ -9,6 +9,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import DatabaseManager from './src/database/DatabaseManager';
 import SubscriptionService from './src/services/SubscriptionService';
+import { initializeSentry } from './src/services/SentryService';
 import Logger from './src/utils/Logger';
 import { RootStackParamList, TabParamList } from './src/types/navigation';
 
@@ -23,6 +24,9 @@ import './src/i18n'; // Initialize i18n
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
+
+// Module-level guard to prevent re-initialization in Strict Mode
+let appInitialized = false;
 
 function MainTabs() {
   const { theme } = useTheme();
@@ -107,7 +111,16 @@ function AppContent() {
 
   useEffect(() => {
     const initApp = async () => {
+      // Prevent re-initialization in Strict Mode
+      if (appInitialized) {
+        setIsReady(true);
+        return;
+      }
+
       try {
+        // Initialize Sentry for crash reporting (first, before anything else)
+        initializeSentry();
+
         // Initialize database
         await DatabaseManager.initDatabase();
 
@@ -116,6 +129,7 @@ function AppContent() {
           Logger.warn('RevenueCat initialization failed (non-blocking)', error);
         });
 
+        appInitialized = true;
         setIsReady(true);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : t('common.error');

@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { useColorScheme } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import {
@@ -199,10 +199,17 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
         setThemePreference(newPreference);
     }, [isDark, setThemePreference]);
 
-    const theme = isDark ? CombinedDarkTheme : CombinedLightTheme;
-    const navigationTheme = isDark ? NavDarkTheme : NavLightTheme;
+    const theme = useMemo(
+        () => isDark ? CombinedDarkTheme : CombinedLightTheme,
+        [isDark]
+    );
 
-    const finalNavTheme = {
+    const navigationTheme = useMemo(
+        () => isDark ? NavDarkTheme : NavLightTheme,
+        [isDark]
+    );
+
+    const finalNavTheme = useMemo(() => ({
         ...navigationTheme,
         colors: {
             ...navigationTheme.colors,
@@ -213,7 +220,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
             border: theme.colors.outline,
             notification: theme.colors.error,
         },
-    };
+    }), [navigationTheme, theme]);
 
     return (
         <ThemeContext.Provider value={{

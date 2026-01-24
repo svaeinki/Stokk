@@ -38,8 +38,10 @@ export const initializeSentry = () => {
       platform: Platform.OS,
     });
 
-    console.log('Sentry initialized for production');
-  } else {
+    if (__DEV__) {
+      console.log('Sentry initialized for production');
+    }
+  } else if (__DEV__) {
     console.log('Sentry disabled in development or missing DSN');
   }
 };
@@ -58,7 +60,9 @@ export const reportError = (error: Error, context?: string) => {
   }
   
   // Also log to console in development
-  console.error(`[${context || 'App'}] Error:`, error);
+  if (__DEV__) {
+    console.error(`[${context || 'App'}] Error:`, error);
+  }
 };
 
 // Performance tracking

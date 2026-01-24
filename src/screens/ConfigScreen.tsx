@@ -34,7 +34,7 @@ const ConfigScreen: React.FC = () => {
         }, [])
     );
 
-    const loadSubscriptionStatus = async () => {
+    const loadSubscriptionStatus = useCallback(async () => {
         try {
             setLoadingStatus(true);
             const status = await SubscriptionService.getSubscriptionStatus();
@@ -44,15 +44,15 @@ const ConfigScreen: React.FC = () => {
         } finally {
             setLoadingStatus(false);
         }
-    };
+    }, []);
 
-    const handleLanguageChange = (lang: string) => {
+    const handleLanguageChange = useCallback((lang: string) => {
         changeLanguage(lang);
-    };
+    }, []);
 
-    const handleUpgrade = () => {
+    const handleUpgrade = useCallback(() => {
         navigation.navigate('Paywall');
-    };
+    }, [navigation]);
 
     const handleManageSubscription = async () => {
         try {
@@ -121,17 +121,17 @@ const ConfigScreen: React.FC = () => {
         );
     };
 
-    const openPrivacyPolicy = () => {
+    const openPrivacyPolicy = useCallback(() => {
         Linking.openURL('https://stokk.app/privacy');
-    };
+    }, []);
 
-    const openTerms = () => {
+    const openTerms = useCallback(() => {
         Linking.openURL('https://stokk.app/terms');
-    };
+    }, []);
 
-    const openSupport = () => {
+    const openSupport = useCallback(() => {
         Linking.openURL('mailto:support@stokk.app');
-    };
+    }, []);
 
     const formatExpirationDate = (dateString?: string): string => {
         if (!dateString) return '';

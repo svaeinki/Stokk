@@ -7,11 +7,47 @@ const numeroBodegaSchema = z
   .min(1, 'El número de bodega es requerido')
   .regex(/^B\d{9}$/, 'El número de bodega debe tener formato B123456789');
 
-// Validación de fecha (formato: DD/MM/YYYY o DD/MM/YYYY HH:mm:ss)
+const esFechaValida = (value: string): boolean => {
+  if (!value) return false;
+  const esFormatoLatino = /^\d{2}\/\d{2}\/\d{4}(\s\d{2}:\d{2}:\d{2})?$/.test(value);
+  if (esFormatoLatino) return true;
+  const parsed = new Date(value);
+  return !Number.isNaN(parsed.getTime());
+};
+
+// Validación de fecha (acepta DD/MM/YYYY o ISO)
 const fechaSchema = z
   .string()
   .min(1, 'La fecha es requerida')
-  .regex(/^\d{2}\/\d{2}\/\d{4}(\s\d{2}:\d{2}:\d{2})?$/, 'La fecha debe tener formato DD/MM/YYYY');
+  .refine(esFechaValida, 'La fecha debe tener formato DD/MM/YYYY o ISO');
+
+// Validación personalizada para URI de imágenes
+export const esUriValido = (uri: string): boolean => {
+  if (!uri) return false;
+  
+  // Aceptar URIs locales de React Native
+  if (uri.startsWith('file://') || uri.startsWith('content://')) return true;
+  
+  // Aceptar URIs de assets
+  if (uri.startsWith('asset://')) return true;
+  
+  // Aceptar URIs http/https (para imágenes remotas)
+  try {
+    new URL(uri);
+    return uri.startsWith('http://') || uri.startsWith('https://');
+  } catch {
+    return false;
+  }
+};
+
+// Schema modificado para aceptar URIs de imágenes locales
+const imagenUriSchema = z
+  .string()
+  .min(1, 'La URI de la imagen es requerida')
+  .refine(esUriValido, 'La URI de la imagen no es válida')
+  .or(z.literal(''))
+  .nullable()
+  .optional();
 
 // Schema principal para Articulo
 export const articuloSchema = z.object({
@@ -38,12 +74,7 @@ export const articuloSchema = z.object({
     .min(0, 'La cantidad debe ser mayor o igual a 0')
     .max(999999, 'La cantidad no puede exceder 999.999')
     .default(1),
-  imagen: z
-    .string()
-    .url('La imagen debe ser una URL válida')
-    .or(z.literal(''))
-    .nullable()
-    .optional(),
+  imagen: imagenUriSchema,
   numeroBodega: numeroBodegaSchema,
   observaciones: z
     .string()
@@ -87,12 +118,7 @@ export const actualizarArticuloSchema = z.object({
     .min(0, 'La cantidad debe ser mayor o igual a 0')
     .max(999999, 'La cantidad no puede exceder 999.999')
     .optional(),
-  imagen: z
-    .string()
-    .url('La imagen debe ser una URL válida')
-    .or(z.literal(''))
-    .nullable()
-    .optional(),
+  imagen: imagenUriSchema,
   numeroBodega: numeroBodegaSchema.optional(),
   observaciones: z
     .string()
@@ -173,34 +199,6 @@ export const transformarParcialArticulo = (partial: Partial<Articulo>): Partial<
   
   return transformado;
 };
-
-// Validación personalizada para URI de imágenes
-export const esUriValido = (uri: string): boolean => {
-  if (!uri) return false;
-  
-  // Aceptar URIs locales de React Native
-  if (uri.startsWith('file://') || uri.startsWith('content://')) return true;
-  
-  // Aceptar URIs de assets
-  if (uri.startsWith('asset://')) return true;
-  
-  // Aceptar URIs http/https (para imágenes remotas)
-  try {
-    new URL(uri);
-    return uri.startsWith('http://') || uri.startsWith('https://');
-  } catch {
-    return false;
-  }
-};
-
-// Schema modificado para aceptar URIs de imágenes locales
-const imagenUriSchema = z
-  .string()
-  .min(1, 'La URI de la imagen es requerida')
-  .refine(esUriValido, 'La URI de la imagen no es válida')
-  .or(z.literal(''))
-  .nullable()
-  .optional();
 
 // Schema principal con URI de imagen válida
 export const articuloSchemaConUri = articuloSchema.extend({

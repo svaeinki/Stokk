@@ -28,15 +28,17 @@
       "package": "com.svaeinki.stokk",
       "permissions": [
         "android.permission.CAMERA",
-        "com.android.vending.BILLING"
+        "com.android.vending.BILLING",
+        "android.permission.RECORD_AUDIO"
       ]
     },
     "web": {
       "favicon": "./assets/favicon.png"
     },
     "extra": {
+      "router": {},
       "eas": {
-        "projectId": "9cd45186-c7c9-437b-a35d-812a26f71c29"
+        "projectId": "93218a11-ce26-4bc9-a0f6-ded7ac20c9c8"
       }
     },
     "plugins": [

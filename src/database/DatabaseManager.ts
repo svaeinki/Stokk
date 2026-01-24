@@ -213,11 +213,11 @@ class DatabaseManager {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
-      // 1. Limpiar todas las imágenes físicas
-      await ImageService.clearAllImages();
-
-      // 2. Borrar datos
-      await this.db.runAsync('DELETE FROM articulos');
+      // Clear images and database in parallel (independent operations)
+      await Promise.all([
+        ImageService.clearAllImages(),
+        this.db.runAsync('DELETE FROM articulos')
+      ]);
     } catch (error) {
       Logger.error('Error al resetear base de datos', error);
       throw error;

@@ -1,4 +1,12 @@
+import { ZodIssue } from 'zod';
 import { Articulo } from '../database/DatabaseManager';
+import {
+  validarArticulo,
+  validarArticuloParaActualizar,
+  CrearArticuloInput,
+  ActualizarArticuloInput
+} from '../validation/schemas';
+import { createValidationError } from '../types/errors';
 import Logger from './Logger';
 
 // ============================================
@@ -20,19 +28,27 @@ export const formatearNumero = (valor: number): string => {
   return new Intl.NumberFormat('es-CL').format(valor || 0);
 };
 
+const parseFechaIngreso = (fechaIngreso: string): Date | null => {
+  if (!fechaIngreso) return null;
+  const fechaParte = fechaIngreso.split(',')[0].trim();
+  const formatoLatino = /^\d{2}\/\d{2}\/\d{4}/.test(fechaParte);
+
+  if (formatoLatino) {
+    const [dia, mes, anio] = fechaParte.split('/').map(num => parseInt(num, 10));
+    if (!dia || !mes || !anio) return null;
+    return new Date(anio, mes - 1, dia);
+  }
+
+  const parsed = new Date(fechaIngreso);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+};
+
 export const calcularDiasEnBodega = (fechaIngreso: string): string => {
   try {
-    // Asumir formato dd/mm/yyyy hh:mm:ss o dd/mm/yyyy
-    const fechaParte = fechaIngreso.split(',')[0].trim();
-    const [dia, mes, anio] = fechaParte.split('/').map(num => parseInt(num, 10));
+    const fecha = parseFechaIngreso(fechaIngreso);
+    if (!fecha) return 'Fecha inválida';
 
-    if (!dia || !mes || !anio) return 'Fecha inválida';
-
-    // Mes en JavaScript es 0-11
-    const fecha = new Date(anio, mes - 1, dia);
     const ahora = new Date();
-
-    // Resetear horas para comparar solo días
     fecha.setHours(0, 0, 0, 0);
     ahora.setHours(0, 0, 0, 0);
 
@@ -54,8 +70,9 @@ export const calcularDiasEnBodega = (fechaIngreso: string): string => {
 
 export const obtenerClaseAlerta = (fechaIngreso: string): string => {
   try {
-    const partes = fechaIngreso.split(',')[0].trim().split('/');
-    const fecha = new Date(parseInt(partes[2]), parseInt(partes[1]) - 1, parseInt(partes[0]));
+    const fecha = parseFechaIngreso(fechaIngreso);
+    if (!fecha) return '';
+
     const ahora = new Date();
     const dias = Math.floor((ahora.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24));
 
@@ -78,14 +95,6 @@ export const generarNumeroBodega = (): string => {
   return `B${timestamp.slice(-6)}${random}`;
 };
 
-import { 
-  validarArticulo, 
-  validarArticuloParaActualizar,
-  CrearArticuloInput, 
-  ActualizarArticuloInput 
-} from '../validation/schemas';
-import { createValidationError } from '../types/errors';
-
 // ============================================
 // VALIDACIÓN DE FORMULARIOS CON ZOD
 // ============================================
@@ -94,13 +103,13 @@ export const validarFormularioArticulo = (articulo: Partial<Articulo>): { isVali
   // Si es un nuevo artículo (sin id), usar schema de creación
   if (!articulo.id) {
     const resultado = validarArticulo(articulo);
-    
+
     if (resultado.success) {
       return { isValid: true, errors: [] };
-  } else {
-    const errors = resultado.error.issues.map((issue: any) => `${issue.path.join('.')}: ${issue.message}`);
-    return { isValid: false, errors };
-  }
+    } else {
+      const errors = resultado.error.issues.map((issue: ZodIssue) => `${issue.path.join('.')}: ${issue.message}`);
+      return { isValid: false, errors };
+    }
   }
 
   // Para actualizaciones, validar solo los campos proporcionados
@@ -151,7 +160,7 @@ export const validarArticuloConTipos = (articulo: Partial<Articulo>) => {
     const error = createValidationError(
       'Validación de artículo fallida',
       'articulo',
-      resultado.error.issues.map((issue: any) => issue.message)
+      resultado.error.issues.map((issue: ZodIssue) => issue.message)
     );
     
     return { 
