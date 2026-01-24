@@ -106,7 +106,7 @@ export default function App() {
 function AppContent() {
   const [isReady, setIsReady] = useState(false);
   const [dbError, setDbError] = useState<string | null>(null);
-  const { theme, navigationTheme } = useTheme();
+  const { theme, navigationTheme, isDark } = useTheme();
   const { t } = useTranslation();
 
   useEffect(() => {
@@ -181,7 +181,7 @@ function AppContent() {
           />
         </Stack.Navigator>
       </NavigationContainer>
-      <StatusBar style="light" backgroundColor={theme.colors.primary} />
+      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={theme.colors.primary} />
     </PaperProvider>
   );
 }

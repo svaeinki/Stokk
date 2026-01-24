@@ -46,7 +46,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
       setArticulos(data);
     } catch (error) {
       Logger.error('Error al cargar artículos', error);
-      Alert.alert(t('common.error'), t('list.error_loading', 'No se pudieron cargar los productos'));
+      Alert.alert(t('common.error'), t('list.error_loading'));
     } finally {
       setLoading(false);
     }
@@ -86,11 +86,21 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
   }, [t, cargarArticulos]);
 
   const renderArticulo = useCallback(({ item }: { item: Articulo }) => (
-    <Card style={[styles.card, { backgroundColor: theme.colors.surface }]} onPress={() => onEdit(item)}>
+    <Card
+      style={[styles.card, { backgroundColor: theme.colors.surface }]}
+      onPress={() => onEdit(item)}
+      accessible={true}
+      accessibilityLabel={`${item.nombre}, ${formatearMoneda(item.precio)}, ${t('product.stock')}: ${item.cantidad}`}
+      accessibilityHint={t('accessibility.tap_to_edit')}
+    >
       <Card.Content style={styles.cardContent}>
         <View style={styles.contentRow}>
           {item.imagen ? (
-            <Image source={{ uri: item.imagen }} style={[styles.thumbnail, { backgroundColor: theme.colors.surfaceVariant }]} />
+            <Image
+              source={{ uri: item.imagen }}
+              style={[styles.thumbnail, { backgroundColor: theme.colors.surfaceVariant }]}
+              accessibilityLabel={`${t('accessibility.image_of')} ${item.nombre}`}
+            />
           ) : (
             <View style={[styles.placeholderThumbnail, { backgroundColor: theme.colors.surfaceVariant }]}>
               <Icon name="image-not-supported" size={40} color={theme.colors.onSurfaceVariant} />
@@ -108,7 +118,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
                 {formatearMoneda(item.precio)}
               </Text>
               <Chip icon="archive" style={styles.cantidadChip} textStyle={{ color: theme.colors.onSecondaryContainer }}>
-                Stock: {item.cantidad}
+                {t('product.stock')}: {item.cantidad}
               </Chip>
             </View>
           </View>
@@ -118,16 +128,20 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
         <IconButton
           icon="pencil"
           iconColor={theme.colors.primary}
+          size={24}
           onPress={() => onEdit(item)}
+          accessibilityLabel={`${t('common.edit')} ${item.nombre}`}
         />
         <IconButton
           icon="delete"
           iconColor={theme.colors.error}
+          size={24}
           onPress={() => item.id !== undefined && handleDelete(item.id, item.nombre)}
+          accessibilityLabel={`${t('common.delete')} ${item.nombre}`}
         />
       </Card.Actions>
     </Card>
-  ), [theme, onEdit, handleDelete]);
+  ), [theme, onEdit, handleDelete, t]);
 
   const keyExtractor = useCallback(
     (item: Articulo) => item.id?.toString() ?? `temp-${item.numeroBodega}`,
@@ -144,13 +158,16 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />
         }
         contentContainerStyle={styles.list}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
         ListEmptyComponent={
           !loading ? (
             <View style={styles.emptyContainer}>
               <Icon name="inventory" size={64} color={theme.colors.outline} />
               <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>{t('list.empty_title')}</Text>
               <Text style={[styles.emptySubtext, { color: theme.colors.onSurfaceVariant }]}>
-                {searchQuery ? t('list.empty_search_msg', 'No se encontraron resultados') : t('list.empty_msg')}
+                {searchQuery ? t('list.empty_search_msg') : t('list.empty_msg')}
               </Text>
             </View>
           ) : null

@@ -35,7 +35,7 @@ const BuscarScreen: React.FC = () => {
       const resultados = await DatabaseManager.buscarArticulos(query.trim());
       setArticulos(resultados);
     } catch (error) {
-      Alert.alert(t('common.error'), t('list.error_loading', 'No se pudo realizar la búsqueda'));
+      Alert.alert(t('common.error'), t('list.error_loading'));
     } finally {
       setLoading(false);
     }
@@ -120,6 +120,9 @@ const BuscarScreen: React.FC = () => {
     <Card
       style={[styles.card, { backgroundColor: theme.colors.surface }]}
       onPress={() => handleEdit(item)}
+      accessible={true}
+      accessibilityLabel={`${item.nombre}, ${formatearMoneda(item.precio)}, ${t('product.stock')}: ${item.cantidad}`}
+      accessibilityHint={t('accessibility.tap_to_edit')}
     >
       <Card.Content style={styles.cardContent}>
         <View style={styles.contentRow}>
@@ -127,6 +130,7 @@ const BuscarScreen: React.FC = () => {
             <Image
               source={{ uri: item.imagen }}
               style={[styles.thumbnail, { backgroundColor: theme.colors.surfaceVariant }]}
+              accessibilityLabel={`${t('accessibility.image_of')} ${item.nombre}`}
             />
           ) : (
             <View style={[styles.placeholderThumbnail, { backgroundColor: theme.colors.surfaceVariant }]}>
@@ -163,14 +167,16 @@ const BuscarScreen: React.FC = () => {
         <IconButton
           icon="pencil"
           iconColor={theme.colors.primary}
-          size={20}
+          size={24}
           onPress={() => handleEdit(item)}
+          accessibilityLabel={`${t('common.edit')} ${item.nombre}`}
         />
         <IconButton
           icon="delete"
           iconColor={theme.colors.error}
-          size={20}
+          size={24}
           onPress={() => item.id && handleDelete(item.id)}
+          accessibilityLabel={`${t('common.delete')} ${item.nombre}`}
         />
       </Card.Actions>
     </Card>
@@ -183,10 +189,10 @@ const BuscarScreen: React.FC = () => {
         <View style={styles.emptyContainer}>
           <Icon name="search" size={64} color={theme.colors.outline} />
           <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
-            {t('search.placeholder_title', 'Busca productos')}
+            {t('search.placeholder_title')}
           </Text>
           <Text style={[styles.emptySubtext, { color: theme.colors.outline }]}>
-            {t('search.placeholder_subtitle', 'Escribe el nombre o código de bodega')}
+            {t('search.placeholder_subtitle')}
           </Text>
         </View>
       );
@@ -220,7 +226,7 @@ const BuscarScreen: React.FC = () => {
         />
         {hasSearched && articulos.length > 0 && (
           <Text style={[styles.resultCount, { color: theme.colors.onSurfaceVariant }]}>
-            {articulos.length} {articulos.length === 1 ? t('search.result', 'resultado') : t('search.results', 'resultados')}
+            {articulos.length} {articulos.length === 1 ? t('search.result') : t('search.results')}
           </Text>
         )}
       </View>

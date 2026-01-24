@@ -51,6 +51,7 @@ class DatabaseManager {
     await this.db.execAsync(`
       CREATE INDEX IF NOT EXISTS idx_nombre ON articulos(nombre);
       CREATE INDEX IF NOT EXISTS idx_numeroBodega ON articulos(numeroBodega);
+      CREATE INDEX IF NOT EXISTS idx_fechaIngreso ON articulos(fechaIngreso DESC);
     `);
   }
 
@@ -89,12 +90,13 @@ class DatabaseManager {
     }
   }
 
-  async obtenerArticulos(): Promise<Articulo[]> {
+  async obtenerArticulos(limit: number = 100, offset: number = 0): Promise<Articulo[]> {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
       const articulos = await this.db.getAllAsync<Articulo>(
-        'SELECT * FROM articulos ORDER BY fechaIngreso DESC'
+        'SELECT * FROM articulos ORDER BY fechaIngreso DESC LIMIT ? OFFSET ?',
+        [limit, offset]
       );
       return articulos;
     } catch (error) {

@@ -35,7 +35,16 @@
         "created_success": "Product created successfully",
         "updated_success": "Product updated successfully",
         "validation_error": "Validation Error",
-        "save_error": "Could not save product"
+        "save_error": "Could not save product",
+        "stock": "Stock",
+        "camera_error": "Error taking photo",
+        "gallery_error": "Error selecting image"
+    },
+    "accessibility": {
+        "tap_to_edit": "Tap to edit this product",
+        "image_of": "Image of",
+        "edit_button": "Edit button",
+        "delete_button": "Delete button"
     },
     "limit": {
         "title": "Limit Reached",
