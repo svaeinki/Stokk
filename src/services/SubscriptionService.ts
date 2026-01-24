@@ -77,11 +77,15 @@ class SubscriptionService {
             this.isInitialized = true;
             Logger.info('RevenueCat initialized successfully');
 
-            // Pre-fetch customer info
-            await this.getCustomerInfo();
+            // Pre-fetch customer info (non-blocking, silent failure)
+            this.getCustomerInfo().catch(() => {
+                // Silent failure - customer info will be fetched when needed
+                Logger.debug('Could not pre-fetch customer info, will retry later');
+            });
         } catch (error) {
             Logger.error('Error initializing RevenueCat', error);
-            throw error;
+            // Don't throw - allow app to continue without subscriptions
+            this.isInitialized = false;
         }
     }
 
@@ -129,7 +133,8 @@ class SubscriptionService {
             this.handleCustomerInfoUpdate(customerInfo);
             return customerInfo;
         } catch (error) {
-            Logger.error('Error getting customer info', error);
+            // Only log in debug mode to avoid console noise
+            Logger.debug('Could not get customer info', error);
             return null;
         }
     }
