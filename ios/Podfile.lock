@@ -6,7 +6,7 @@ PODS:
   - EXImageLoader (6.0.0):
     - ExpoModulesCore
     - React-Core
-  - Expo (54.0.31):
+  - Expo (54.0.32):
     - boost
     - DoubleConversion
     - ExpoModulesCore
@@ -41,16 +41,22 @@ PODS:
     - ExpoModulesCore
   - ExpoFileSystem (19.0.21):
     - ExpoModulesCore
-  - ExpoFont (14.0.10):
+  - ExpoFont (14.0.11):
     - ExpoModulesCore
-  - ExpoHead (6.0.21):
+  - ExpoHead (6.0.22):
     - ExpoModulesCore
     - RNScreens
+  - ExpoImageManipulator (14.0.8):
+    - EXImageLoader
+    - ExpoModulesCore
+    - SDWebImageWebPCoder
   - ExpoImagePicker (17.0.10):
     - ExpoModulesCore
   - ExpoKeepAwake (15.0.8):
     - ExpoModulesCore
   - ExpoLinking (8.0.11):
+    - ExpoModulesCore
+  - ExpoLocalization (17.0.8):
     - ExpoModulesCore
   - ExpoModulesCore (3.0.29):
     - boost
@@ -90,8 +96,23 @@ PODS:
   - hermes-engine (0.81.5):
     - hermes-engine/Pre-built (= 0.81.5)
   - hermes-engine/Pre-built (0.81.5)
+  - libwebp (1.5.0):
+    - libwebp/demux (= 1.5.0)
+    - libwebp/mux (= 1.5.0)
+    - libwebp/sharpyuv (= 1.5.0)
+    - libwebp/webp (= 1.5.0)
+  - libwebp/demux (1.5.0):
+    - libwebp/webp
+  - libwebp/mux (1.5.0):
+    - libwebp/demux
+  - libwebp/sharpyuv (1.5.0)
+  - libwebp/webp (1.5.0):
+    - libwebp/sharpyuv
   - PurchasesHybridCommon (17.28.0):
     - RevenueCat (= 5.55.1)
+  - PurchasesHybridCommonUI (17.28.0):
+    - PurchasesHybridCommon (= 17.28.0)
+    - RevenueCatUI (= 5.55.1)
   - RCT-Folly (2024.11.18.00):
     - boost
     - DoubleConversion
@@ -2340,6 +2361,8 @@ PODS:
     - React-utils (= 0.81.5)
     - SocketRocket
   - RevenueCat (5.55.1)
+  - RevenueCatUI (5.55.1):
+    - RevenueCat (= 5.55.1)
   - RNCAsyncStorage (2.2.0):
     - React-Core
   - RNGestureHandler (2.30.0):
@@ -2370,6 +2393,9 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNPaywalls (9.7.1):
+    - PurchasesHybridCommonUI (= 17.28.0)
+    - React-Core
   - RNPurchases (9.7.1):
     - PurchasesHybridCommon (= 17.28.0)
     - React-Core
@@ -2402,6 +2428,36 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - RNSentry (7.2.0):
+    - boost
+    - DoubleConversion
+    - fast_float
+    - fmt
+    - glog
+    - hermes-engine
+    - RCT-Folly
+    - RCT-Folly/Fabric
+    - RCTRequired
+    - RCTTypeSafety
+    - React-Core
+    - React-debug
+    - React-Fabric
+    - React-featureflags
+    - React-graphics
+    - React-hermes
+    - React-ImageManager
+    - React-jsi
+    - React-NativeModulesApple
+    - React-RCTFabric
+    - React-renderercss
+    - React-rendererdebug
+    - React-utils
+    - ReactCodegen
+    - ReactCommon/turbomodule/bridging
+    - ReactCommon/turbomodule/core
+    - Sentry/HybridSDK (= 8.56.1)
+    - SocketRocket
+    - Yoga
   - RNVectorIcons (10.3.0):
     - boost
     - DoubleConversion
@@ -2430,6 +2486,11 @@ PODS:
     - ReactCommon/turbomodule/core
     - SocketRocket
     - Yoga
+  - SDWebImage/Core (5.21.5)
+  - SDWebImageWebPCoder (0.15.0):
+    - libwebp (~> 1.0)
+    - SDWebImage/Core (~> 5.17)
+  - Sentry/HybridSDK (8.56.1)
   - SocketRocket (0.7.1)
   - Yoga (0.0.0)
 
@@ -2440,12 +2501,14 @@ DEPENDENCIES:
   - EXImageLoader (from `../node_modules/expo-image-loader/ios`)
   - Expo (from `../node_modules/expo`)
   - ExpoAsset (from `../node_modules/expo/node_modules/expo-asset/ios`)
-  - ExpoFileSystem (from `../node_modules/expo/node_modules/expo-file-system/ios`)
+  - ExpoFileSystem (from `../node_modules/expo-file-system/ios`)
   - ExpoFont (from `../node_modules/expo-font/ios`)
   - ExpoHead (from `../node_modules/expo-router/ios`)
+  - ExpoImageManipulator (from `../node_modules/expo-image-manipulator/ios`)
   - ExpoImagePicker (from `../node_modules/expo-image-picker/ios`)
   - ExpoKeepAwake (from `../node_modules/expo/node_modules/expo-keep-awake/ios`)
   - ExpoLinking (from `../node_modules/expo-linking/ios`)
+  - ExpoLocalization (from `../node_modules/expo-localization/ios`)
   - ExpoModulesCore (from `../node_modules/expo-modules-core`)
   - ExpoSQLite (from `../node_modules/expo-sqlite/ios`)
   - fast_float (from `../node_modules/react-native/third-party-podspecs/fast_float.podspec`)
@@ -2520,16 +2583,24 @@ DEPENDENCIES:
   - ReactCommon/turbomodule/core (from `../node_modules/react-native/ReactCommon`)
   - "RNCAsyncStorage (from `../node_modules/@react-native-async-storage/async-storage`)"
   - RNGestureHandler (from `../node_modules/react-native-gesture-handler`)
+  - RNPaywalls (from `../node_modules/react-native-purchases-ui`)
   - RNPurchases (from `../node_modules/react-native-purchases`)
   - RNScreens (from `../node_modules/react-native-screens`)
+  - "RNSentry (from `../node_modules/@sentry/react-native`)"
   - RNVectorIcons (from `../node_modules/react-native-vector-icons`)
   - SocketRocket (~> 0.7.1)
   - Yoga (from `../node_modules/react-native/ReactCommon/yoga`)
 
 SPEC REPOS:
   trunk:
+    - libwebp
     - PurchasesHybridCommon
+    - PurchasesHybridCommonUI
     - RevenueCat
+    - RevenueCatUI
+    - SDWebImage
+    - SDWebImageWebPCoder
+    - Sentry
     - SocketRocket
 
 EXTERNAL SOURCES:
@@ -2546,17 +2617,21 @@ EXTERNAL SOURCES:
   ExpoAsset:
     :path: "../node_modules/expo/node_modules/expo-asset/ios"
   ExpoFileSystem:
-    :path: "../node_modules/expo/node_modules/expo-file-system/ios"
+    :path: "../node_modules/expo-file-system/ios"
   ExpoFont:
     :path: "../node_modules/expo-font/ios"
   ExpoHead:
     :path: "../node_modules/expo-router/ios"
+  ExpoImageManipulator:
+    :path: "../node_modules/expo-image-manipulator/ios"
   ExpoImagePicker:
     :path: "../node_modules/expo-image-picker/ios"
   ExpoKeepAwake:
     :path: "../node_modules/expo/node_modules/expo-keep-awake/ios"
   ExpoLinking:
     :path: "../node_modules/expo-linking/ios"
+  ExpoLocalization:
+    :path: "../node_modules/expo-localization/ios"
   ExpoModulesCore:
     :path: "../node_modules/expo-modules-core"
   ExpoSQLite:
@@ -2704,10 +2779,14 @@ EXTERNAL SOURCES:
     :path: "../node_modules/@react-native-async-storage/async-storage"
   RNGestureHandler:
     :path: "../node_modules/react-native-gesture-handler"
+  RNPaywalls:
+    :path: "../node_modules/react-native-purchases-ui"
   RNPurchases:
     :path: "../node_modules/react-native-purchases"
   RNScreens:
     :path: "../node_modules/react-native-screens"
+  RNSentry:
+    :path: "../node_modules/@sentry/react-native"
   RNVectorIcons:
     :path: "../node_modules/react-native-vector-icons"
   Yoga:
@@ -2718,14 +2797,16 @@ SPEC CHECKSUMS:
   DoubleConversion: cb417026b2400c8f53ae97020b2be961b59470cb
   EXConstants: fce59a631a06c4151602843667f7cfe35f81e271
   EXImageLoader: 189e3476581efe3ad4d1d3fb4735b7179eb26f05
-  Expo: 75df47c4fe5bdf14a42b550c08c64ce119abcfd3
+  Expo: 7d05846ebbd3420aabc05dddd826f60e20c841a9
   ExpoAsset: f867e55ceb428aab99e1e8c082b5aee7c159ea18
   ExpoFileSystem: 858a44267a3e6e9057e0888ad7c7cfbf55d52063
-  ExpoFont: 35ac6191ed86bbf56b3ebd2d9154eda9fad5b509
-  ExpoHead: 767d7618ce51d111047da8b3c84f8ff00058845b
+  ExpoFont: f543ce20a228dd702813668b1a07b46f51878d47
+  ExpoHead: 92af62bf4cc07c690e2bbf892998fa6192c4e841
+  ExpoImageManipulator: 607a5c8c88085381639458a46cc55fb9d3869148
   ExpoImagePicker: 1af3e4e31512d2f34c95c2a3018a3edc40aee748
   ExpoKeepAwake: 55f75eca6499bb9e4231ebad6f3e9cb8f99c0296
   ExpoLinking: 8f0aaf69aa56f832913030503b6263dc6f647f37
+  ExpoLocalization: d9168d5300a5b03e5e78b986124d11fb6ec3ebbd
   ExpoModulesCore: 39c0aca5ee449ec315f1ded494cbdcc7ebe66aae
   ExpoSQLite: 7eedbe476870a5f18d6b89c817c4ac6f299830ad
   fast_float: b32c788ed9c6a8c584d114d0047beda9664e7cc6
@@ -2733,7 +2814,9 @@ SPEC CHECKSUMS:
   fmt: a40bb5bd0294ea969aaaba240a927bd33d878cdd
   glog: 5683914934d5b6e4240e497e0f4a3b42d1854183
   hermes-engine: 9f4dfe93326146a1c99eb535b1cb0b857a3cd172
+  libwebp: 02b23773aedb6ff1fd38cec7a77b81414c6842a8
   PurchasesHybridCommon: c2f8f5fcd2e472c585fccd1ab2fe317a3dc1171e
+  PurchasesHybridCommonUI: 81113f049b6a618e06e38e6f1510c6c7654435f9
   RCT-Folly: 846fda9475e61ec7bcbf8a3fe81edfcaeb090669
   RCTDeprecation: 5eb1d2eeff5fb91151e8a8eef45b6c7658b6c897
   RCTRequired: cebcf9442fc296c9b89ac791dfd463021d9f6f23
@@ -2799,11 +2882,17 @@ SPEC CHECKSUMS:
   ReactCodegen: 6c26f8c25d0b5ae66f86a1cce1777076ac8bcbd8
   ReactCommon: 5f0e5c09a64a2717215dd84380e1a747810406f2
   RevenueCat: 347221fad5ab0ed5636546867deae2c32c64749f
+  RevenueCatUI: 5b8e20f13156e85efcfa1ad03d1aadc08cd9af2c
   RNCAsyncStorage: b44e8a4e798c3e1f56bffccd0f591f674fb9198f
   RNGestureHandler: 02b7c86f48e4cfe8338d59383811ac818945c973
+  RNPaywalls: 8c86e83105695edda21839ed52a7e1ff7f66d34b
   RNPurchases: e265e2ed27349b567b91b89d8712aa8c9c57f5b0
   RNScreens: 35525ebfe219c8709da0d26aebbc9a5e02e1077b
+  RNSentry: 4a7b9be6aa25f91850aa1b1e06906990be3c2517
   RNVectorIcons: 9084b0cf37b3c5690b730c5627a21d750c9f517e
+  SDWebImage: e9c98383c7572d713c1a0d7dd2783b10599b9838
+  SDWebImageWebPCoder: 0e06e365080397465cc73a7a9b472d8a3bd0f377
+  Sentry: b3ec44d01708fce73f99b544beb57e890eca4406
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: 728df40394d49f3f471688747cf558158b3a3bd1
 
