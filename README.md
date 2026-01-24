@@ -78,6 +78,27 @@ npx expo start --android
 npx expo start --ios
 ```
 
+## Development Build vs Expo Go
+
+Se recomienda usar **development build** en lugar de Expo Go para desarrollo:
+
+```bash
+# Primera vez (compila la app nativa)
+npx expo run:ios      # iOS simulator
+npx expo run:android  # Android emulator
+
+# Desarrollo posterior (solo servidor)
+npx expo start
+```
+
+**Ventajas del development build:**
+- Splash screen e ícono personalizados visibles
+- RevenueCat y Sentry funcionan correctamente
+- Experiencia más cercana a producción
+- Hot reload sigue funcionando
+
+Solo necesitas recompilar (`npx expo run:ios/android`) cuando agregues nuevas dependencias nativas.
+
 ## Comandos Disponibles
 
 ```bash
