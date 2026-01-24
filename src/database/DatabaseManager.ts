@@ -115,7 +115,7 @@ class DatabaseManager {
       return result?.count || 0;
     } catch (error) {
       Logger.error('Error al contar artículos', error);
-      return 0;
+      throw error; // Propagar error para manejo adecuado en la UI
     }
   }
 
@@ -198,13 +198,18 @@ class DatabaseManager {
         [id]
       );
 
-      // 2. Borrar archivo físico si existe
-      if (registro?.imagen) {
-        await ImageService.deleteImage(registro.imagen);
-      }
-
-      // 3. Borrar de la BD
+      // 2. Borrar de la BD primero (operación crítica)
       await this.db.runAsync('DELETE FROM articulos WHERE id = ?', [id]);
+
+      // 3. Borrar archivo físico después (si falla, no es crítico)
+      if (registro?.imagen) {
+        try {
+          await ImageService.deleteImage(registro.imagen);
+        } catch (imageError) {
+          // Log pero no fallar - la imagen huérfana se puede limpiar después
+          Logger.warn('No se pudo eliminar imagen huérfana', imageError);
+        }
+      }
     } catch (error) {
       Logger.error('Error al eliminar artículo', error);
       throw error;

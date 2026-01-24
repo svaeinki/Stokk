@@ -4,6 +4,7 @@ import { Searchbar, Card, Text, IconButton, Chip } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
+import { useSnackbar } from '../context/SnackbarContext';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
 import { formatearMoneda } from '../utils/Validation';
 import { BuscarScreenNavigationProp } from '../types/navigation';
@@ -14,6 +15,7 @@ const BuscarScreen: React.FC = () => {
   const navigation = useNavigation<BuscarScreenNavigationProp>();
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { showError } = useSnackbar();
 
   const [searchQuery, setSearchQuery] = useState('');
   const [articulos, setArticulos] = useState<Articulo[]>([]);
@@ -35,11 +37,11 @@ const BuscarScreen: React.FC = () => {
       const resultados = await DatabaseManager.buscarArticulos(query.trim());
       setArticulos(resultados);
     } catch (error) {
-      Alert.alert(t('common.error'), t('list.error_loading'));
+      showError(t('list.error_loading'));
     } finally {
       setLoading(false);
     }
-  }, [t]);
+  }, [t, showError]);
 
   // Recargar cuando la pantalla obtiene foco (por si se editó un producto)
   useFocusEffect(
@@ -102,7 +104,7 @@ const BuscarScreen: React.FC = () => {
               // Actualizar lista después de eliminar
               buscar(searchQuery);
             } catch (error) {
-              Alert.alert(t('common.error'), t('list.delete_error'));
+              showError(t('list.delete_error'));
             }
           }
         }

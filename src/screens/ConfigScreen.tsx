@@ -5,6 +5,7 @@ import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import { MaterialIcons } from '@expo/vector-icons';
 import RevenueCatUI from 'react-native-purchases-ui';
 import { useTheme } from '../context/ThemeContext';
+import { useSnackbar } from '../context/SnackbarContext';
 import DatabaseManager from '../database/DatabaseManager';
 import SubscriptionService, { SubscriptionStatus } from '../services/SubscriptionService';
 import { ConfigScreenNavigationProp } from '../types/navigation';
@@ -18,6 +19,7 @@ const ConfigScreen: React.FC = () => {
     const navigation = useNavigation<ConfigScreenNavigationProp>();
     const { isDark, toggleTheme, theme } = useTheme();
     const { t, i18n } = useTranslation();
+    const { showSuccess, showError, showInfo } = useSnackbar();
 
     const [isResetting, setIsResetting] = useState(false);
     const [isRestoring, setIsRestoring] = useState(false);
@@ -74,20 +76,14 @@ const ConfigScreen: React.FC = () => {
             const result = await SubscriptionService.restorePurchases();
 
             if (result.isPro) {
-                Alert.alert(
-                    t('config.restore_success'),
-                    t('paywall.restore_success_msg')
-                );
+                showSuccess(t('paywall.restore_success_msg'));
                 await loadSubscriptionStatus();
             } else {
-                Alert.alert(
-                    t('paywall.no_purchases_title'),
-                    t('paywall.no_purchases_msg')
-                );
+                showInfo(t('paywall.no_purchases_msg'));
             }
         } catch (error) {
             Logger.error('Error restoring purchases', error);
-            Alert.alert(t('common.error'), t('config.restore_error'));
+            showError(t('config.restore_error'));
         } finally {
             setIsRestoring(false);
         }
@@ -97,10 +93,10 @@ const ConfigScreen: React.FC = () => {
         setIsResetting(true);
         try {
             await DatabaseManager.resetDatabase();
-            Alert.alert(t('common.success'), t('config.delete_all_success'));
+            showSuccess(t('config.delete_all_success'));
         } catch (error) {
             Logger.error('Error resetting database', error);
-            Alert.alert(t('common.error'), t('config.delete_all_error'));
+            showError(t('config.delete_all_error'));
         } finally {
             setIsResetting(false);
         }

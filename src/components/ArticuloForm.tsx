@@ -17,6 +17,7 @@ import * as ImagePicker from 'expo-image-picker';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { Articulo } from '../database/DatabaseManager';
 import { useTheme } from '../context/ThemeContext';
+import { useSnackbar } from '../context/SnackbarContext';
 import { TabParamList } from '../types/navigation';
 import Logger from '../utils/Logger';
 import ImageSection from './form/ImageSection';
@@ -32,6 +33,7 @@ const ArticuloForm: React.FC = () => {
   const articulo = route.params?.articulo;
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { showSuccess, showError } = useSnackbar();
 
   const [imagePickerLoading, setImagePickerLoading] = useState(false);
 
@@ -41,9 +43,11 @@ const ArticuloForm: React.FC = () => {
     handleFieldChange,
     handleSave,
     handleCancel,
-  } = useArticuloForm({ 
-    initialArticulo: articulo, 
-    isEditing: !!articulo 
+  } = useArticuloForm({
+    initialArticulo: articulo,
+    isEditing: !!articulo,
+    onSuccess: showSuccess,
+    onError: showError,
   });
 
   const openSettings = () => {
@@ -87,11 +91,11 @@ const ArticuloForm: React.FC = () => {
       }
     } catch (error) {
       Logger.error('Error taking photo', error);
-      Alert.alert(t('common.error'), t('product.camera_error'));
+      showError(t('product.camera_error'));
     } finally {
       setImagePickerLoading(false);
     }
-  }, [handleFieldChange, t]);
+  }, [handleFieldChange, t, showError]);
 
   const pickFromGallery = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -115,11 +119,11 @@ const ArticuloForm: React.FC = () => {
       }
     } catch (error) {
       Logger.error('Error picking from gallery', error);
-      Alert.alert(t('common.error'), t('product.gallery_error'));
+      showError(t('product.gallery_error'));
     } finally {
       setImagePickerLoading(false);
     }
-  }, [handleFieldChange, t]);
+  }, [handleFieldChange, t, showError]);
 
   const pickImage = useCallback(() => {
     Alert.alert(

@@ -4,6 +4,7 @@ import { View, FlatList, StyleSheet, Alert, Image, RefreshControl } from 'react-
 import { Card, Text, IconButton, Chip, FAB } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { useTheme } from '../context/ThemeContext';
+import { useSnackbar } from '../context/SnackbarContext';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
 import { formatearMoneda } from '../utils/Validation';
 import Logger from '../utils/Logger';
@@ -25,6 +26,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
+  const { showError } = useSnackbar();
   const [articulos, setArticulos] = useState<Articulo[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
@@ -46,11 +48,11 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
       setArticulos(data);
     } catch (error) {
       Logger.error('Error al cargar artículos', error);
-      Alert.alert(t('common.error'), t('list.error_loading'));
+      showError(t('list.error_loading'));
     } finally {
       setLoading(false);
     }
-  }, [searchQuery, filter, t]);
+  }, [searchQuery, filter, t, showError]);
 
   useEffect(() => {
     cargarArticulos();
@@ -77,13 +79,13 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
               await cargarArticulos();
             } catch (error) {
               Logger.error('Error al eliminar', error);
-              Alert.alert(t('common.error'), t('list.delete_error'));
+              showError(t('list.delete_error'));
             }
           }
         }
       ]
     );
-  }, [t, cargarArticulos]);
+  }, [t, cargarArticulos, showError]);
 
   const renderArticulo = useCallback(({ item }: { item: Articulo }) => (
     <Card

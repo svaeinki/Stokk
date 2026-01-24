@@ -20,6 +20,7 @@ import IngresarScreen from './src/screens/IngresarScreen';
 import ConfigScreen from './src/screens/ConfigScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
+import { SnackbarProvider } from './src/context/SnackbarContext';
 import './src/i18n'; // Initialize i18n
 
 const Tab = createBottomTabNavigator<TabParamList>();
@@ -164,24 +165,26 @@ function AppContent() {
 
   return (
     <PaperProvider theme={theme}>
-      <NavigationContainer theme={navigationTheme}>
-        <Stack.Navigator>
-          <Stack.Screen
-            name="MainTabs"
-            component={MainTabs}
-            options={{ headerShown: false }}
-          />
-          <Stack.Screen
-            name="Paywall"
-            component={PaywallScreen}
-            options={{
-              presentation: 'modal',
-              headerShown: false
-            }}
-          />
-        </Stack.Navigator>
-      </NavigationContainer>
-      <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={theme.colors.primary} />
+      <SnackbarProvider>
+        <NavigationContainer theme={navigationTheme}>
+          <Stack.Navigator>
+            <Stack.Screen
+              name="MainTabs"
+              component={MainTabs}
+              options={{ headerShown: false }}
+            />
+            <Stack.Screen
+              name="Paywall"
+              component={PaywallScreen}
+              options={{
+                presentation: 'modal',
+                headerShown: false
+              }}
+            />
+          </Stack.Navigator>
+        </NavigationContainer>
+        <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={theme.colors.primary} />
+      </SnackbarProvider>
     </PaperProvider>
   );
 }

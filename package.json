@@ -29,6 +29,7 @@
     "@sentry/tracing": "^7.120.4",
     "expo": "~54.0.31",
     "expo-file-system": "~19.0.21",
+    "expo-image-manipulator": "~14.0.8",
     "expo-image-picker": "~17.0.10",
     "expo-localization": "^17.0.8",
     "expo-router": "~6.0.21",
