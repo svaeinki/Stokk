@@ -29,7 +29,7 @@ const PaywallScreen: React.FC = () => {
     const [loading, setLoading] = useState(true);
     const [purchasing, setPurchasing] = useState(false);
     const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
-    const [useNativePaywall, setUseNativePaywall] = useState(true);
+    const [useNativePaywall, setUseNativePaywall] = useState(false);
 
     useEffect(() => {
         initializePaywall();

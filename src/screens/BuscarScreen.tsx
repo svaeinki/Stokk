@@ -144,12 +144,14 @@ const BuscarScreen: React.FC = () => {
             <Text style={[styles.nombreProducto, { color: theme.colors.onSurface }]}>
               {item.nombre}
             </Text>
-            <Text
-              style={[styles.codigo, { color: theme.colors.onSurfaceVariant }]}
-              numberOfLines={1}
-            >
-              {locationPrefix}: {item.numeroBodega}
-            </Text>
+            {item.numeroBodega ? (
+              <Text
+                style={[styles.codigo, { color: theme.colors.onSurfaceVariant }]}
+                numberOfLines={1}
+              >
+                {locationPrefix}: {item.numeroBodega}
+              </Text>
+            ) : null}
             <View style={styles.priceRow}>
               <Text style={[styles.precio, { color: theme.colors.primary }]}>
                 {formatearMoneda(item.precio)}
@@ -236,7 +238,7 @@ const BuscarScreen: React.FC = () => {
       <FlatList
         data={articulos}
         renderItem={renderArticulo}
-        keyExtractor={(item) => item.id?.toString() ?? `temp-${item.numeroBodega}`}
+        keyExtractor={(item, index) => item.id?.toString() ?? `temp-${index}`}
         contentContainerStyle={styles.list}
         refreshControl={
           <RefreshControl

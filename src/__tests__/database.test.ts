@@ -12,7 +12,7 @@ describe('DatabaseManager', () => {
     precio: 100,
     cantidad: 5,
     imagen: 'file://test.jpg',
-    numeroBodega: 'B123456789',
+    numeroBodega: 'Estante A3',
     observaciones: 'Test Notes',
     fechaIngreso: '23/01/2026',
   };

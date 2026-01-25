@@ -40,7 +40,7 @@ class DatabaseManager {
         precio INTEGER DEFAULT 0,
         cantidad INTEGER DEFAULT 1,
         imagen TEXT,
-        numeroBodega TEXT NOT NULL UNIQUE,
+        numeroBodega TEXT,
         observaciones TEXT,
         fechaIngreso TEXT NOT NULL,
         fechaModificacion DATETIME
@@ -50,7 +50,6 @@ class DatabaseManager {
     // Crear índices
     await this.db.execAsync(`
       CREATE INDEX IF NOT EXISTS idx_nombre ON articulos(nombre);
-      CREATE INDEX IF NOT EXISTS idx_numeroBodega ON articulos(numeroBodega);
       CREATE INDEX IF NOT EXISTS idx_fechaIngreso ON articulos(fechaIngreso DESC);
     `);
   }

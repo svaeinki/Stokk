@@ -4,7 +4,6 @@ import { TextInput, Divider, TextInputProps } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
 import { useTranslation } from 'react-i18next';
 import { Articulo } from '../../database/DatabaseManager';
-import { generarNumeroBodega } from '../../utils/Validation';
 
 interface DataSectionProps {
   formData: Partial<Articulo>;
@@ -99,14 +98,7 @@ const DataSection: React.FC<DataSectionProps> = ({
         formData.numeroBodega || '',
         (text) => onFieldChange('numeroBodega', text),
         {
-          placeholder: 'B123456789',
-          disabled: isEditing,
-          right: (
-            <TextInput.Icon
-              icon="refresh"
-              onPress={() => onFieldChange('numeroBodega', generarNumeroBodega())}
-            />
-          )
+          placeholder: t('product.placeholder_location'),
         }
       )}
     </View>

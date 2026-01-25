@@ -1,11 +1,13 @@
 import { z } from 'zod';
 import { Articulo } from '../database/DatabaseManager';
 
-// Validación del número de bodega (formato: B123456789)
+// Validación del código/ubicación (opcional, texto libre)
 const numeroBodegaSchema = z
   .string()
-  .min(1, 'El número de bodega es requerido')
-  .regex(/^B\d{9}$/, 'El número de bodega debe tener formato B123456789');
+  .max(50, 'El código no puede exceder 50 caracteres')
+  .trim()
+  .optional()
+  .nullable();
 
 const esFechaValida = (value: string): boolean => {
   if (!value) return false;

@@ -11,7 +11,7 @@ describe('Validation Schemas', () => {
     precio: 100,
     cantidad: 5,
     imagen: 'file://test.jpg',
-    numeroBodega: 'B123456789',
+    numeroBodega: 'Estante A3',
     observaciones: 'Test Notes',
     fechaIngreso: '23/01/2026',
   };
@@ -46,14 +46,18 @@ describe('Validation Schemas', () => {
       }
     });
 
-    it('should reject article with invalid warehouse number', () => {
-      const invalidArticulo = { ...validArticulo, numeroBodega: 'INVALID' };
-      const result = validarArticulo(invalidArticulo);
+    it('should accept article with empty location code', () => {
+      const articuloSinCodigo = { ...validArticulo, numeroBodega: '' };
+      const result = validarArticulo(articuloSinCodigo);
 
-      expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain('formato B123456789');
-      }
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept article with custom location text', () => {
+      const articuloConUbicacion = { ...validArticulo, numeroBodega: 'Bodega Norte - Pasillo 3' };
+      const result = validarArticulo(articuloConUbicacion);
+
+      expect(result.success).toBe(true);
     });
   });
 

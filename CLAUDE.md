@@ -27,11 +27,18 @@ npm run type-check   # TypeScript type checking
 npm run test         # Run Jest tests
 npm run test:watch   # Watch mode
 npm run test:coverage # With coverage report
+npm run test -- src/utils/Validation.test.ts  # Run single test file
 
 # EAS builds (requires EAS CLI)
 eas build --profile development --platform ios
 eas build --profile production --platform all
+
+# Development build (recommended over Expo Go)
+npx expo run:ios      # First time: compiles native app
+npx expo run:android  # Then use `npm run start` for hot reload
 ```
+
+**Development build vs Expo Go:** Use development builds for RevenueCat/Sentry to work correctly, custom splash/icons visible, and production-like experience. Only recompile when adding native dependencies.
 
 ## Architecture
 
@@ -72,6 +79,21 @@ Root Stack Navigator
 ### Database Schema
 
 Single table `articulos` with fields: id, nombre, descripcion, precio (integer), cantidad, imagen (URI), numeroBodega (unique), observaciones, fechaIngreso, fechaModificacion. Indexed on nombre, numeroBodega, and fechaIngreso.
+
+```typescript
+interface Articulo {
+  id?: number;
+  nombre: string;           // Product name
+  descripcion: string;      // Description
+  precio: number;           // Price in Chilean Pesos (integer)
+  cantidad: number;         // Quantity
+  imagen?: string;          // Image URI (local file path)
+  numeroBodega: string;     // Warehouse code (unique)
+  observaciones?: string;   // Notes
+  fechaIngreso: string;     // Created date
+  fechaModificacion?: string; // Modified date
+}
+```
 
 ### Key Patterns
 

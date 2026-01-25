@@ -13,14 +13,7 @@ const InventarioScreen: React.FC = () => {
   const { t } = useTranslation();
 
   const handleEdit = (articulo: Articulo) => {
-    Alert.alert(
-      t('list.edit_title'),
-      t('list.edit_confirm_msg', { code: articulo.numeroBodega }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('common.edit'), onPress: () => navigation.navigate('Ingresar', { articulo }) }
-      ]
-    );
+    navigation.navigate('Ingresar', { articulo });
   };
 
   const handleAdd = () => {

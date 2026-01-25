@@ -146,7 +146,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
   ), [theme, onEdit, handleDelete, t]);
 
   const keyExtractor = useCallback(
-    (item: Articulo) => item.id?.toString() ?? `temp-${item.numeroBodega}`,
+    (item: Articulo, index: number) => item.id?.toString() ?? `temp-${index}`,
     []
   );
 

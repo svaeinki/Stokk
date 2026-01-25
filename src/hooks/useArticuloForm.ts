@@ -6,7 +6,7 @@ import { Articulo } from '../database/DatabaseManager';
 import DatabaseManager from '../database/DatabaseManager';
 import ImageService from '../services/ImageService';
 import SubscriptionService from '../services/SubscriptionService';
-import { generarNumeroBodega, validarFormularioArticulo } from '../utils/Validation';
+import { validarFormularioArticulo } from '../utils/Validation';
 import Logger from '../utils/Logger';
 import { FREE_TIER_PRODUCT_LIMIT } from '../constants/app';
 import { IngresarScreenNavigationProp } from '../types/navigation';
@@ -87,10 +87,6 @@ export const useArticuloForm = ({
     if (initialArticulo) {
       setFormData(initialArticulo);
     } else {
-      setFormData((prev: Partial<Articulo>) => ({
-        ...prev,
-        numeroBodega: generarNumeroBodega()
-      }));
       checkLimit();
     }
   }, [initialArticulo, checkLimit]);
