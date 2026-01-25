@@ -27,7 +27,7 @@ npm run type-check   # TypeScript type checking
 npm run test         # Run Jest tests
 npm run test:watch   # Watch mode
 npm run test:coverage # With coverage report
-npm run test -- src/utils/Validation.test.ts  # Run single test file
+npm run test -- src/__tests__/validation.test.ts  # Run single test file
 
 # EAS builds (requires EAS CLI)
 eas build --profile development --platform ios
