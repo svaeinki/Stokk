@@ -29,4 +29,7 @@ export type InventarioScreenNavigationProp = TabScreenNavigationProp;
 export type BuscarScreenNavigationProp = TabScreenNavigationProp;
 export type IngresarScreenNavigationProp = TabScreenNavigationProp;
 export type ConfigScreenNavigationProp = TabScreenNavigationProp;
-export type PaywallScreenNavigationProp = NativeStackNavigationProp<RootStackParamList, 'Paywall'>;
+export type PaywallScreenNavigationProp = NativeStackNavigationProp<
+  RootStackParamList,
+  'Paywall'
+>;

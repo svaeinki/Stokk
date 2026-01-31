@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useState, useCallback, ReactNode } from 'react';
+import React, {
+  createContext,
+  useContext,
+  useState,
+  useCallback,
+  ReactNode,
+} from 'react';
 import { Snackbar } from 'react-native-paper';
 import { useTheme } from './ThemeContext';
 
@@ -30,12 +36,16 @@ interface SnackbarContextType {
   hideSnackbar: () => void;
 }
 
-const SnackbarContext = createContext<SnackbarContextType | undefined>(undefined);
+const SnackbarContext = createContext<SnackbarContextType | undefined>(
+  undefined
+);
 
 const DEFAULT_DURATION = 3000;
 const ERROR_DURATION = 4000;
 
-export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
+  children,
+}) => {
   const { theme } = useTheme();
   const [state, setState] = useState<SnackbarState>({
     visible: false,
@@ -48,34 +58,48 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({ children }
     setState(prev => ({ ...prev, visible: false }));
   }, []);
 
-  const showSnackbar = useCallback((
-    message: string,
-    type: SnackbarType = 'info',
-    options?: {
-      duration?: number;
-      action?: { label: string; onPress: () => void };
-    }
-  ) => {
-    setState({
-      visible: true,
-      message,
-      type,
-      duration: options?.duration ?? (type === 'error' ? ERROR_DURATION : DEFAULT_DURATION),
-      action: options?.action,
-    });
-  }, []);
+  const showSnackbar = useCallback(
+    (
+      message: string,
+      type: SnackbarType = 'info',
+      options?: {
+        duration?: number;
+        action?: { label: string; onPress: () => void };
+      }
+    ) => {
+      setState({
+        visible: true,
+        message,
+        type,
+        duration:
+          options?.duration ??
+          (type === 'error' ? ERROR_DURATION : DEFAULT_DURATION),
+        action: options?.action,
+      });
+    },
+    []
+  );
 
-  const showSuccess = useCallback((message: string) => {
-    showSnackbar(message, 'success');
-  }, [showSnackbar]);
+  const showSuccess = useCallback(
+    (message: string) => {
+      showSnackbar(message, 'success');
+    },
+    [showSnackbar]
+  );
 
-  const showError = useCallback((message: string) => {
-    showSnackbar(message, 'error', { duration: ERROR_DURATION });
-  }, [showSnackbar]);
+  const showError = useCallback(
+    (message: string) => {
+      showSnackbar(message, 'error', { duration: ERROR_DURATION });
+    },
+    [showSnackbar]
+  );
 
-  const showInfo = useCallback((message: string) => {
-    showSnackbar(message, 'info');
-  }, [showSnackbar]);
+  const showInfo = useCallback(
+    (message: string) => {
+      showSnackbar(message, 'info');
+    },
+    [showSnackbar]
+  );
 
   // Colores según el tipo
   const getBackgroundColor = () => {
@@ -111,7 +135,7 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({ children }
           colors: {
             inversePrimary: '#FFFFFF',
             inverseOnSurface: '#FFFFFF',
-          }
+          },
         }}
       >
         {state.message}

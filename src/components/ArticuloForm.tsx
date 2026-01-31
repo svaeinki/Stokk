@@ -6,13 +6,9 @@ import {
   ScrollView,
   Alert,
   Linking,
-  Platform
+  Platform,
 } from 'react-native';
-import {
-  Card,
-  Text,
-  Divider
-} from 'react-native-paper';
+import { Card, Text, Divider } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { useRoute, RouteProp } from '@react-navigation/native';
 import { Articulo } from '../database/DatabaseManager';
@@ -37,18 +33,13 @@ const ArticuloForm: React.FC = () => {
 
   const [imagePickerLoading, setImagePickerLoading] = useState(false);
 
-  const {
-    formData,
-    loading,
-    handleFieldChange,
-    handleSave,
-    handleCancel,
-  } = useArticuloForm({
-    initialArticulo: articulo,
-    isEditing: !!articulo,
-    onSuccess: showSuccess,
-    onError: showError,
-  });
+  const { formData, loading, handleFieldChange, handleSave, handleCancel } =
+    useArticuloForm({
+      initialArticulo: articulo,
+      isEditing: !!articulo,
+      onSuccess: showSuccess,
+      onError: showError,
+    });
 
   const openSettings = () => {
     if (Platform.OS === 'ios') {
@@ -64,7 +55,7 @@ const ArticuloForm: React.FC = () => {
       t('permissions.required_msg', { type: t(`permissions.${tipo}`) }),
       [
         { text: t('common.cancel'), style: 'cancel' },
-        { text: t('permissions.open_settings'), onPress: openSettings }
+        { text: t('permissions.open_settings'), onPress: openSettings },
       ]
     );
   };
@@ -132,7 +123,7 @@ const ArticuloForm: React.FC = () => {
       [
         { text: t('permissions.take_photo'), onPress: takePhoto },
         { text: t('permissions.pick_gallery'), onPress: pickFromGallery },
-        { text: t('common.cancel'), style: 'cancel' }
+        { text: t('common.cancel'), style: 'cancel' },
       ]
     );
   }, [t, takePhoto, pickFromGallery]);
@@ -142,7 +133,9 @@ const ArticuloForm: React.FC = () => {
   }, [handleFieldChange]);
 
   return (
-    <ScrollView style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <ScrollView
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <Card style={[styles.card, { backgroundColor: theme.colors.surface }]}>
         <Card.Content>
           <Text style={[styles.title, { color: theme.colors.primary }]}>
@@ -155,7 +148,12 @@ const ArticuloForm: React.FC = () => {
             onClearImage={handleClearImage}
           />
 
-          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
+          <Divider
+            style={[
+              styles.divider,
+              { backgroundColor: theme.colors.outlineVariant },
+            ]}
+          />
 
           <DataSection
             formData={formData}
@@ -163,12 +161,14 @@ const ArticuloForm: React.FC = () => {
             isEditing={!!articulo}
           />
 
-          <Divider style={[styles.divider, { backgroundColor: theme.colors.outlineVariant }]} />
-
-          <NotesSection
-            formData={formData}
-            onFieldChange={handleFieldChange}
+          <Divider
+            style={[
+              styles.divider,
+              { backgroundColor: theme.colors.outlineVariant },
+            ]}
           />
+
+          <NotesSection formData={formData} onFieldChange={handleFieldChange} />
         </Card.Content>
       </Card>
 

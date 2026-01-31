@@ -61,7 +61,7 @@ export interface FileSystemError extends AppError {
 }
 
 // Type union for all error types
-export type StokkError = 
+export type StokkError =
   | DatabaseError
   | NetworkError
   | ValidationError
@@ -71,13 +71,15 @@ export type StokkError =
   | FileSystemError;
 
 // Result type for operations that might fail
-export type Result<T, E = StokkError> = {
-  success: true;
-  data: T;
-} | {
-  success: false;
-  error: E;
-};
+export type Result<T, E = StokkError> =
+  | {
+      success: true;
+      data: T;
+    }
+  | {
+      success: false;
+      error: E;
+    };
 
 // Utility functions for creating typed errors
 export const createDatabaseError = (
@@ -192,23 +194,34 @@ export const isNetworkError = (error: unknown): error is NetworkError => {
 };
 
 export const isValidationError = (error: unknown): error is ValidationError => {
-  return error instanceof Error && (error as ValidationError).type === 'validation';
+  return (
+    error instanceof Error && (error as ValidationError).type === 'validation'
+  );
 };
 
 export const isPermissionError = (error: unknown): error is PermissionError => {
-  return error instanceof Error && (error as PermissionError).type === 'permission';
+  return (
+    error instanceof Error && (error as PermissionError).type === 'permission'
+  );
 };
 
 export const isImageError = (error: unknown): error is ImageError => {
   return error instanceof Error && (error as ImageError).type === 'image';
 };
 
-export const isSubscriptionError = (error: unknown): error is SubscriptionError => {
-  return error instanceof Error && (error as SubscriptionError).type === 'subscription';
+export const isSubscriptionError = (
+  error: unknown
+): error is SubscriptionError => {
+  return (
+    error instanceof Error &&
+    (error as SubscriptionError).type === 'subscription'
+  );
 };
 
 export const isFileSystemError = (error: unknown): error is FileSystemError => {
-  return error instanceof Error && (error as FileSystemError).type === 'filesystem';
+  return (
+    error instanceof Error && (error as FileSystemError).type === 'filesystem'
+  );
 };
 
 // Utility function to wrap operations with proper error handling

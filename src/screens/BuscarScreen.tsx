@@ -1,5 +1,18 @@
-import React, { useState, useCallback, useRef, useEffect, useMemo } from 'react';
-import { View, StyleSheet, FlatList, Image, RefreshControl, Alert } from 'react-native';
+import React, {
+  useState,
+  useCallback,
+  useRef,
+  useEffect,
+  useMemo,
+} from 'react';
+import {
+  View,
+  StyleSheet,
+  FlatList,
+  Image,
+  RefreshControl,
+  Alert,
+} from 'react-native';
 import { Searchbar, Card, Text, IconButton, Chip } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
@@ -24,24 +37,27 @@ const BuscarScreen: React.FC = () => {
   const debounceRef = useRef<NodeJS.Timeout | null>(null);
   const searchQueryRef = useRef(searchQuery);
 
-  const buscar = useCallback(async (query: string) => {
-    if (!query.trim()) {
-      setArticulos([]);
-      setHasSearched(false);
-      return;
-    }
+  const buscar = useCallback(
+    async (query: string) => {
+      if (!query.trim()) {
+        setArticulos([]);
+        setHasSearched(false);
+        return;
+      }
 
-    try {
-      setLoading(true);
-      setHasSearched(true);
-      const resultados = await DatabaseManager.buscarArticulos(query.trim());
-      setArticulos(resultados);
-    } catch (error) {
-      showError(t('list.error_loading'));
-    } finally {
-      setLoading(false);
-    }
-  }, [t, showError]);
+      try {
+        setLoading(true);
+        setHasSearched(true);
+        const resultados = await DatabaseManager.buscarArticulos(query.trim());
+        setArticulos(resultados);
+      } catch (error) {
+        showError(t('list.error_loading'));
+      } finally {
+        setLoading(false);
+      }
+    },
+    [t, showError]
+  );
 
   // Recargar cuando la pantalla obtiene foco (por si se editó un producto)
   useFocusEffect(
@@ -61,20 +77,23 @@ const BuscarScreen: React.FC = () => {
     };
   }, []);
 
-  const handleSearch = useCallback((query: string) => {
-    setSearchQuery(query);
-    searchQueryRef.current = query;
+  const handleSearch = useCallback(
+    (query: string) => {
+      setSearchQuery(query);
+      searchQueryRef.current = query;
 
-    // Limpiar timeout anterior
-    if (debounceRef.current) {
-      clearTimeout(debounceRef.current);
-    }
+      // Limpiar timeout anterior
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+      }
 
-    // Debounce: buscar después de 300ms sin escribir
-    debounceRef.current = setTimeout(() => {
-      buscar(query);
-    }, 300);
-  }, [buscar]);
+      // Debounce: buscar después de 300ms sin escribir
+      debounceRef.current = setTimeout(() => {
+        buscar(query);
+      }, 300);
+    },
+    [buscar]
+  );
 
   const handleClearSearch = useCallback(() => {
     setSearchQuery('');
@@ -83,7 +102,10 @@ const BuscarScreen: React.FC = () => {
     setHasSearched(false);
   }, []);
 
-  const refreshColors = useMemo(() => [theme.colors.primary], [theme.colors.primary]);
+  const refreshColors = useMemo(
+    () => [theme.colors.primary],
+    [theme.colors.primary]
+  );
 
   const handleEdit = (articulo: Articulo) => {
     navigation.navigate('Ingresar', { articulo });
@@ -106,8 +128,8 @@ const BuscarScreen: React.FC = () => {
             } catch (error) {
               showError(t('list.delete_error'));
             }
-          }
-        }
+          },
+        },
       ]
     );
   };
@@ -119,71 +141,94 @@ const BuscarScreen: React.FC = () => {
       : locationLabel;
 
     return (
-    <Card
-      style={[styles.card, { backgroundColor: theme.colors.surface }]}
-      onPress={() => handleEdit(item)}
-      accessible={true}
-      accessibilityLabel={`${item.nombre}, ${formatearMoneda(item.precio)}, ${t('product.stock')}: ${item.cantidad}`}
-      accessibilityHint={t('accessibility.tap_to_edit')}
-    >
-      <Card.Content style={styles.cardContent}>
-        <View style={styles.contentRow}>
-          {item.imagen ? (
-            <Image
-              source={{ uri: item.imagen }}
-              style={[styles.thumbnail, { backgroundColor: theme.colors.surfaceVariant }]}
-              accessibilityLabel={`${t('accessibility.image_of')} ${item.nombre}`}
-            />
-          ) : (
-            <View style={[styles.placeholderThumbnail, { backgroundColor: theme.colors.surfaceVariant }]}>
-              <Icon name="image-not-supported" size={32} color={theme.colors.onSurfaceVariant} />
-            </View>
-          )}
+      <Card
+        style={[styles.card, { backgroundColor: theme.colors.surface }]}
+        onPress={() => handleEdit(item)}
+        accessible={true}
+        accessibilityLabel={`${item.nombre}, ${formatearMoneda(item.precio)}, ${t('product.stock')}: ${item.cantidad}`}
+        accessibilityHint={t('accessibility.tap_to_edit')}
+      >
+        <Card.Content style={styles.cardContent}>
+          <View style={styles.contentRow}>
+            {item.imagen ? (
+              <Image
+                source={{ uri: item.imagen }}
+                style={[
+                  styles.thumbnail,
+                  { backgroundColor: theme.colors.surfaceVariant },
+                ]}
+                accessibilityLabel={`${t('accessibility.image_of')} ${item.nombre}`}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.placeholderThumbnail,
+                  { backgroundColor: theme.colors.surfaceVariant },
+                ]}
+              >
+                <Icon
+                  name="image-not-supported"
+                  size={32}
+                  color={theme.colors.onSurfaceVariant}
+                />
+              </View>
+            )}
 
-          <View style={styles.infoContainer}>
-            <Text style={[styles.nombreProducto, { color: theme.colors.onSurface }]}>
-              {item.nombre}
-            </Text>
-            {item.numeroBodega ? (
+            <View style={styles.infoContainer}>
               <Text
-                style={[styles.codigo, { color: theme.colors.onSurfaceVariant }]}
-                numberOfLines={1}
+                style={[
+                  styles.nombreProducto,
+                  { color: theme.colors.onSurface },
+                ]}
               >
-                {locationPrefix}: {item.numeroBodega}
+                {item.nombre}
               </Text>
-            ) : null}
-            <View style={styles.priceRow}>
-              <Text style={[styles.precio, { color: theme.colors.primary }]}>
-                {formatearMoneda(item.precio)}
-              </Text>
-              <Chip
-                icon="archive"
-                style={styles.cantidadChip}
-                textStyle={{ color: theme.colors.onSecondaryContainer, fontSize: 12 }}
-              >
-                {item.cantidad}
-              </Chip>
+              {item.numeroBodega ? (
+                <Text
+                  style={[
+                    styles.codigo,
+                    { color: theme.colors.onSurfaceVariant },
+                  ]}
+                  numberOfLines={1}
+                >
+                  {locationPrefix}: {item.numeroBodega}
+                </Text>
+              ) : null}
+              <View style={styles.priceRow}>
+                <Text style={[styles.precio, { color: theme.colors.primary }]}>
+                  {formatearMoneda(item.precio)}
+                </Text>
+                <Chip
+                  icon="archive"
+                  style={styles.cantidadChip}
+                  textStyle={{
+                    color: theme.colors.onSecondaryContainer,
+                    fontSize: 12,
+                  }}
+                >
+                  {item.cantidad}
+                </Chip>
+              </View>
             </View>
           </View>
-        </View>
-      </Card.Content>
-      <Card.Actions style={styles.cardActions}>
-        <IconButton
-          icon="pencil"
-          iconColor={theme.colors.primary}
-          size={24}
-          onPress={() => handleEdit(item)}
-          accessibilityLabel={`${t('common.edit')} ${item.nombre}`}
-        />
-        <IconButton
-          icon="delete"
-          iconColor={theme.colors.error}
-          size={24}
-          onPress={() => item.id && handleDelete(item.id)}
-          accessibilityLabel={`${t('common.delete')} ${item.nombre}`}
-        />
-      </Card.Actions>
-    </Card>
+        </Card.Content>
+        <Card.Actions style={styles.cardActions}>
+          <IconButton
+            icon="pencil"
+            iconColor={theme.colors.primary}
+            size={24}
+            onPress={() => handleEdit(item)}
+            accessibilityLabel={`${t('common.edit')} ${item.nombre}`}
+          />
+          <IconButton
+            icon="delete"
+            iconColor={theme.colors.error}
+            size={24}
+            onPress={() => item.id && handleDelete(item.id)}
+            accessibilityLabel={`${t('common.delete')} ${item.nombre}`}
+          />
+        </Card.Actions>
+      </Card>
     );
   };
 
@@ -192,7 +237,9 @@ const BuscarScreen: React.FC = () => {
       return (
         <View style={styles.emptyContainer}>
           <Icon name="search" size={64} color={theme.colors.outline} />
-          <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+          <Text
+            style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}
+          >
             {t('search.placeholder_title')}
           </Text>
           <Text style={[styles.emptySubtext, { color: theme.colors.outline }]}>
@@ -205,7 +252,9 @@ const BuscarScreen: React.FC = () => {
     return (
       <View style={styles.emptyContainer}>
         <Icon name="search-off" size={64} color={theme.colors.outline} />
-        <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>
+        <Text
+          style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}
+        >
           {t('list.empty_search_msg')}
         </Text>
         <Text style={[styles.emptySubtext, { color: theme.colors.outline }]}>
@@ -216,7 +265,9 @@ const BuscarScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <View style={styles.searchContainer}>
         <Searchbar
           placeholder={t('search.placeholder')}
@@ -229,8 +280,14 @@ const BuscarScreen: React.FC = () => {
           onClearIconPress={handleClearSearch}
         />
         {hasSearched && articulos.length > 0 && (
-          <Text style={[styles.resultCount, { color: theme.colors.onSurfaceVariant }]}>
-            {articulos.length} {articulos.length === 1 ? t('search.result') : t('search.results')}
+          <Text
+            style={[
+              styles.resultCount,
+              { color: theme.colors.onSurfaceVariant },
+            ]}
+          >
+            {articulos.length}{' '}
+            {articulos.length === 1 ? t('search.result') : t('search.results')}
           </Text>
         )}
       </View>

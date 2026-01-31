@@ -1,117 +1,124 @@
-import * as FileSystem from 'expo-file-system/legacy';
+import { Directory, File, Paths } from 'expo-file-system';
 import * as ImageManipulator from 'expo-image-manipulator';
 import Logger from '../utils/Logger';
 
-const IMAGES_DIR = (FileSystem.documentDirectory || '') + 'images/';
+const IMAGES_DIR = Paths.document.uri + 'images/';
 
 // Configuración de compresión
 const IMAGE_CONFIG = {
-    maxWidth: 1200,
-    maxHeight: 1200,
-    quality: 0.8, // 80% calidad JPEG
+  maxWidth: 1200,
+  maxHeight: 1200,
+  quality: 0.8, // 80% calidad JPEG
 };
 
 class ImageService {
-    private initialized: Promise<void>;
+  private initialized: Promise<void>;
 
-    constructor() {
-        this.initialized = this.ensureDirExists();
+  constructor() {
+    this.initialized = this.ensureDirExists();
+  }
+
+  // Asegurar que el directorio de imágenes exista
+  private async ensureDirExists(): Promise<void> {
+    const dir = new Directory(IMAGES_DIR);
+    if (!dir.exists) {
+      Logger.info('Creando directorio de imágenes...');
+      await dir.create();
     }
+  }
 
-    // Asegurar que el directorio de imágenes exista
-    private async ensureDirExists(): Promise<void> {
-        const dirInfo = await FileSystem.getInfoAsync(IMAGES_DIR);
-        if (!dirInfo.exists) {
-            Logger.info('Creando directorio de imágenes...');
-            await FileSystem.makeDirectoryAsync(IMAGES_DIR, { intermediates: true });
+  // Comprimir imagen antes de guardar
+  private async compressImage(uri: string): Promise<string> {
+    try {
+      const result = await ImageManipulator.manipulateAsync(
+        uri,
+        [
+          {
+            resize: {
+              width: IMAGE_CONFIG.maxWidth,
+              height: IMAGE_CONFIG.maxHeight,
+            },
+          },
+        ],
+        {
+          compress: IMAGE_CONFIG.quality,
+          format: ImageManipulator.SaveFormat.JPEG,
         }
+      );
+      Logger.debug('Imagen comprimida:', result.uri);
+      return result.uri;
+    } catch (error) {
+      Logger.warn('No se pudo comprimir imagen, usando original', error);
+      return uri; // Fallback a la imagen original
     }
+  }
 
-    // Comprimir imagen antes de guardar
-    private async compressImage(uri: string): Promise<string> {
+  // Guardar imagen desde una URI temporal a permanente (con compresión)
+  async saveImage(tempUri: string): Promise<string | null> {
+    try {
+      await this.initialized;
+
+      // Si la imagen ya está en el directorio correcto, no hacer nada
+      if (tempUri.startsWith(IMAGES_DIR)) {
+        return tempUri;
+      }
+
+      // Comprimir imagen antes de guardar
+      const compressedUri = await this.compressImage(tempUri);
+
+      const fileName = `image_${Date.now()}.jpg`;
+      const newPath = IMAGES_DIR + fileName;
+
+      const sourceFile = new File(compressedUri);
+      const destFile = new File(newPath);
+      await sourceFile.copy(destFile);
+
+      // Limpiar archivo temporal de compresión si es diferente del original
+      if (compressedUri !== tempUri && compressedUri.startsWith('file://')) {
         try {
-            const result = await ImageManipulator.manipulateAsync(
-                uri,
-                [{ resize: { width: IMAGE_CONFIG.maxWidth, height: IMAGE_CONFIG.maxHeight } }],
-                {
-                    compress: IMAGE_CONFIG.quality,
-                    format: ImageManipulator.SaveFormat.JPEG,
-                }
-            );
-            Logger.debug('Imagen comprimida:', result.uri);
-            return result.uri;
-        } catch (error) {
-            Logger.warn('No se pudo comprimir imagen, usando original', error);
-            return uri; // Fallback a la imagen original
+          const tempFile = new File(compressedUri);
+          await tempFile.delete();
+        } catch {
+          // Ignorar errores de limpieza
         }
+      }
+
+      Logger.info('Imagen guardada en:', newPath);
+      return newPath;
+    } catch (error) {
+      Logger.error('Error al guardar imagen', error);
+      return null;
     }
+  }
 
-    // Guardar imagen desde una URI temporal a permanente (con compresión)
-    async saveImage(tempUri: string): Promise<string | null> {
-        try {
-            await this.initialized;
+  // Eliminar imagen del sistema de archivos
+  async deleteImage(uri: string): Promise<void> {
+    try {
+      // Solo intentar borrar si es una imagen local nuestra
+      if (!uri.startsWith('file://')) return;
 
-            // Si la imagen ya está en el directorio correcto, no hacer nada
-            if (tempUri.startsWith(IMAGES_DIR)) {
-                return tempUri;
-            }
-
-            // Comprimir imagen antes de guardar
-            const compressedUri = await this.compressImage(tempUri);
-
-            const fileName = `image_${Date.now()}.jpg`;
-            const newPath = IMAGES_DIR + fileName;
-
-            await FileSystem.copyAsync({
-                from: compressedUri,
-                to: newPath,
-            });
-
-            // Limpiar archivo temporal de compresión si es diferente del original
-            if (compressedUri !== tempUri && compressedUri.startsWith('file://')) {
-                try {
-                    await FileSystem.deleteAsync(compressedUri, { idempotent: true });
-                } catch {
-                    // Ignorar errores de limpieza
-                }
-            }
-
-            Logger.info('Imagen guardada en:', newPath);
-            return newPath;
-        } catch (error) {
-            Logger.error('Error al guardar imagen', error);
-            return null;
-        }
+      const file = new File(uri);
+      if (file.exists) {
+        await file.delete();
+        Logger.info('Imagen eliminada:', uri);
+      }
+    } catch (error) {
+      Logger.error('Error al eliminar imagen', error);
     }
+  }
 
-    // Eliminar imagen del sistema de archivos
-    async deleteImage(uri: string): Promise<void> {
-        try {
-            // Solo intentar borrar si es una imagen local nuestra
-            if (!uri.startsWith('file://')) return;
-
-            const fileInfo = await FileSystem.getInfoAsync(uri);
-            if (fileInfo.exists) {
-                await FileSystem.deleteAsync(uri);
-                Logger.info('Imagen eliminada:', uri);
-            }
-        } catch (error) {
-            Logger.error('Error al eliminar imagen', error);
-        }
+  // Limpiar todo el directorio (útil para reset)
+  async clearAllImages(): Promise<void> {
+    try {
+      const dir = new Directory(IMAGES_DIR);
+      if (dir.exists) {
+        await dir.delete();
+        await this.ensureDirExists();
+      }
+    } catch (error) {
+      Logger.error('Error al limpiar directorio de imágenes', error);
     }
-
-    // Limpiar todo el directorio (útil para reset)
-    async clearAllImages(): Promise<void> {
-        try {
-            const dirInfo = await FileSystem.getInfoAsync(IMAGES_DIR);
-            if (dirInfo.exists) {
-                await FileSystem.deleteAsync(IMAGES_DIR);
-                await this.ensureDirExists();
-            }
-        } catch (error) {
-            Logger.error('Error al limpiar directorio de imágenes', error);
-        }
-    }
+  }
 }
 
 export default new ImageService();

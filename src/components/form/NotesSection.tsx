@@ -29,7 +29,7 @@ const NotesSection: React.FC<NotesSectionProps> = ({
         </Text>
         <TextInput
           value={formData.observaciones || ''}
-          onChangeText={(text) => onFieldChange('observaciones', text)}
+          onChangeText={text => onFieldChange('observaciones', text)}
           style={[styles.input, { backgroundColor: theme.colors.surface }]}
           mode="outlined"
           outlineColor={theme.colors.outline}

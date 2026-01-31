@@ -45,7 +45,7 @@ function MainTabs() {
         tabBarStyle: {
           backgroundColor: theme.colors.surface,
           borderTopColor: theme.colors.outline,
-        }
+        },
       }}
     >
       <Tab.Screen
@@ -126,14 +126,15 @@ function AppContent() {
         await DatabaseManager.initDatabase();
 
         // Initialize RevenueCat (non-blocking)
-        SubscriptionService.initialize().catch((error) => {
+        SubscriptionService.initialize().catch(error => {
           Logger.warn('RevenueCat initialization failed (non-blocking)', error);
         });
 
         appInitialized = true;
         setIsReady(true);
       } catch (error) {
-        const errorMessage = error instanceof Error ? error.message : t('common.error');
+        const errorMessage =
+          error instanceof Error ? error.message : t('common.error');
         setDbError(errorMessage);
         setIsReady(true);
       }
@@ -144,19 +145,41 @@ function AppContent() {
 
   if (!isReady) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
         <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>{t('common.loading')}</Text>
+        <Text style={[styles.loadingText, { color: theme.colors.onSurface }]}>
+          {t('common.loading')}
+        </Text>
       </View>
     );
   }
 
   if (dbError) {
     return (
-      <View style={[styles.container, styles.centered, { backgroundColor: theme.colors.background }]}>
-        <MaterialIcons name="error-outline" size={64} color={theme.colors.error} />
-        <Text style={[styles.errorTitle, { color: theme.colors.onSurface }]}>{t('common.error')}</Text>
-        <Text style={[styles.errorText, { color: theme.colors.onSurfaceVariant }]}>
+      <View
+        style={[
+          styles.container,
+          styles.centered,
+          { backgroundColor: theme.colors.background },
+        ]}
+      >
+        <MaterialIcons
+          name="error-outline"
+          size={64}
+          color={theme.colors.error}
+        />
+        <Text style={[styles.errorTitle, { color: theme.colors.onSurface }]}>
+          {t('common.error')}
+        </Text>
+        <Text
+          style={[styles.errorText, { color: theme.colors.onSurfaceVariant }]}
+        >
           {dbError}
         </Text>
       </View>
@@ -178,12 +201,15 @@ function AppContent() {
               component={PaywallScreen}
               options={{
                 presentation: 'modal',
-                headerShown: false
+                headerShown: false,
               }}
             />
           </Stack.Navigator>
         </NavigationContainer>
-        <StatusBar style={isDark ? 'light' : 'dark'} backgroundColor={theme.colors.primary} />
+        <StatusBar
+          style={isDark ? 'light' : 'dark'}
+          backgroundColor={theme.colors.primary}
+        />
       </SnackbarProvider>
     </PaperProvider>
   );

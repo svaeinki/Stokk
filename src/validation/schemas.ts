@@ -11,7 +11,9 @@ const numeroBodegaSchema = z
 
 const esFechaValida = (value: string): boolean => {
   if (!value) return false;
-  const esFormatoLatino = /^\d{2}\/\d{2}\/\d{4}(\s\d{2}:\d{2}:\d{2})?$/.test(value);
+  const esFormatoLatino = /^\d{2}\/\d{2}\/\d{4}(\s\d{2}:\d{2}:\d{2})?$/.test(
+    value
+  );
   if (esFormatoLatino) return true;
   const parsed = new Date(value);
   return !Number.isNaN(parsed.getTime());
@@ -26,13 +28,13 @@ const fechaSchema = z
 // Validación personalizada para URI de imágenes
 export const esUriValido = (uri: string): boolean => {
   if (!uri) return false;
-  
+
   // Aceptar URIs locales de React Native
   if (uri.startsWith('file://') || uri.startsWith('content://')) return true;
-  
+
   // Aceptar URIs de assets
   if (uri.startsWith('asset://')) return true;
-  
+
   // Aceptar URIs http/https (para imágenes remotas)
   try {
     new URL(uri);
@@ -141,8 +143,17 @@ export const busquedaSchema = z.object({
 
 // Schema para paginación
 export const paginacionSchema = z.object({
-  pagina: z.coerce.number().int().min(1, 'La página debe ser mayor a 0').default(1),
-  limite: z.coerce.number().int().min(1, 'Límite debe ser mayor a 0').max(100, 'Límite máximo es 100').default(20),
+  pagina: z.coerce
+    .number()
+    .int()
+    .min(1, 'La página debe ser mayor a 0')
+    .default(1),
+  limite: z.coerce
+    .number()
+    .int()
+    .min(1, 'Límite debe ser mayor a 0')
+    .max(100, 'Límite máximo es 100')
+    .default(20),
 });
 
 // Schema para filtros de búsqueda avanzada
@@ -187,18 +198,27 @@ export const validarFiltroBusqueda = (data: unknown) => {
 };
 
 // Función para transformar datos parciales a tipos válidos
-export const transformarParcialArticulo = (partial: Partial<Articulo>): Partial<Articulo> => {
+export const transformarParcialArticulo = (
+  partial: Partial<Articulo>
+): Partial<Articulo> => {
   const transformado: Partial<Articulo> = {};
-  
+
   if (partial.nombre !== undefined) transformado.nombre = partial.nombre.trim();
-  if (partial.descripcion !== undefined) transformado.descripcion = partial.descripcion?.trim() || undefined;
-  if (partial.precio !== undefined) transformado.precio = Number(partial.precio);
-  if (partial.cantidad !== undefined) transformado.cantidad = Number(partial.cantidad);
-  if (partial.numeroBodega !== undefined) transformado.numeroBodega = partial.numeroBodega.trim();
-  if (partial.observaciones !== undefined) transformado.observaciones = partial.observaciones?.trim() || undefined;
-  if (partial.imagen !== undefined) transformado.imagen = partial.imagen || undefined;
-  if (partial.fechaIngreso !== undefined) transformado.fechaIngreso = partial.fechaIngreso;
-  
+  if (partial.descripcion !== undefined)
+    transformado.descripcion = partial.descripcion?.trim() || undefined;
+  if (partial.precio !== undefined)
+    transformado.precio = Number(partial.precio);
+  if (partial.cantidad !== undefined)
+    transformado.cantidad = Number(partial.cantidad);
+  if (partial.numeroBodega !== undefined)
+    transformado.numeroBodega = partial.numeroBodega.trim();
+  if (partial.observaciones !== undefined)
+    transformado.observaciones = partial.observaciones?.trim() || undefined;
+  if (partial.imagen !== undefined)
+    transformado.imagen = partial.imagen || undefined;
+  if (partial.fechaIngreso !== undefined)
+    transformado.fechaIngreso = partial.fechaIngreso;
+
   return transformado;
 };
 

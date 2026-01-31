@@ -1,11 +1,12 @@
 import * as Sentry from '@sentry/react-native';
 import { Platform } from 'react-native';
+import Logger from '../utils/Logger';
 
 // Initialize Sentry for production
 export const initializeSentry = () => {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
   const isProduction = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
-  
+
   if (dsn && isProduction) {
     Sentry.init({
       dsn,
@@ -19,7 +20,7 @@ export const initializeSentry = () => {
       },
       // Only enable Sentry in production
       enabled: true,
-      
+
       // Customize error grouping
       beforeSend(event) {
         // Filter out certain errors that aren't useful
@@ -39,34 +40,37 @@ export const initializeSentry = () => {
     });
 
     if (__DEV__) {
-      console.log('Sentry initialized for production');
+      Logger.info('Sentry initialized for production');
     }
   } else if (__DEV__) {
-    console.log('Sentry disabled in development or missing DSN');
+    Logger.info('Sentry disabled in development or missing DSN');
   }
 };
 
 // Error boundary wrapper
 export const reportError = (error: Error, context?: string) => {
   const isProduction = process.env.EXPO_PUBLIC_ENVIRONMENT === 'production';
-  
+
   if (isProduction) {
-    Sentry.withScope((scope) => {
+    Sentry.withScope(scope => {
       if (context) {
         scope.setTag('context', context);
       }
       Sentry.captureException(error);
     });
   }
-  
+
   // Also log to console in development
   if (__DEV__) {
-    console.error(`[${context || 'App'}] Error:`, error);
+    Logger.error(`[${context || 'App'}] Error:`, error);
   }
 };
 
 // Performance tracking
-export const trackPerformance = (operation: string, callback: () => Promise<any>) => {
+export const trackPerformance = (
+  operation: string,
+  callback: () => Promise<any>
+) => {
   return Sentry.startSpan(
     {
       name: operation,

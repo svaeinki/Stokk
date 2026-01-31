@@ -21,11 +21,10 @@ const InventarioScreen: React.FC = () => {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      <ArticuloList
-        onEdit={handleEdit}
-        onAdd={handleAdd}
-      />
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
+      <ArticuloList onEdit={handleEdit} onAdd={handleAdd} />
     </View>
   );
 };

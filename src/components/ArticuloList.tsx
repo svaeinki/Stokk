@@ -1,6 +1,13 @@
 import React, { useState, useEffect, useCallback, memo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, FlatList, StyleSheet, Alert, Image, RefreshControl } from 'react-native';
+import {
+  View,
+  FlatList,
+  StyleSheet,
+  Alert,
+  Image,
+  RefreshControl,
+} from 'react-native';
 import { Card, Text, IconButton, Chip, FAB } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
 import { useTheme } from '../context/ThemeContext';
@@ -22,7 +29,7 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
   onEdit,
   onAdd,
   searchQuery = '',
-  filter = 'todos'
+  filter = 'todos',
 }) => {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -64,86 +71,123 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
     setRefreshing(false);
   }, [cargarArticulos]);
 
-  const handleDelete = useCallback((id: number, nombre: string) => {
-    Alert.alert(
-      t('list.delete_confirm_title'),
-      t('list.delete_confirm_msg', { name: nombre }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await DatabaseManager.eliminarArticulo(id);
-              await cargarArticulos();
-            } catch (error) {
-              Logger.error('Error al eliminar', error);
-              showError(t('list.delete_error'));
-            }
-          }
-        }
-      ]
-    );
-  }, [t, cargarArticulos, showError]);
+  const handleDelete = useCallback(
+    (id: number, nombre: string) => {
+      Alert.alert(
+        t('list.delete_confirm_title'),
+        t('list.delete_confirm_msg', { name: nombre }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await DatabaseManager.eliminarArticulo(id);
+                await cargarArticulos();
+              } catch (error) {
+                Logger.error('Error al eliminar', error);
+                showError(t('list.delete_error'));
+              }
+            },
+          },
+        ]
+      );
+    },
+    [t, cargarArticulos, showError]
+  );
 
-  const renderArticulo = useCallback(({ item }: { item: Articulo }) => (
-    <Card
-      style={[styles.card, { backgroundColor: theme.colors.surface }]}
-      onPress={() => onEdit(item)}
-      accessible={true}
-      accessibilityLabel={`${item.nombre}, ${formatearMoneda(item.precio)}, ${t('product.stock')}: ${item.cantidad}`}
-      accessibilityHint={t('accessibility.tap_to_edit')}
-    >
-      <Card.Content style={styles.cardContent}>
-        <View style={styles.contentRow}>
-          {item.imagen ? (
-            <Image
-              source={{ uri: item.imagen }}
-              style={[styles.thumbnail, { backgroundColor: theme.colors.surfaceVariant }]}
-              accessibilityLabel={`${t('accessibility.image_of')} ${item.nombre}`}
-            />
-          ) : (
-            <View style={[styles.placeholderThumbnail, { backgroundColor: theme.colors.surfaceVariant }]}>
-              <Icon name="image-not-supported" size={40} color={theme.colors.onSurfaceVariant} />
-            </View>
-          )}
+  const renderArticulo = useCallback(
+    ({ item }: { item: Articulo }) => (
+      <Card
+        style={[styles.card, { backgroundColor: theme.colors.surface }]}
+        onPress={() => onEdit(item)}
+        accessible={true}
+        accessibilityLabel={`${item.nombre}, ${formatearMoneda(item.precio)}, ${t('product.stock')}: ${item.cantidad}`}
+        accessibilityHint={t('accessibility.tap_to_edit')}
+      >
+        <Card.Content style={styles.cardContent}>
+          <View style={styles.contentRow}>
+            {item.imagen ? (
+              <Image
+                source={{ uri: item.imagen }}
+                style={[
+                  styles.thumbnail,
+                  { backgroundColor: theme.colors.surfaceVariant },
+                ]}
+                accessibilityLabel={`${t('accessibility.image_of')} ${item.nombre}`}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.placeholderThumbnail,
+                  { backgroundColor: theme.colors.surfaceVariant },
+                ]}
+              >
+                <Icon
+                  name="image-not-supported"
+                  size={40}
+                  color={theme.colors.onSurfaceVariant}
+                />
+              </View>
+            )}
 
-          <View style={styles.infoContainer}>
-            <Text style={[styles.nombreProducto, { color: theme.colors.onSurface }]}>{item.nombre}</Text>
-            <Text style={[styles.descripcion, { color: theme.colors.onSurfaceVariant }]} numberOfLines={2}>
-              {item.descripcion}
-            </Text>
-
-            <View style={styles.priceRow}>
-              <Text style={[styles.precio, { color: theme.colors.primary }]}>
-                {formatearMoneda(item.precio)}
+            <View style={styles.infoContainer}>
+              <Text
+                style={[
+                  styles.nombreProducto,
+                  { color: theme.colors.onSurface },
+                ]}
+              >
+                {item.nombre}
               </Text>
-              <Chip icon="archive" style={styles.cantidadChip} textStyle={{ color: theme.colors.onSecondaryContainer }}>
-                {t('product.stock')}: {item.cantidad}
-              </Chip>
+              <Text
+                style={[
+                  styles.descripcion,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+                numberOfLines={2}
+              >
+                {item.descripcion}
+              </Text>
+
+              <View style={styles.priceRow}>
+                <Text style={[styles.precio, { color: theme.colors.primary }]}>
+                  {formatearMoneda(item.precio)}
+                </Text>
+                <Chip
+                  icon="archive"
+                  style={styles.cantidadChip}
+                  textStyle={{ color: theme.colors.onSecondaryContainer }}
+                >
+                  {t('product.stock')}: {item.cantidad}
+                </Chip>
+              </View>
             </View>
           </View>
-        </View>
-      </Card.Content>
-      <Card.Actions>
-        <IconButton
-          icon="pencil"
-          iconColor={theme.colors.primary}
-          size={24}
-          onPress={() => onEdit(item)}
-          accessibilityLabel={`${t('common.edit')} ${item.nombre}`}
-        />
-        <IconButton
-          icon="delete"
-          iconColor={theme.colors.error}
-          size={24}
-          onPress={() => item.id !== undefined && handleDelete(item.id, item.nombre)}
-          accessibilityLabel={`${t('common.delete')} ${item.nombre}`}
-        />
-      </Card.Actions>
-    </Card>
-  ), [theme, onEdit, handleDelete, t]);
+        </Card.Content>
+        <Card.Actions>
+          <IconButton
+            icon="pencil"
+            iconColor={theme.colors.primary}
+            size={24}
+            onPress={() => onEdit(item)}
+            accessibilityLabel={`${t('common.edit')} ${item.nombre}`}
+          />
+          <IconButton
+            icon="delete"
+            iconColor={theme.colors.error}
+            size={24}
+            onPress={() =>
+              item.id !== undefined && handleDelete(item.id, item.nombre)
+            }
+            accessibilityLabel={`${t('common.delete')} ${item.nombre}`}
+          />
+        </Card.Actions>
+      </Card>
+    ),
+    [theme, onEdit, handleDelete, t]
+  );
 
   const keyExtractor = useCallback(
     (item: Articulo, index: number) => item.id?.toString() ?? `temp-${index}`,
@@ -151,13 +195,20 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
   );
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View
+      style={[styles.container, { backgroundColor: theme.colors.background }]}
+    >
       <FlatList
         data={articulos}
         renderItem={renderArticulo}
         keyExtractor={keyExtractor}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} colors={[theme.colors.primary]} tintColor={theme.colors.primary} />
+          <RefreshControl
+            refreshing={refreshing}
+            onRefresh={onRefresh}
+            colors={[theme.colors.primary]}
+            tintColor={theme.colors.primary}
+          />
         }
         contentContainerStyle={styles.list}
         maxToRenderPerBatch={10}
@@ -167,8 +218,20 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
           !loading ? (
             <View style={styles.emptyContainer}>
               <Icon name="inventory" size={64} color={theme.colors.outline} />
-              <Text style={[styles.emptyText, { color: theme.colors.onSurfaceVariant }]}>{t('list.empty_title')}</Text>
-              <Text style={[styles.emptySubtext, { color: theme.colors.onSurfaceVariant }]}>
+              <Text
+                style={[
+                  styles.emptyText,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
+                {t('list.empty_title')}
+              </Text>
+              <Text
+                style={[
+                  styles.emptySubtext,
+                  { color: theme.colors.onSurfaceVariant },
+                ]}
+              >
                 {searchQuery ? t('list.empty_search_msg') : t('list.empty_msg')}
               </Text>
             </View>

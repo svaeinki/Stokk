@@ -21,29 +21,29 @@ const ImageSection: React.FC<ImageSectionProps> = ({
 
   return (
     <View style={styles.imageSection}>
-      <TouchableOpacity 
-        onPress={onPickImage} 
+      <TouchableOpacity
+        onPress={onPickImage}
         style={[
-          styles.imageContainer, 
-          { 
-            borderColor: theme.colors.outline, 
-            backgroundColor: theme.colors.surfaceVariant 
-          }
+          styles.imageContainer,
+          {
+            borderColor: theme.colors.outline,
+            backgroundColor: theme.colors.surfaceVariant,
+          },
         ]}
       >
         {imageUri ? (
           <Image source={{ uri: imageUri }} style={styles.image} />
         ) : (
           <View style={styles.placeholderImage}>
-            <Icon 
-              name="add-a-photo" 
-              size={40} 
-              color={theme.colors.onSurfaceVariant} 
+            <Icon
+              name="add-a-photo"
+              size={40}
+              color={theme.colors.onSurfaceVariant}
             />
-            <Text 
+            <Text
               style={[
-                styles.placeholderText, 
-                { color: theme.colors.onSurfaceVariant }
+                styles.placeholderText,
+                { color: theme.colors.onSurfaceVariant },
               ]}
             >
               {t('product.add_photo')}
@@ -52,9 +52,9 @@ const ImageSection: React.FC<ImageSectionProps> = ({
         )}
       </TouchableOpacity>
       {imageUri && (
-        <Button 
-          mode="text" 
-          onPress={onClearImage} 
+        <Button
+          mode="text"
+          onPress={onClearImage}
           textColor={theme.colors.error}
         >
           {t('product.delete_photo')}

@@ -51,7 +51,7 @@ const DataSection: React.FC<DataSectionProps> = ({
       {renderField(
         t('product.name_label'),
         formData.nombre || '',
-        (text) => onFieldChange('nombre', text),
+        text => onFieldChange('nombre', text),
         { placeholder: t('product.placeholder_name') }
       )}
 
@@ -60,11 +60,11 @@ const DataSection: React.FC<DataSectionProps> = ({
           {renderField(
             t('product.price_label'),
             formData.precio?.toString() || '',
-            (text) => onFieldChange('precio', parseInt(text) || 0),
+            text => onFieldChange('precio', parseInt(text) || 0),
             {
               placeholder: '0',
               keyboardType: 'numeric',
-              left: <TextInput.Affix text="$" />
+              left: <TextInput.Affix text="$" />,
             }
           )}
         </View>
@@ -72,10 +72,10 @@ const DataSection: React.FC<DataSectionProps> = ({
           {renderField(
             t('product.quantity_label'),
             formData.cantidad?.toString() || '',
-            (text) => onFieldChange('cantidad', parseInt(text) || 0),
+            text => onFieldChange('cantidad', parseInt(text) || 0),
             {
               placeholder: '1',
-              keyboardType: 'numeric'
+              keyboardType: 'numeric',
             }
           )}
         </View>
@@ -84,19 +84,19 @@ const DataSection: React.FC<DataSectionProps> = ({
       {renderField(
         t('product.description_label'),
         formData.descripcion || '',
-        (text) => onFieldChange('descripcion', text),
+        text => onFieldChange('descripcion', text),
         {
           placeholder: t('product.placeholder_desc'),
           multiline: true,
           numberOfLines: 3,
-          style: [styles.textArea, { backgroundColor: theme.colors.surface }]
+          style: [styles.textArea, { backgroundColor: theme.colors.surface }],
         }
       )}
 
       {renderField(
         t('product.location_label'),
         formData.numeroBodega || '',
-        (text) => onFieldChange('numeroBodega', text),
+        text => onFieldChange('numeroBodega', text),
         {
           placeholder: t('product.placeholder_location'),
         }

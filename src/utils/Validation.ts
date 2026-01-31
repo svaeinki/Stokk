@@ -4,7 +4,7 @@ import {
   validarArticulo,
   validarArticuloParaActualizar,
   CrearArticuloInput,
-  ActualizarArticuloInput
+  ActualizarArticuloInput,
 } from '../validation/schemas';
 import { createValidationError } from '../types/errors';
 import Logger from './Logger';
@@ -20,7 +20,7 @@ import Logger from './Logger';
 export const formatearMoneda = (valor: number): string => {
   return new Intl.NumberFormat('es-CL', {
     style: 'currency',
-    currency: 'CLP'
+    currency: 'CLP',
   }).format(valor || 0);
 };
 
@@ -34,7 +34,9 @@ const parseFechaIngreso = (fechaIngreso: string): Date | null => {
   const formatoLatino = /^\d{2}\/\d{2}\/\d{4}/.test(fechaParte);
 
   if (formatoLatino) {
-    const [dia, mes, anio] = fechaParte.split('/').map(num => parseInt(num, 10));
+    const [dia, mes, anio] = fechaParte
+      .split('/')
+      .map(num => parseInt(num, 10));
     if (!dia || !mes || !anio) return null;
     return new Date(anio, mes - 1, dia);
   }
@@ -74,7 +76,9 @@ export const obtenerClaseAlerta = (fechaIngreso: string): string => {
     if (!fecha) return '';
 
     const ahora = new Date();
-    const dias = Math.floor((ahora.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24));
+    const dias = Math.floor(
+      (ahora.getTime() - fecha.getTime()) / (1000 * 60 * 60 * 24)
+    );
 
     if (dias >= 60) return 'alerta-critica';
     if (dias >= 30) return 'alerta-warning';
@@ -84,14 +88,15 @@ export const obtenerClaseAlerta = (fechaIngreso: string): string => {
   }
 };
 
-
 // ============================================
 // GENERACIÓN DE NÚMERO DE BODEGA
 // ============================================
 
 export const generarNumeroBodega = (): string => {
   const timestamp = Date.now().toString();
-  const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
+  const random = Math.floor(Math.random() * 1000)
+    .toString()
+    .padStart(3, '0');
   return `B${timestamp.slice(-6)}${random}`;
 };
 
@@ -99,7 +104,9 @@ export const generarNumeroBodega = (): string => {
 // VALIDACIÓN DE FORMULARIOS CON ZOD
 // ============================================
 
-export const validarFormularioArticulo = (articulo: Partial<Articulo>): { isValid: boolean; errors: string[] } => {
+export const validarFormularioArticulo = (
+  articulo: Partial<Articulo>
+): { isValid: boolean; errors: string[] } => {
   // Si es un nuevo artículo (sin id), usar schema de creación
   if (!articulo.id) {
     const resultado = validarArticulo(articulo);
@@ -107,54 +114,68 @@ export const validarFormularioArticulo = (articulo: Partial<Articulo>): { isVali
     if (resultado.success) {
       return { isValid: true, errors: [] };
     } else {
-      const errors = resultado.error.issues.map((issue: ZodIssue) => `${issue.path.join('.')}: ${issue.message}`);
+      const errors = resultado.error.issues.map(
+        (issue: ZodIssue) => `${issue.path.join('.')}: ${issue.message}`
+      );
       return { isValid: false, errors };
     }
   }
 
   // Para actualizaciones, validar solo los campos proporcionados
   const resultado = validarArticuloParaActualizar(articulo);
-  
+
   if (resultado.success) {
     return { isValid: true, errors: [] };
   } else {
-    const errors = resultado.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
+    const errors = resultado.error.issues.map(
+      issue => `${issue.path.join('.')}: ${issue.message}`
+    );
     return { isValid: false, errors };
   }
 };
 
 // Validación tipada para creación de artículos
-export const validarCreacionArticulo = (data: CrearArticuloInput): { isValid: boolean; errors: string[] } => {
+export const validarCreacionArticulo = (
+  data: CrearArticuloInput
+): { isValid: boolean; errors: string[] } => {
   const resultado = validarArticulo(data);
-  
+
   if (resultado.success) {
     return { isValid: true, errors: [] };
   } else {
-    const errors = resultado.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
+    const errors = resultado.error.issues.map(
+      issue => `${issue.path.join('.')}: ${issue.message}`
+    );
     return { isValid: false, errors };
   }
 };
 
 // Validación tipada para actualización de artículos
-export const validarActualizacionArticulo = (data: ActualizarArticuloInput): { isValid: boolean; errors: string[] } => {
+export const validarActualizacionArticulo = (
+  data: ActualizarArticuloInput
+): { isValid: boolean; errors: string[] } => {
   const resultado = validarArticuloParaActualizar(data);
-  
+
   if (resultado.success) {
     return { isValid: true, errors: [] };
   } else {
-    const errors = resultado.error.issues.map(issue => `${issue.path.join('.')}: ${issue.message}`);
+    const errors = resultado.error.issues.map(
+      issue => `${issue.path.join('.')}: ${issue.message}`
+    );
     return { isValid: false, errors };
   }
 };
 
 // Validación con error types mejorados
 export const validarArticuloConTipos = (articulo: Partial<Articulo>) => {
-  const resultado = !articulo.id ? validarArticulo(articulo) : validarArticuloParaActualizar(articulo);
-  
+  const resultado = !articulo.id
+    ? validarArticulo(articulo)
+    : validarArticuloParaActualizar(articulo);
+
   if (resultado.success) {
-    return { 
+    return {
       success: true as const,
-      data: resultado.data 
+      data: resultado.data,
     };
   } else {
     const error = createValidationError(
@@ -162,10 +183,10 @@ export const validarArticuloConTipos = (articulo: Partial<Articulo>) => {
       'articulo',
       resultado.error.issues.map((issue: ZodIssue) => issue.message)
     );
-    
-    return { 
+
+    return {
       success: false as const,
-      error 
+      error,
     };
   }
 };

@@ -31,7 +31,11 @@ const shouldLog = (level: LogLevel): boolean => {
   return LOG_LEVELS[level] >= LOG_LEVELS[config.minLevel];
 };
 
-const formatMessage = (level: LogLevel, message: string, error?: StokkError): string => {
+const formatMessage = (
+  level: LogLevel,
+  message: string,
+  error?: StokkError
+): string => {
   const timestamp = new Date().toISOString().slice(11, 19);
   const prefix = {
     debug: '🔍',
@@ -39,9 +43,9 @@ const formatMessage = (level: LogLevel, message: string, error?: StokkError): st
     warn: '⚠️',
     error: '❌',
   }[level];
-  
+
   let formattedMessage = `${prefix} [${timestamp}] ${message}`;
-  
+
   if (error) {
     formattedMessage += ` [${error.type || 'Unknown'}]`;
     if (error.code) {
@@ -51,13 +55,13 @@ const formatMessage = (level: LogLevel, message: string, error?: StokkError): st
       formattedMessage += ` Context: ${error.context}`;
     }
   }
-  
+
   return formattedMessage;
 };
 
 const formatErrorObject = (error: StokkError | unknown): unknown => {
   if (!error) return undefined;
-  
+
   if (error instanceof Error && 'type' in error) {
     const typedError = error as StokkError;
     return {
@@ -70,7 +74,7 @@ const formatErrorObject = (error: StokkError | unknown): unknown => {
       details: typedError.details,
     };
   }
-  
+
   return error;
 };
 
@@ -93,11 +97,15 @@ export const Logger = {
     }
   },
 
-  error: (message: string, error?: StokkError | unknown, ...args: unknown[]) => {
+  error: (
+    message: string,
+    error?: StokkError | unknown,
+    ...args: unknown[]
+  ) => {
     if (shouldLog('error')) {
       const typedError = error as StokkError;
       console.error(
-        formatMessage('error', message, typedError), 
+        formatMessage('error', message, typedError),
         formatErrorObject(error),
         ...args
       );

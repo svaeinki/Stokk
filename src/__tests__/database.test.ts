@@ -23,7 +23,10 @@ describe('DatabaseManager', () => {
 
   describe('insertarArticulo', () => {
     it('should insert an article successfully', async () => {
-      const mockInsertarArticulo = DatabaseManager.insertarArticulo as jest.MockedFunction<typeof DatabaseManager.insertarArticulo>;
+      const mockInsertarArticulo =
+        DatabaseManager.insertarArticulo as jest.MockedFunction<
+          typeof DatabaseManager.insertarArticulo
+        >;
       mockInsertarArticulo.mockResolvedValue(1);
 
       const result = await DatabaseManager.insertarArticulo(mockArticulo);
@@ -33,16 +36,24 @@ describe('DatabaseManager', () => {
     });
 
     it('should handle insert errors', async () => {
-      const mockInsertarArticulo = DatabaseManager.insertarArticulo as jest.MockedFunction<typeof DatabaseManager.insertarArticulo>;
+      const mockInsertarArticulo =
+        DatabaseManager.insertarArticulo as jest.MockedFunction<
+          typeof DatabaseManager.insertarArticulo
+        >;
       mockInsertarArticulo.mockRejectedValue(new Error('Database error'));
 
-      await expect(DatabaseManager.insertarArticulo(mockArticulo)).rejects.toThrow('Database error');
+      await expect(
+        DatabaseManager.insertarArticulo(mockArticulo)
+      ).rejects.toThrow('Database error');
     });
   });
 
   describe('obtenerArticulos', () => {
     it('should get all articles', async () => {
-      const mockObtenerArticulos = DatabaseManager.obtenerArticulos as jest.MockedFunction<typeof DatabaseManager.obtenerArticulos>;
+      const mockObtenerArticulos =
+        DatabaseManager.obtenerArticulos as jest.MockedFunction<
+          typeof DatabaseManager.obtenerArticulos
+        >;
       mockObtenerArticulos.mockResolvedValue([mockArticulo]);
 
       const result = await DatabaseManager.obtenerArticulos();
@@ -54,7 +65,10 @@ describe('DatabaseManager', () => {
 
   describe('contarArticulos', () => {
     it('should count articles', async () => {
-      const mockContarArticulos = DatabaseManager.contarArticulos as jest.MockedFunction<typeof DatabaseManager.contarArticulos>;
+      const mockContarArticulos =
+        DatabaseManager.contarArticulos as jest.MockedFunction<
+          typeof DatabaseManager.contarArticulos
+        >;
       mockContarArticulos.mockResolvedValue(5);
 
       const result = await DatabaseManager.contarArticulos();
@@ -65,7 +79,10 @@ describe('DatabaseManager', () => {
 
   describe('eliminarArticulo', () => {
     it('should delete an article', async () => {
-      const mockEliminarArticulo = DatabaseManager.eliminarArticulo as jest.MockedFunction<typeof DatabaseManager.eliminarArticulo>;
+      const mockEliminarArticulo =
+        DatabaseManager.eliminarArticulo as jest.MockedFunction<
+          typeof DatabaseManager.eliminarArticulo
+        >;
       mockEliminarArticulo.mockResolvedValue();
 
       await DatabaseManager.eliminarArticulo(1);

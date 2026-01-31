@@ -50,6 +50,7 @@ class DatabaseManager {
     // Crear índices
     await this.db.execAsync(`
       CREATE INDEX IF NOT EXISTS idx_nombre ON articulos(nombre);
+      CREATE INDEX IF NOT EXISTS idx_numeroBodega ON articulos(numeroBodega);
       CREATE INDEX IF NOT EXISTS idx_fechaIngreso ON articulos(fechaIngreso DESC);
     `);
   }
@@ -75,7 +76,7 @@ class DatabaseManager {
           articulo.imagen || null,
           articulo.numeroBodega,
           articulo.observaciones || null,
-          articulo.fechaIngreso
+          articulo.fechaIngreso,
         ]
       );
 
@@ -89,7 +90,10 @@ class DatabaseManager {
     }
   }
 
-  async obtenerArticulos(limit: number = 100, offset: number = 0): Promise<Articulo[]> {
+  async obtenerArticulos(
+    limit: number = 100,
+    offset: number = 0
+  ): Promise<Articulo[]> {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
@@ -135,7 +139,10 @@ class DatabaseManager {
     }
   }
 
-  async actualizarArticulo(id: number, articulo: Partial<Articulo>): Promise<void> {
+  async actualizarArticulo(
+    id: number,
+    articulo: Partial<Articulo>
+  ): Promise<void> {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
@@ -178,14 +185,11 @@ class DatabaseManager {
         `UPDATE articulos SET ${campos.join(', ')} WHERE id = ?`,
         valores
       );
-
     } catch (error) {
       Logger.error('Error al actualizar artículo', error);
       throw error;
     }
   }
-
-
 
   async eliminarArticulo(id: number): Promise<void> {
     if (!this.db) throw new Error('Base de datos no inicializada');
@@ -222,7 +226,7 @@ class DatabaseManager {
       // Clear images and database in parallel (independent operations)
       await Promise.all([
         ImageService.clearAllImages(),
-        this.db.runAsync('DELETE FROM articulos')
+        this.db.runAsync('DELETE FROM articulos'),
       ]);
     } catch (error) {
       Logger.error('Error al resetear base de datos', error);

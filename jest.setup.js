@@ -1,25 +1,38 @@
-import 'react-native-gesture-handler/jestSetup';
-
-jest.mock('react-native-reanimated', () => {
-  const Reanimated = require('react-native-reanimated/mock');
-  Reanimated.default.call = () => {};
-  return Reanimated;
-});
-
-// Silence the warning: Animated: `useNativeDriver` is not supported because the native animated module is missing
-jest.mock('react-native/Libraries/Animated/NativeAnimatedHelper');
-
 // Mock Expo modules
 jest.mock('expo-file-system', () => ({
-  documentDirectory: '/tmp/documents/',
-  cacheDirectory: '/tmp/cache/',
+  Paths: {
+    document: { uri: 'file:///tmp/documents/' },
+    cache: { uri: 'file:///tmp/cache/' },
+  },
+  Directory: jest.fn().mockImplementation(() => ({
+    exists: true,
+    create: jest.fn(),
+    delete: jest.fn(),
+  })),
+  File: jest.fn().mockImplementation(() => ({
+    exists: true,
+    copy: jest.fn(),
+    delete: jest.fn(),
+  })),
 }));
 
 jest.mock('expo-image-picker', () => ({
-  requestCameraPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
-  requestMediaLibraryPermissionsAsync: jest.fn(() => Promise.resolve({ status: 'granted' })),
+  requestCameraPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: 'granted' })
+  ),
+  requestMediaLibraryPermissionsAsync: jest.fn(() =>
+    Promise.resolve({ status: 'granted' })
+  ),
   launchCameraAsync: jest.fn(),
   launchImageLibraryAsync: jest.fn(),
+}));
+
+jest.mock('expo-image-manipulator', () => ({
+  manipulateAsync: jest.fn((uri) => Promise.resolve({ uri })),
+  SaveFormat: {
+    JPEG: 'jpeg',
+    PNG: 'png',
+  },
 }));
 
 jest.mock('expo-sqlite', () => ({
@@ -67,7 +80,7 @@ jest.mock('@react-native-async-storage/async-storage', () => ({
 // Mock i18next
 jest.mock('react-i18next', () => ({
   useTranslation: () => ({
-    t: (key: string) => key,
+    t: key => key,
     i18n: {
       changeLanguage: jest.fn(),
       language: 'es',
@@ -76,7 +89,7 @@ jest.mock('react-i18next', () => ({
 }));
 
 // Mock ThemeContext
-jest.mock('../src/context/ThemeContext', () => ({
+jest.mock('./src/context/ThemeContext', () => ({
   useTheme: () => ({
     theme: {
       colors: {
@@ -112,6 +125,6 @@ jest.mock('@react-navigation/native', () => ({
   useRoute: () => ({
     params: {},
   }),
-  useFocusEffect: jest.fn((fn) => fn()),
+  useFocusEffect: jest.fn(fn => fn()),
   useIsFocused: jest.fn(() => true),
 }));

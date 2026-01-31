@@ -1,7 +1,4 @@
-import { 
-  validarArticulo, 
-  CrearArticuloInput 
-} from '../validation/schemas';
+import { validarArticulo, CrearArticuloInput } from '../validation/schemas';
 import { validarCreacionArticulo } from '../utils/Validation';
 
 describe('Validation Schemas', () => {
@@ -54,7 +51,10 @@ describe('Validation Schemas', () => {
     });
 
     it('should accept article with custom location text', () => {
-      const articuloConUbicacion = { ...validArticulo, numeroBodega: 'Bodega Norte - Pasillo 3' };
+      const articuloConUbicacion = {
+        ...validArticulo,
+        numeroBodega: 'Bodega Norte - Pasillo 3',
+      };
       const result = validarArticulo(articuloConUbicacion);
 
       expect(result.success).toBe(true);

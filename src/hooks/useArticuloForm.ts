@@ -57,7 +57,7 @@ export const useArticuloForm = ({
       // Fetch count and subscription status in parallel
       const [count, isPro] = await Promise.all([
         DatabaseManager.contarArticulos(),
-        SubscriptionService.isPro()
+        SubscriptionService.isPro(),
       ]);
 
       // Verificar si el componente sigue montado
@@ -68,8 +68,15 @@ export const useArticuloForm = ({
           t('limit.title'),
           t('limit.message', { limit: FREE_TIER_PRODUCT_LIMIT }),
           [
-            { text: t('common.cancel'), onPress: () => navigation.goBack(), style: 'cancel' },
-            { text: t('limit.view_plans'), onPress: () => navigation.navigate('Paywall') }
+            {
+              text: t('common.cancel'),
+              onPress: () => navigation.goBack(),
+              style: 'cancel',
+            },
+            {
+              text: t('limit.view_plans'),
+              onPress: () => navigation.navigate('Paywall'),
+            },
           ],
           { cancelable: false }
         );
@@ -91,9 +98,12 @@ export const useArticuloForm = ({
     }
   }, [initialArticulo, checkLimit]);
 
-  const handleFieldChange = useCallback((field: keyof Articulo, value: string | number) => {
-    setFormData((prev: Partial<Articulo>) => ({ ...prev, [field]: value }));
-  }, []);
+  const handleFieldChange = useCallback(
+    (field: keyof Articulo, value: string | number) => {
+      setFormData((prev: Partial<Articulo>) => ({ ...prev, [field]: value }));
+    },
+    []
+  );
 
   const handleSave = useCallback(async () => {
     const validation = validarFormularioArticulo(formData);
@@ -103,14 +113,17 @@ export const useArticuloForm = ({
       if (onError) {
         onError(validation.errors.join('\n'));
       } else {
-        Alert.alert(t('product.validation_error'), validation.errors.join('\n'));
+        Alert.alert(
+          t('product.validation_error'),
+          validation.errors.join('\n')
+        );
       }
       return;
     }
 
     try {
       setLoading(true);
-      let finalImageUri = formData.imagen;
+      const finalImageUri = formData.imagen;
 
       // 1. Guardar en Base de Datos primero (operación crítica)
       const articuloAGuardar = {
@@ -120,10 +133,15 @@ export const useArticuloForm = ({
 
       let savedId: number | undefined;
       if (initialArticulo?.id) {
-        await DatabaseManager.actualizarArticulo(initialArticulo.id, articuloAGuardar);
+        await DatabaseManager.actualizarArticulo(
+          initialArticulo.id,
+          articuloAGuardar
+        );
         savedId = initialArticulo.id;
       } else {
-        savedId = await DatabaseManager.insertarArticulo(articuloAGuardar as Omit<Articulo, 'id'>);
+        savedId = await DatabaseManager.insertarArticulo(
+          articuloAGuardar as Omit<Articulo, 'id'>
+        );
       }
 
       // 2. Manejo de persistencia de imagen (después del guardado en BD)
@@ -131,11 +149,16 @@ export const useArticuloForm = ({
         const savedUri = await ImageService.saveImage(formData.imagen);
         if (savedUri && savedId) {
           // Actualizar la URI de imagen en la BD
-          await DatabaseManager.actualizarArticulo(savedId, { imagen: savedUri });
+          await DatabaseManager.actualizarArticulo(savedId, {
+            imagen: savedUri,
+          });
         }
 
         // Eliminar imagen anterior si había una diferente
-        if (initialArticulo?.imagen && initialArticulo.imagen !== formData.imagen) {
+        if (
+          initialArticulo?.imagen &&
+          initialArticulo.imagen !== formData.imagen
+        ) {
           try {
             await ImageService.deleteImage(initialArticulo.imagen);
           } catch {
@@ -167,7 +190,10 @@ export const useArticuloForm = ({
         navigation.navigate('Inventario');
       } else {
         Alert.alert(t('common.success'), successMessage, [
-          { text: t('common.ok'), onPress: () => navigation.navigate('Inventario') }
+          {
+            text: t('common.ok'),
+            onPress: () => navigation.navigate('Inventario'),
+          },
         ]);
       }
     } catch (error) {
