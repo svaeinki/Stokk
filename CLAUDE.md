@@ -78,7 +78,7 @@ Root Stack Navigator
 
 ### Database Schema
 
-Single table `articulos` with fields: id, nombre, descripcion, precio (integer), cantidad, imagen (URI), numeroBodega (unique), observaciones, fechaIngreso, fechaModificacion. Indexed on nombre, numeroBodega, and fechaIngreso.
+Single table `articulos` with fields: id, nombre, descripcion, precio (integer), cantidad, imagen (URI), numeroBodega, observaciones, fechaIngreso, fechaModificacion. Indexed on nombre, numeroBodega, and fechaIngreso (descending).
 
 ```typescript
 interface Articulo {
@@ -88,7 +88,7 @@ interface Articulo {
   precio: number;           // Price in Chilean Pesos (integer)
   cantidad: number;         // Quantity
   imagen?: string;          // Image URI (local file path)
-  numeroBodega: string;     // Warehouse code (unique)
+  numeroBodega: string;     // Warehouse/location code (optional free-text)
   observaciones?: string;   // Notes
   fechaIngreso: string;     // Created date
   fechaModificacion?: string; // Modified date
