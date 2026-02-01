@@ -4,6 +4,8 @@ const config = getDefaultConfig(__dirname);
 
 // Add support for .wasm files
 config.resolver.sourceExts.push('wasm');
-config.resolver.assetExts = config.resolver.assetExts.filter(ext => ext !== 'wasm');
+config.resolver.assetExts = config.resolver.assetExts.filter(
+  ext => ext !== 'wasm'
+);
 
 module.exports = config;

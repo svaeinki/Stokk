@@ -9,11 +9,19 @@ module.exports = {
   moduleNameMapper: {
     '^~/(.*)$': '<rootDir>/src/$1',
   },
-  modulePathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/android/', '<rootDir>/ios/'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/android/',
+    '<rootDir>/ios/',
+  ],
   transformIgnorePatterns: [
     'node_modules/(?!(jest-)?react-native|@react-native|expo|@expo|@react-navigation|react-native-vector-icons)',
   ],
-  modulePathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/android/', '<rootDir>/ios/'],
+  modulePathIgnorePatterns: [
+    '<rootDir>/node_modules/',
+    '<rootDir>/android/',
+    '<rootDir>/ios/',
+  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',

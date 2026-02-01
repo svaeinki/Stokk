@@ -43,6 +43,7 @@ npx expo run:android  # Then use `npm run start` for hot reload
 ## Architecture
 
 ### Tech Stack
+
 - **Framework:** React Native 0.81 + Expo SDK 54
 - **Language:** TypeScript (strict mode)
 - **UI:** React Native Paper (Material Design 3)
@@ -54,18 +55,19 @@ npx expo run:android  # Then use `npm run start` for hot reload
 
 ### Source Structure (`src/`)
 
-| Directory | Purpose |
-|-----------|---------|
-| `components/` | Reusable UI components (`ArticuloForm`, `ArticuloList`) |
-| `context/` | React Context providers (`ThemeContext` for dark/light mode) |
-| `database/` | `DatabaseManager.ts` - singleton SQLite CRUD operations |
-| `i18n/` | Internationalization setup and locale files (`locales/es.json`, `locales/en.json`) |
-| `screens/` | Screen components (Inventario, Buscar, Ingresar, Config, Paywall) |
-| `services/` | `SubscriptionService` (RevenueCat), `ImageService` (camera/gallery) |
-| `utils/` | `Validation.ts` (formatting), `Logger.ts` (silenced in production) |
-| `constants/` | App constants including `FREE_TIER_PRODUCT_LIMIT` and color palette |
+| Directory     | Purpose                                                                            |
+| ------------- | ---------------------------------------------------------------------------------- |
+| `components/` | Reusable UI components (`ArticuloForm`, `ArticuloList`)                            |
+| `context/`    | React Context providers (`ThemeContext` for dark/light mode)                       |
+| `database/`   | `DatabaseManager.ts` - singleton SQLite CRUD operations                            |
+| `i18n/`       | Internationalization setup and locale files (`locales/es.json`, `locales/en.json`) |
+| `screens/`    | Screen components (Inventario, Buscar, Ingresar, Config, Paywall)                  |
+| `services/`   | `SubscriptionService` (RevenueCat), `ImageService` (camera/gallery)                |
+| `utils/`      | `Validation.ts` (formatting), `Logger.ts` (silenced in production)                 |
+| `constants/`  | App constants including `FREE_TIER_PRODUCT_LIMIT` and color palette                |
 
 ### Navigation Structure
+
 ```
 Root Stack Navigator
 ├── MainTabs (Bottom Tab Navigator)
@@ -83,14 +85,14 @@ Single table `articulos` with fields: id, nombre, descripcion, precio (integer),
 ```typescript
 interface Articulo {
   id?: number;
-  nombre: string;           // Product name
-  descripcion: string;      // Description
-  precio: number;           // Price in Chilean Pesos (integer)
-  cantidad: number;         // Quantity
-  imagen?: string;          // Image URI (local file path)
-  numeroBodega: string;     // Warehouse/location code (optional free-text)
-  observaciones?: string;   // Notes
-  fechaIngreso: string;     // Created date
+  nombre: string; // Product name
+  descripcion: string; // Description
+  precio: number; // Price in Chilean Pesos (integer)
+  cantidad: number; // Quantity
+  imagen?: string; // Image URI (local file path)
+  numeroBodega: string; // Warehouse/location code (optional free-text)
+  observaciones?: string; // Notes
+  fechaIngreso: string; // Created date
   fechaModificacion?: string; // Modified date
 }
 ```

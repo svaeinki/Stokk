@@ -28,7 +28,7 @@ jest.mock('expo-image-picker', () => ({
 }));
 
 jest.mock('expo-image-manipulator', () => ({
-  manipulateAsync: jest.fn((uri) => Promise.resolve({ uri })),
+  manipulateAsync: jest.fn(uri => Promise.resolve({ uri })),
   SaveFormat: {
     JPEG: 'jpeg',
     PNG: 'png',

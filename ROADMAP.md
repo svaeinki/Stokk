@@ -36,13 +36,13 @@ ACTUAL                          FUTURO
 
 ### Stack Recomendado
 
-| Componente | Tecnología | Razón |
-|------------|------------|-------|
-| Framework | Ruby on Rails 7+ (API mode) | Rápido de desarrollar, convenciones sólidas |
-| Base de datos | PostgreSQL | Escalable, robusto, buen soporte JSON |
-| Autenticación | Devise + JWT | Estándar en Rails, tokens para mobile |
-| Hosting | Railway / Render / Fly.io | Fácil deploy, tier gratuito para empezar |
-| Almacenamiento | AWS S3 / Cloudflare R2 | Para imágenes de productos |
+| Componente     | Tecnología                  | Razón                                       |
+| -------------- | --------------------------- | ------------------------------------------- |
+| Framework      | Ruby on Rails 7+ (API mode) | Rápido de desarrollar, convenciones sólidas |
+| Base de datos  | PostgreSQL                  | Escalable, robusto, buen soporte JSON       |
+| Autenticación  | Devise + JWT                | Estándar en Rails, tokens para mobile       |
+| Hosting        | Railway / Render / Fly.io   | Fácil deploy, tier gratuito para empezar    |
+| Almacenamiento | AWS S3 / Cloudflare R2      | Para imágenes de productos                  |
 
 ### Endpoints Básicos
 
@@ -129,19 +129,22 @@ end
 // src/services/SyncService.ts
 class SyncService {
   // Estado de sincronización
-  async getSyncStatus(): Promise<SyncStatus>
+  async getSyncStatus(): Promise<SyncStatus>;
 
   // Sincronización manual
-  async syncNow(): Promise<SyncResult>
+  async syncNow(): Promise<SyncResult>;
 
   // Sincronización en background
-  async enableAutoSync(intervalMs: number): void
+  async enableAutoSync(intervalMs: number): void;
 
   // Manejo de conflictos
-  async resolveConflict(articuloId: number, resolution: 'local' | 'remote'): void
+  async resolveConflict(
+    articuloId: number,
+    resolution: 'local' | 'remote'
+  ): void;
 
   // Cola de operaciones pendientes
-  async getPendingOperations(): Promise<Operation[]>
+  async getPendingOperations(): Promise<Operation[]>;
 }
 ```
 
@@ -211,13 +214,13 @@ end
 
 ### Permisos por Rol
 
-| Acción | Admin | Editor | Viewer |
-|--------|:-----:|:------:|:------:|
-| Ver productos | ✓ | ✓ | ✓ |
-| Crear/editar productos | ✓ | ✓ | ✗ |
-| Eliminar productos | ✓ | ✗ | ✗ |
-| Invitar usuarios | ✓ | ✗ | ✗ |
-| Configurar organización | ✓ | ✗ | ✗ |
+| Acción                  | Admin | Editor | Viewer |
+| ----------------------- | :---: | :----: | :----: |
+| Ver productos           |   ✓   |   ✓    |   ✓    |
+| Crear/editar productos  |   ✓   |   ✓    |   ✗    |
+| Eliminar productos      |   ✓   |   ✗    |   ✗    |
+| Invitar usuarios        |   ✓   |   ✗    |   ✗    |
+| Configurar organización |   ✓   |   ✗    |   ✗    |
 
 ### Nuevos Endpoints
 
@@ -314,11 +317,13 @@ Rails monolítico
 Ideas para expandir después de las fases principales:
 
 ### Integraciones
+
 - [ ] Exportar a sistemas contables (Facturación electrónica Chile)
 - [ ] Conectar con e-commerce (Shopify, WooCommerce)
 - [ ] Notificaciones push (stock bajo, actividad)
 
 ### Funcionalidades
+
 - [ ] Códigos de barra / QR
 - [ ] Múltiples bodegas/ubicaciones
 - [ ] Historial de movimientos de stock
@@ -327,6 +332,7 @@ Ideas para expandir después de las fases principales:
 - [ ] Reportes avanzados con gráficos
 
 ### Técnico
+
 - [ ] API pública documentada (para integraciones terceros)
 - [ ] Webhooks
 - [ ] App para tablet con interfaz optimizada
@@ -354,16 +360,19 @@ Fase 5: Avanzado                                              ──────
 Antes de empezar, considera estas preguntas:
 
 ### Infraestructura
+
 - [ ] ¿Hosting: Railway, Render, Fly.io, o VPS propio?
 - [ ] ¿Almacenamiento de imágenes: S3, Cloudflare R2, o servidor propio?
 - [ ] ¿Dominio para la API? (ej: api.stokk.app)
 
 ### Modelo de Negocio
+
 - [ ] ¿El sync será feature Pro o gratuito?
 - [ ] ¿Límite de usuarios por organización?
 - [ ] ¿Pricing para equipos/empresas?
 
 ### Técnico
+
 - [ ] ¿Mantener compatibilidad con usuarios offline-only?
 - [ ] ¿Migración de datos existentes al crear cuenta?
 
@@ -372,15 +381,18 @@ Antes de empezar, considera estas preguntas:
 ## Recursos Útiles
 
 ### Rails API
+
 - [Rails API-only Applications](https://guides.rubyonrails.org/api_app.html)
 - [Devise JWT](https://github.com/waiting-for-dev/devise-jwt)
 - [Active Storage para S3](https://guides.rubyonrails.org/active_storage_overview.html)
 
 ### Sincronización Offline
+
 - [WatermelonDB](https://github.com/Nozbe/WatermelonDB) - Base de datos para React Native con sync
 - [Expo SQLite](https://docs.expo.dev/versions/latest/sdk/sqlite/)
 
 ### Panel Web
+
 - [Hotwire](https://hotwired.dev/) - Full-stack sin mucho JavaScript
 - [Next.js](https://nextjs.org/) - React framework con SSR
 
@@ -395,4 +407,4 @@ Antes de empezar, considera estas preguntas:
 
 ---
 
-*Última actualización: Enero 2026*
+_Última actualización: Enero 2026_
