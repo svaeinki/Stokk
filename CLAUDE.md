@@ -49,6 +49,7 @@ npx expo run:android  # Then use `npm run start` for hot reload
 - **UI:** React Native Paper (Material Design 3)
 - **Navigation:** React Navigation v7 (bottom tabs + native stack)
 - **Storage:** expo-sqlite (SQLite), AsyncStorage
+- **Validation:** Zod (runtime schema validation)
 - **i18n:** i18next + react-i18next + expo-localization
 - **Subscriptions:** RevenueCat (react-native-purchases)
 - **Error Tracking:** Sentry
@@ -57,13 +58,16 @@ npx expo run:android  # Then use `npm run start` for hot reload
 
 | Directory     | Purpose                                                                            |
 | ------------- | ---------------------------------------------------------------------------------- |
-| `components/` | Reusable UI components (`ArticuloForm`, `ArticuloList`)                            |
-| `context/`    | React Context providers (`ThemeContext` for dark/light mode)                       |
+| `components/` | Reusable UI components (`ArticuloForm`, `ArticuloList`, `form/*`)                  |
+| `context/`    | React Context providers (`ThemeContext`, `SnackbarContext`)                        |
 | `database/`   | `DatabaseManager.ts` - singleton SQLite CRUD operations                            |
+| `hooks/`      | Custom hooks (`useSubscriptionLimit`, `useArticuloForm`, `useArticuloSubmit`)      |
 | `i18n/`       | Internationalization setup and locale files (`locales/es.json`, `locales/en.json`) |
 | `screens/`    | Screen components (Inventario, Buscar, Ingresar, Config, Paywall)                  |
-| `services/`   | `SubscriptionService` (RevenueCat), `ImageService` (camera/gallery)                |
+| `services/`   | `SubscriptionService` (RevenueCat), `ImageService` (camera/gallery), `SentryService` |
+| `types/`      | TypeScript types (`navigation.ts`, `errors.ts`)                                    |
 | `utils/`      | `Validation.ts` (formatting), `Logger.ts` (silenced in production)                 |
+| `validation/` | Zod schemas for data validation (`schemas.ts`)                                     |
 | `constants/`  | App constants including `FREE_TIER_PRODUCT_LIMIT` and color palette                |
 
 ### Navigation Structure
@@ -103,7 +107,9 @@ interface Articulo {
 - **DatabaseManager:** Lazy initialization with `initDatabase()`. All CRUD methods are async and use prepared statements.
 - **SubscriptionService:** RevenueCat wrapper with 5-minute cache for pro status. Gracefully handles missing API keys (returns false/null instead of throwing).
 - **ThemeContext:** Provides both Paper theme and Navigation theme, respects system color scheme.
+- **SnackbarContext:** Global toast notifications via `useSnackbar()` hook with `showSuccess()`, `showError()`, `showInfo()` methods.
 - **i18n:** Language persisted in AsyncStorage, falls back to device locale then Spanish. Use `useTranslation()` hook and `t('key')` for translations.
+- **Zod validation:** Use schemas in `src/validation/schemas.ts` for form validation (`articuloSchema`, `crearArticuloSchema`, `actualizarArticuloSchema`).
 - **Currency:** Prices stored as integers (Chilean Pesos), formatted with `Validation.ts` utilities.
 - **Free tier limit:** 20 products max without subscription (`FREE_TIER_PRODUCT_LIMIT` in `src/constants/app.ts`).
 
