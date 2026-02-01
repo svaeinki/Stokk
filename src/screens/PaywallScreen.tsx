@@ -17,7 +17,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import Logger from '../utils/Logger';
 import { PaywallScreenNavigationProp } from '../types/navigation';
-import { FREE_TIER_PRODUCT_LIMIT, COLORS } from '../constants/app';
+import { COLORS } from '../constants/app';
 import { useTranslation } from 'react-i18next';
 
 type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
@@ -30,7 +30,7 @@ interface Benefit {
 
 const PaywallScreen: React.FC = () => {
   const navigation = useNavigation<PaywallScreenNavigationProp>();
-  const { theme, isDark } = useTheme();
+  const { theme } = useTheme();
   const { t } = useTranslation();
 
   const [packages, setPackages] = useState<PurchasesPackage[]>([]);
@@ -41,6 +41,7 @@ const PaywallScreen: React.FC = () => {
 
   useEffect(() => {
     initializePaywall();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const initializePaywall = async () => {
@@ -344,6 +345,9 @@ const PaywallScreen: React.FC = () => {
                   onPress={() => setSelectedPackage(pack.identifier)}
                   style={[
                     styles.packageCard,
+                    isSelected
+                      ? styles.packageCardSelected
+                      : styles.packageCardUnselected,
                     {
                       backgroundColor: isSelected
                         ? theme.colors.primaryContainer
@@ -351,7 +355,6 @@ const PaywallScreen: React.FC = () => {
                       borderColor: isSelected
                         ? theme.colors.primary
                         : theme.colors.outline,
-                      borderWidth: isSelected ? 2 : 1,
                     },
                   ]}
                   disabled={purchasing}
@@ -612,6 +615,12 @@ const styles = StyleSheet.create({
     position: 'relative',
     overflow: 'hidden',
   },
+  packageCardSelected: {
+    borderWidth: 2,
+  },
+  packageCardUnselected: {
+    borderWidth: 1,
+  },
   savingsBadge: {
     position: 'absolute',
     top: 0,
@@ -621,7 +630,7 @@ const styles = StyleSheet.create({
     borderBottomLeftRadius: 8,
   },
   savingsText: {
-    color: '#000',
+    color: COLORS.goldText,
     fontSize: 12,
     fontWeight: 'bold',
   },

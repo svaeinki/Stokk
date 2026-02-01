@@ -1,6 +1,5 @@
 import React from 'react';
-import { View, StyleSheet, Alert } from 'react-native';
-import { useTranslation } from 'react-i18next';
+import { View, StyleSheet } from 'react-native';
 import ArticuloList from '../components/ArticuloList';
 import { Articulo } from '../database/DatabaseManager';
 import { useNavigation } from '@react-navigation/native';
@@ -10,7 +9,6 @@ import { useTheme } from '../context/ThemeContext';
 const InventarioScreen: React.FC = () => {
   const navigation = useNavigation<InventarioScreenNavigationProp>();
   const { theme } = useTheme();
-  const { t } = useTranslation();
 
   const handleEdit = (articulo: Articulo) => {
     navigation.navigate('Ingresar', { articulo });

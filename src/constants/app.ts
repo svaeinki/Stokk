@@ -21,6 +21,7 @@ export const PALETTE = {
 // Colores especiales que no están en el tema (ej: iconos decorativos)
 export const COLORS = {
   gold: '#FFD700', // Para iconos de premium/diamante
+  goldText: '#000000', // Texto sobre fondo gold
   success: '#4CAF50', // Verde éxito
   warning: '#FF9800', // Naranja advertencia
   error: '#F44336', // Rojo error

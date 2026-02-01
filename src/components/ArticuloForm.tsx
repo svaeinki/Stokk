@@ -1,17 +1,9 @@
 import React, { useState, useCallback } from 'react';
 import { useTranslation } from 'react-i18next';
-import {
-  View,
-  StyleSheet,
-  ScrollView,
-  Alert,
-  Linking,
-  Platform,
-} from 'react-native';
+import { StyleSheet, ScrollView, Alert, Linking, Platform } from 'react-native';
 import { Card, Text, Divider } from 'react-native-paper';
 import * as ImagePicker from 'expo-image-picker';
 import { useRoute, RouteProp } from '@react-navigation/native';
-import { Articulo } from '../database/DatabaseManager';
 import { useTheme } from '../context/ThemeContext';
 import { useSnackbar } from '../context/SnackbarContext';
 import { TabParamList } from '../types/navigation';
@@ -41,24 +33,27 @@ const ArticuloForm: React.FC = () => {
       onError: showError,
     });
 
-  const openSettings = () => {
+  const openSettings = useCallback(() => {
     if (Platform.OS === 'ios') {
       Linking.openURL('app-settings:');
     } else {
       Linking.openSettings();
     }
-  };
+  }, []);
 
-  const showPermissionDeniedAlert = (tipo: 'camera' | 'gallery') => {
-    Alert.alert(
-      t('permissions.required_title'),
-      t('permissions.required_msg', { type: t(`permissions.${tipo}`) }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        { text: t('permissions.open_settings'), onPress: openSettings },
-      ]
-    );
-  };
+  const showPermissionDeniedAlert = useCallback(
+    (tipo: 'camera' | 'gallery') => {
+      Alert.alert(
+        t('permissions.required_title'),
+        t('permissions.required_msg', { type: t(`permissions.${tipo}`) }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          { text: t('permissions.open_settings'), onPress: openSettings },
+        ]
+      );
+    },
+    [t, openSettings]
+  );
 
   const takePhoto = useCallback(async () => {
     const { status } = await ImagePicker.requestCameraPermissionsAsync();
@@ -86,7 +81,7 @@ const ArticuloForm: React.FC = () => {
     } finally {
       setImagePickerLoading(false);
     }
-  }, [handleFieldChange, t, showError]);
+  }, [handleFieldChange, t, showError, showPermissionDeniedAlert]);
 
   const pickFromGallery = useCallback(async () => {
     const { status } = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -114,7 +109,7 @@ const ArticuloForm: React.FC = () => {
     } finally {
       setImagePickerLoading(false);
     }
-  }, [handleFieldChange, t, showError]);
+  }, [handleFieldChange, t, showError, showPermissionDeniedAlert]);
 
   const pickImage = useCallback(() => {
     Alert.alert(

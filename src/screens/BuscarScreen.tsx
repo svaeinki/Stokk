@@ -107,40 +107,49 @@ const BuscarScreen: React.FC = () => {
     [theme.colors.primary]
   );
 
-  const handleEdit = (articulo: Articulo) => {
-    navigation.navigate('Ingresar', { articulo });
-  };
+  const handleEdit = useCallback(
+    (articulo: Articulo) => {
+      navigation.navigate('Ingresar', { articulo });
+    },
+    [navigation]
+  );
 
-  const handleDelete = async (id: number) => {
-    Alert.alert(
-      t('list.delete_confirm_title'),
-      t('list.delete_confirm_msg', { name: t('search.this_product') }),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await DatabaseManager.eliminarArticulo(id);
-              // Actualizar lista después de eliminar
-              buscar(searchQuery);
-            } catch (error) {
-              showError(t('list.delete_error'));
-            }
+  const handleDelete = useCallback(
+    (id: number) => {
+      Alert.alert(
+        t('list.delete_confirm_title'),
+        t('list.delete_confirm_msg', { name: t('search.this_product') }),
+        [
+          { text: t('common.cancel'), style: 'cancel' },
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await DatabaseManager.eliminarArticulo(id);
+                // Actualizar lista después de eliminar
+                buscar(searchQueryRef.current);
+              } catch (error) {
+                showError(t('list.delete_error'));
+              }
+            },
           },
-        },
-      ]
-    );
-  };
+        ]
+      );
+    },
+    [t, buscar, showError]
+  );
 
-  const renderArticulo = ({ item }: { item: Articulo }) => {
+  // Memoizar el prefijo de ubicación para evitar recálculo en cada render
+  const locationPrefix = useMemo(() => {
     const locationLabel = t('product.location_label');
-    const locationPrefix = locationLabel.includes('/')
+    return locationLabel.includes('/')
       ? locationLabel.split('/')[1].trim()
       : locationLabel;
+  }, [t]);
 
-    return (
+  const renderArticulo = useCallback(
+    ({ item }: { item: Articulo }) => (
       <Card
         style={[styles.card, { backgroundColor: theme.colors.surface }]}
         onPress={() => handleEdit(item)}
@@ -201,10 +210,10 @@ const BuscarScreen: React.FC = () => {
                 <Chip
                   icon="archive"
                   style={styles.cantidadChip}
-                  textStyle={{
-                    color: theme.colors.onSecondaryContainer,
-                    fontSize: 12,
-                  }}
+                  textStyle={[
+                    styles.cantidadChipText,
+                    { color: theme.colors.onSecondaryContainer },
+                  ]}
                 >
                   {item.cantidad}
                 </Chip>
@@ -229,10 +238,11 @@ const BuscarScreen: React.FC = () => {
           />
         </Card.Actions>
       </Card>
-    );
-  };
+    ),
+    [theme, t, locationPrefix, handleEdit, handleDelete]
+  );
 
-  const renderEmptyState = () => {
+  const renderEmptyState = useCallback(() => {
     if (!hasSearched) {
       return (
         <View style={styles.emptyContainer}>
@@ -262,7 +272,7 @@ const BuscarScreen: React.FC = () => {
         </Text>
       </View>
     );
-  };
+  }, [hasSearched, searchQuery, theme, t]);
 
   return (
     <View
@@ -386,6 +396,9 @@ const styles = StyleSheet.create({
   },
   cantidadChip: {
     height: 26,
+  },
+  cantidadChipText: {
+    fontSize: 12,
   },
   emptyContainer: {
     flex: 1,

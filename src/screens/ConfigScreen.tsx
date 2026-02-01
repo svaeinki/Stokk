@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import {
   View,
   StyleSheet,
@@ -46,13 +46,6 @@ const ConfigScreen: React.FC = () => {
   // Get app version from expo constants
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
 
-  // Load subscription status when screen is focused
-  useFocusEffect(
-    useCallback(() => {
-      loadSubscriptionStatus();
-    }, [])
-  );
-
   const loadSubscriptionStatus = useCallback(async () => {
     try {
       setLoadingStatus(true);
@@ -64,6 +57,13 @@ const ConfigScreen: React.FC = () => {
       setLoadingStatus(false);
     }
   }, []);
+
+  // Load subscription status when screen is focused
+  useFocusEffect(
+    useCallback(() => {
+      loadSubscriptionStatus();
+    }, [loadSubscriptionStatus])
+  );
 
   const handleLanguageChange = useCallback((lang: string) => {
     changeLanguage(lang);
@@ -233,7 +233,7 @@ const ConfigScreen: React.FC = () => {
                       styles.statusText,
                       {
                         color: subscriptionStatus?.isPro
-                          ? '#000'
+                          ? COLORS.goldText
                           : theme.colors.onSurfaceVariant,
                       },
                     ]}

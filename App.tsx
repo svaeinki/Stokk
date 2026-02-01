@@ -29,6 +29,25 @@ const Stack = createNativeStackNavigator<RootStackParamList>();
 // Module-level guard to prevent re-initialization in Strict Mode
 let appInitialized = false;
 
+// Tab bar icon components - defined outside component to prevent recreation
+type TabIconProps = { color: string; size: number };
+
+const InventarioIcon = ({ color, size }: TabIconProps) => (
+  <MaterialIcons name="inventory" size={size} color={color} />
+);
+
+const BuscarIcon = ({ color, size }: TabIconProps) => (
+  <MaterialIcons name="search" size={size} color={color} />
+);
+
+const IngresarIcon = ({ color, size }: TabIconProps) => (
+  <MaterialIcons name="add-circle" size={size} color={color} />
+);
+
+const ConfigIcon = ({ color, size }: TabIconProps) => (
+  <MaterialIcons name="settings" size={size} color={color} />
+);
+
 function MainTabs() {
   const { theme } = useTheme();
   const { t } = useTranslation();
@@ -53,9 +72,7 @@ function MainTabs() {
         component={InventarioScreen}
         options={{
           headerTitle: `📦 ${t('navigation.inventory')}`,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="inventory" size={size} color={color} />
-          ),
+          tabBarIcon: InventarioIcon,
           title: t('navigation.inventory'),
         }}
       />
@@ -64,9 +81,7 @@ function MainTabs() {
         component={BuscarScreen}
         options={{
           headerTitle: `🔍 ${t('navigation.search')}`,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="search" size={size} color={color} />
-          ),
+          tabBarIcon: BuscarIcon,
           title: t('navigation.search'),
         }}
       />
@@ -75,9 +90,7 @@ function MainTabs() {
         component={IngresarScreen}
         options={{
           headerTitle: `➕ ${t('navigation.add')}`,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="add-circle" size={size} color={color} />
-          ),
+          tabBarIcon: IngresarIcon,
           title: t('navigation.add'),
         }}
       />
@@ -86,9 +99,7 @@ function MainTabs() {
         component={ConfigScreen}
         options={{
           headerTitle: `⚙️ ${t('navigation.config')}`,
-          tabBarIcon: ({ color, size }) => (
-            <MaterialIcons name="settings" size={size} color={color} />
-          ),
+          tabBarIcon: ConfigIcon,
           title: t('navigation.config'),
         }}
       />
@@ -141,7 +152,7 @@ function AppContent() {
     };
 
     initApp();
-  }, []);
+  }, [t]);
 
   if (!isReady) {
     return (
@@ -238,11 +249,5 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 16,
     textAlign: 'center',
-  },
-  errorDetail: {
-    marginTop: 16,
-    fontSize: 12,
-    textAlign: 'center',
-    fontFamily: 'monospace',
   },
 });

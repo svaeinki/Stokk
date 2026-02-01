@@ -6,12 +6,7 @@
     "prettier"
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": [
-    "@typescript-eslint",
-    "react",
-    "react-native",
-    "prettier"
-  ],
+  "plugins": ["@typescript-eslint", "react", "react-native", "prettier"],
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
@@ -31,7 +26,10 @@
     "@typescript-eslint/explicit-function-return-type": "off",
     "@typescript-eslint/explicit-module-boundary-types": "off",
     "@typescript-eslint/no-explicit-any": "warn",
-    "@typescript-eslint/no-unused-vars": ["error", { "argsIgnorePattern": "^_" }],
+    "@typescript-eslint/no-unused-vars": [
+      "error",
+      { "argsIgnorePattern": "^_" }
+    ],
     "react-native/no-unused-styles": "error",
     "react-native/split-platform-components": "error",
     "react-native/no-inline-styles": "warn",
@@ -54,6 +52,7 @@
   ],
   "ignorePatterns": [
     "node_modules/",
+    "coverage/",
     "babel.config.js",
     "metro.config.js",
     "jest.config.js",
