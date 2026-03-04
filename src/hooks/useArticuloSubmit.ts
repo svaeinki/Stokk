@@ -49,8 +49,23 @@ export const useArticuloSubmit = (options: UseArticuloSubmitOptions = {}) => {
 
       try {
         setLoading(true);
-        const finalImageUri = formData.imagen;
 
+        // 1. Resolve final image URI before any DB operation
+        let finalImageUri = formData.imagen;
+        const isNewImage =
+          formData.imagen && formData.imagen !== initialArticulo?.imagen;
+        const isImageRemoved = !formData.imagen && initialArticulo?.imagen;
+
+        if (isNewImage) {
+          const savedUri = await ImageService.saveImage(formData.imagen!);
+          if (savedUri) {
+            finalImageUri = savedUri;
+          }
+        } else if (isImageRemoved) {
+          finalImageUri = '';
+        }
+
+        // 2. Single DB insert/update with final image URI
         const articuloAGuardar = {
           ...formData,
           imagen: finalImageUri,
@@ -69,33 +84,16 @@ export const useArticuloSubmit = (options: UseArticuloSubmitOptions = {}) => {
           );
         }
 
-        // Handle image persistence
-        if (formData.imagen && formData.imagen !== initialArticulo?.imagen) {
-          const savedUri = await ImageService.saveImage(formData.imagen);
-          if (savedUri && savedId) {
-            await DatabaseManager.actualizarArticulo(savedId, {
-              imagen: savedUri,
-            });
-          }
-
-          if (
-            initialArticulo?.imagen &&
-            initialArticulo.imagen !== formData.imagen
-          ) {
-            try {
-              await ImageService.deleteImage(initialArticulo.imagen);
-            } catch {
-              Logger.warn('No se pudo eliminar imagen anterior');
-            }
-          }
-        } else if (!formData.imagen && initialArticulo?.imagen) {
+        // 3. Clean up old image only after successful DB save
+        if (
+          savedId &&
+          initialArticulo?.imagen &&
+          (isNewImage || isImageRemoved)
+        ) {
           try {
             await ImageService.deleteImage(initialArticulo.imagen);
-            if (savedId) {
-              await DatabaseManager.actualizarArticulo(savedId, { imagen: '' });
-            }
           } catch {
-            Logger.warn('No se pudo eliminar imagen');
+            Logger.warn('No se pudo eliminar imagen anterior');
           }
         }
 

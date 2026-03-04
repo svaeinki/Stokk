@@ -42,7 +42,6 @@ FormField.displayName = 'FormField';
 interface DataSectionProps {
   formData: Partial<Articulo>;
   onFieldChange: (field: keyof Articulo, value: string | number) => void;
-  isEditing?: boolean;
 }
 
 const DataSection: React.FC<DataSectionProps> = ({

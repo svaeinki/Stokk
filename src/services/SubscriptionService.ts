@@ -6,7 +6,10 @@ import Purchases, {
   LOG_LEVEL,
   PURCHASES_ERROR_CODE,
 } from 'react-native-purchases';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import Logger from '../utils/Logger';
+
+const PRO_STATUS_STORAGE_KEY = 'stokk_pro_status';
 
 // RevenueCat API Keys from environment variables
 const API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_API_KEY || '';
@@ -264,8 +267,11 @@ class SubscriptionService {
       return isPro;
     } catch (error) {
       Logger.error('Error checking pro status', error);
-      // Return cached value if available, otherwise false
-      return this.proStatusCache?.isPro ?? false;
+      // Return cached value if available, otherwise check persisted storage
+      if (this.proStatusCache) {
+        return this.proStatusCache.isPro;
+      }
+      return this.getPersistedProStatus();
     }
   }
 
@@ -427,7 +433,7 @@ class SubscriptionService {
   }
 
   /**
-   * Update the cache with new subscription status
+   * Update the cache with new subscription status and persist to storage
    */
   private updateCache(isPro: boolean, customerInfo: CustomerInfo): void {
     const entitlement = customerInfo.entitlements.active[PRO_ENTITLEMENT_ID];
@@ -436,6 +442,30 @@ class SubscriptionService {
       timestamp: Date.now(),
       expirationDate: entitlement?.expirationDate ?? undefined,
     };
+
+    // Persist to AsyncStorage for offline access
+    AsyncStorage.setItem(
+      PRO_STATUS_STORAGE_KEY,
+      JSON.stringify({ isPro })
+    ).catch(() => {
+      // Silent failure - storage persistence is best-effort
+    });
+  }
+
+  /**
+   * Get persisted Pro status from AsyncStorage (for offline fallback)
+   */
+  private async getPersistedProStatus(): Promise<boolean> {
+    try {
+      const stored = await AsyncStorage.getItem(PRO_STATUS_STORAGE_KEY);
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        return parsed.isPro ?? false;
+      }
+    } catch {
+      // Silent failure
+    }
+    return false;
   }
 }
 

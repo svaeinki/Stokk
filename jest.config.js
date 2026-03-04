@@ -17,11 +17,6 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!(jest-)?react-native|@react-native|expo|@expo|@react-navigation|react-native-vector-icons)',
   ],
-  modulePathIgnorePatterns: [
-    '<rootDir>/node_modules/',
-    '<rootDir>/android/',
-    '<rootDir>/ios/',
-  ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
@@ -32,9 +27,4 @@ module.exports = {
   coverageReporters: ['text', 'lcov', 'html'],
   testEnvironment: 'node',
   setupFiles: ['<rootDir>/jest.env.js'],
-  globals: {
-    'ts-jest': {
-      tsconfig: 'tsconfig.json',
-    },
-  },
 };

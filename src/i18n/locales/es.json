@@ -32,6 +32,7 @@
     "placeholder_location": "Ej: Estante A3, Bodega Norte...",
     "placeholder_notes": "Notas internas...",
     "add_photo": "Agregar Foto",
+    "product_image": "Imagen del producto",
     "delete_photo": "Eliminar Foto",
     "created_success": "Producto creado correctamente",
     "updated_success": "Producto actualizado correctamente",

@@ -17,12 +17,22 @@ export interface Articulo {
 
 class DatabaseManager {
   private db: SQLite.SQLiteDatabase | null = null;
+  private initPromise: Promise<void> | null = null;
 
   async initDatabase(): Promise<void> {
+    if (this.db) return;
+    if (!this.initPromise) {
+      this.initPromise = this.doInit();
+    }
+    return this.initPromise;
+  }
+
+  private async doInit(): Promise<void> {
     try {
       this.db = await SQLite.openDatabaseAsync('mi_inventario.db');
       await this.createTables();
     } catch (error) {
+      this.initPromise = null;
       Logger.error('Error al inicializar base de datos', error);
       throw error;
     }

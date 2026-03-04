@@ -196,33 +196,3 @@ export const validarPaginacion = (data: unknown) => {
 export const validarFiltroBusqueda = (data: unknown) => {
   return filtroBusquedaSchema.safeParse(data);
 };
-
-// Función para transformar datos parciales a tipos válidos
-export const transformarParcialArticulo = (
-  partial: Partial<Articulo>
-): Partial<Articulo> => {
-  const transformado: Partial<Articulo> = {};
-
-  if (partial.nombre !== undefined) transformado.nombre = partial.nombre.trim();
-  if (partial.descripcion !== undefined)
-    transformado.descripcion = partial.descripcion?.trim() || undefined;
-  if (partial.precio !== undefined)
-    transformado.precio = Number(partial.precio);
-  if (partial.cantidad !== undefined)
-    transformado.cantidad = Number(partial.cantidad);
-  if (partial.numeroBodega !== undefined)
-    transformado.numeroBodega = partial.numeroBodega.trim();
-  if (partial.observaciones !== undefined)
-    transformado.observaciones = partial.observaciones?.trim() || undefined;
-  if (partial.imagen !== undefined)
-    transformado.imagen = partial.imagen || undefined;
-  if (partial.fechaIngreso !== undefined)
-    transformado.fechaIngreso = partial.fechaIngreso;
-
-  return transformado;
-};
-
-// Schema principal con URI de imagen válida
-export const articuloSchemaConUri = articuloSchema.extend({
-  imagen: imagenUriSchema,
-});

@@ -43,7 +43,7 @@ const initI18n = async () => {
   }
 
   if (!i18n.isInitialized) {
-    i18n.use(initReactI18next).init({
+    await i18n.use(initReactI18next).init({
       resources,
       lng: languageToUse,
       fallbackLng: 'es',
@@ -57,7 +57,9 @@ const initI18n = async () => {
 };
 
 // Initialize immediately (async) but don't block export
-initI18n();
+const i18nInitPromise = initI18n();
+
+export { i18nInitPromise };
 
 export const changeLanguage = async (lang: string) => {
   try {

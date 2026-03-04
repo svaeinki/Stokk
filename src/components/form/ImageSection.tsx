@@ -32,7 +32,11 @@ const ImageSection: React.FC<ImageSectionProps> = ({
         ]}
       >
         {imageUri ? (
-          <Image source={{ uri: imageUri }} style={styles.image} />
+          <Image
+            source={{ uri: imageUri }}
+            style={styles.image}
+            accessibilityLabel={t('product.product_image')}
+          />
         ) : (
           <View style={styles.placeholderImage}>
             <Icon

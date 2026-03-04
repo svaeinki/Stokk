@@ -21,12 +21,14 @@ npm run web          # Web browser
 npm run lint         # ESLint check
 npm run lint:fix     # ESLint auto-fix
 npm run format       # Prettier format all files
+npm run format:check # Prettier check (CI)
 npm run type-check   # TypeScript type checking
 
 # Testing
 npm run test         # Run Jest tests
 npm run test:watch   # Watch mode
 npm run test:coverage # With coverage report
+npm run test:ci      # CI mode (no watch, with coverage, passWithNoTests)
 npm run test -- src/__tests__/validation.test.ts  # Run single test file
 
 # EAS builds (requires EAS CLI)
@@ -101,20 +103,43 @@ interface Articulo {
 }
 ```
 
+### Entry Point
+
+`index.ts` → `App.tsx`. Uses React Navigation (imperative), **not** expo-router file-based routing (expo-router is in plugins but unused for navigation).
+
 ### Key Patterns
 
 - **Singletons:** `DatabaseManager`, `SubscriptionService`, and `ImageService` are all singleton instances exported as default.
-- **DatabaseManager:** Lazy initialization with `initDatabase()`. All CRUD methods are async and use prepared statements.
+- **DatabaseManager:** Lazy initialization with `initDatabase()`. All CRUD methods are async and use prepared statements. SQLite database file: `mi_inventario.db`.
 - **SubscriptionService:** RevenueCat wrapper with 5-minute cache for pro status. Gracefully handles missing API keys (returns false/null instead of throwing).
+- **App init guard:** `App.tsx` uses a module-level `appInitialized` flag to prevent re-initialization in React Strict Mode.
 - **ThemeContext:** Provides both Paper theme and Navigation theme, respects system color scheme.
 - **SnackbarContext:** Global toast notifications via `useSnackbar()` hook with `showSuccess()`, `showError()`, `showInfo()` methods.
 - **i18n:** Language persisted in AsyncStorage, falls back to device locale then Spanish. Use `useTranslation()` hook and `t('key')` for translations.
 - **Zod validation:** Use schemas in `src/validation/schemas.ts` for form validation (`articuloSchema`, `crearArticuloSchema`, `actualizarArticuloSchema`).
 - **Currency:** Prices stored as integers (Chilean Pesos), formatted with `Validation.ts` utilities.
 - **Free tier limit:** 20 products max without subscription (`FREE_TIER_PRODUCT_LIMIT` in `src/constants/app.ts`).
+- **Colors:** Use `PALETTE` from `src/constants/app.ts` for theme colors and `COLORS` for semantic colors (success, warning, error, gold). ESLint warns on inline styles and color literals.
+
+### ESLint Conventions
+
+- Unused function args must be prefixed with `_` (e.g., `_event`).
+- `no-console: warn` — use `Logger` from `src/utils/Logger.ts` instead of `console.*`.
+- `no-inline-styles: warn` and `no-color-literals: warn` — prefer `StyleSheet.create()` and `PALETTE`/`COLORS` constants.
+- `no-explicit-any: warn` — avoid `any`, use proper types.
+
+### Testing
+
+Tests live in `src/__tests/` mirroring the source structure. Jest uses `react-native` preset with `babel-jest` transform. Setup files: `jest.setup.js` (mocks) and `jest.env.js` (env vars). Path alias `~/` maps to `src/` in `moduleNameMapper`.
 
 ## Configuration
 
-- **RevenueCat:** API key via `EXPO_PUBLIC_REVENUECAT_API_KEY` environment variable. Entitlement ID is `Stokk Pro`.
+- **Environment variables** (see `.env.example`): `EXPO_PUBLIC_REVENUECAT_API_KEY`, `EXPO_PUBLIC_SENTRY_DSN`, `EXPO_PUBLIC_ENVIRONMENT` (development/staging/production).
+- **RevenueCat:** Entitlement ID is `Stokk Pro`.
 - **EAS build profiles:** `development` (internal), `preview` (iOS simulator), `production` (auto-increment, app-bundle for Android).
 - **Bundle identifier:** `com.svaeinki.stokk` (both platforms).
+- **New Architecture:** Disabled (`newArchEnabled: false` in app.json).
+
+## Future Plans
+
+See `DEVELOPMENT.md` for the backend/sync roadmap (auth, offline-first sync with conflict resolution, API service). See `ROADMAP.md` for multi-phase vision.

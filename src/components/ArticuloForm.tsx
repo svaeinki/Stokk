@@ -153,7 +153,6 @@ const ArticuloForm: React.FC = () => {
           <DataSection
             formData={formData}
             onFieldChange={handleFieldChange}
-            isEditing={!!articulo}
           />
 
           <Divider

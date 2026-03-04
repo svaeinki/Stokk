@@ -1,6 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { View, Text, StyleSheet, ActivityIndicator } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  ActivityIndicator,
+  TouchableOpacity,
+} from 'react-native';
 import { StatusBar } from 'expo-status-bar';
 import { PaperProvider } from 'react-native-paper';
 import { NavigationContainer } from '@react-navigation/native';
@@ -9,7 +15,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { MaterialIcons } from '@expo/vector-icons';
 import DatabaseManager from './src/database/DatabaseManager';
 import SubscriptionService from './src/services/SubscriptionService';
-import { initializeSentry } from './src/services/SentryService';
+import { initializeSentry, reportError } from './src/services/SentryService';
 import Logger from './src/utils/Logger';
 import { RootStackParamList, TabParamList } from './src/types/navigation';
 
@@ -21,7 +27,7 @@ import ConfigScreen from './src/screens/ConfigScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { SnackbarProvider } from './src/context/SnackbarContext';
-import './src/i18n'; // Initialize i18n
+import { i18nInitPromise } from './src/i18n'; // Initialize i18n
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -71,7 +77,7 @@ function MainTabs() {
         name="Inventario"
         component={InventarioScreen}
         options={{
-          headerTitle: `📦 ${t('navigation.inventory')}`,
+          headerTitle: t('navigation.inventory'),
           tabBarIcon: InventarioIcon,
           title: t('navigation.inventory'),
         }}
@@ -80,7 +86,7 @@ function MainTabs() {
         name="Buscar"
         component={BuscarScreen}
         options={{
-          headerTitle: `🔍 ${t('navigation.search')}`,
+          headerTitle: t('navigation.search'),
           tabBarIcon: BuscarIcon,
           title: t('navigation.search'),
         }}
@@ -89,7 +95,7 @@ function MainTabs() {
         name="Ingresar"
         component={IngresarScreen}
         options={{
-          headerTitle: `➕ ${t('navigation.add')}`,
+          headerTitle: t('navigation.add'),
           tabBarIcon: IngresarIcon,
           title: t('navigation.add'),
         }}
@@ -98,7 +104,7 @@ function MainTabs() {
         name="Config"
         component={ConfigScreen}
         options={{
-          headerTitle: `⚙️ ${t('navigation.config')}`,
+          headerTitle: t('navigation.config'),
           tabBarIcon: ConfigIcon,
           title: t('navigation.config'),
         }}
@@ -107,11 +113,65 @@ function MainTabs() {
   );
 }
 
+interface ErrorBoundaryState {
+  hasError: boolean;
+  error: Error | null;
+}
+
+class ErrorBoundary extends React.Component<
+  { children: React.ReactNode },
+  ErrorBoundaryState
+> {
+  state: ErrorBoundaryState = { hasError: false, error: null };
+
+  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
+    return { hasError: true, error };
+  }
+
+  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
+    reportError(error, 'ErrorBoundary');
+    Logger.error('Uncaught error in ErrorBoundary', {
+      error,
+      componentStack: errorInfo.componentStack,
+    });
+  }
+
+  handleRestart = () => {
+    this.setState({ hasError: false, error: null });
+  };
+
+  render() {
+    if (this.state.hasError) {
+      return (
+        <View style={[styles.container, styles.centered]}>
+          <MaterialIcons name="error-outline" size={64} color="#F44336" />
+          <Text style={styles.errorBoundaryTitle}>
+            Something went wrong
+          </Text>
+          <Text style={styles.errorBoundaryMessage}>
+            {this.state.error?.message || 'An unexpected error occurred'}
+          </Text>
+          <TouchableOpacity
+            style={styles.restartButton}
+            onPress={this.handleRestart}
+          >
+            <Text style={styles.restartButtonText}>Restart</Text>
+          </TouchableOpacity>
+        </View>
+      );
+    }
+
+    return this.props.children;
+  }
+}
+
 export default function App() {
   return (
-    <ThemeProvider>
-      <AppContent />
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AppContent />
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 
@@ -132,6 +192,9 @@ function AppContent() {
       try {
         // Initialize Sentry for crash reporting (first, before anything else)
         initializeSentry();
+
+        // Wait for i18n to be fully initialized
+        await i18nInitPromise;
 
         // Initialize database
         await DatabaseManager.initDatabase();
@@ -249,5 +312,31 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontSize: 16,
     textAlign: 'center',
+  },
+  errorBoundaryTitle: {
+    marginTop: 16,
+    fontSize: 20,
+    fontWeight: 'bold',
+    textAlign: 'center',
+    color: '#333',
+  },
+  errorBoundaryMessage: {
+    marginTop: 8,
+    fontSize: 14,
+    textAlign: 'center',
+    color: '#666',
+    paddingHorizontal: 32,
+  },
+  restartButton: {
+    marginTop: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 32,
+    backgroundColor: '#3066BE',
+    borderRadius: 8,
+  },
+  restartButtonText: {
+    color: '#FFFFFF',
+    fontSize: 16,
+    fontWeight: '600',
   },
 });

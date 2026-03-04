@@ -32,6 +32,7 @@
     "placeholder_location": "Ex: Shelf A3, Warehouse North...",
     "placeholder_notes": "Internal notes...",
     "add_photo": "Add Photo",
+    "product_image": "Product image",
     "delete_photo": "Delete Photo",
     "created_success": "Product created successfully",
     "updated_success": "Product updated successfully",

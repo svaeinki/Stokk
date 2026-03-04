@@ -35,7 +35,7 @@
     "react-native/no-inline-styles": "warn",
     "react-native/no-color-literals": "warn",
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
+    "react-hooks/exhaustive-deps": "error",
     "no-console": "warn",
     "prefer-const": "error",
     "no-var": "error"

@@ -7,6 +7,7 @@ import React, {
 } from 'react';
 import { Snackbar } from 'react-native-paper';
 import { useTheme } from './ThemeContext';
+import { COLORS } from '../constants/app';
 
 type SnackbarType = 'success' | 'error' | 'info';
 
@@ -105,7 +106,7 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
   const getBackgroundColor = () => {
     switch (state.type) {
       case 'success':
-        return '#4CAF50'; // Verde
+        return COLORS.success;
       case 'error':
         return theme.colors.error;
       case 'info':

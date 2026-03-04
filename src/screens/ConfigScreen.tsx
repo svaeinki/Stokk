@@ -26,6 +26,7 @@ import SubscriptionService, {
 } from '../services/SubscriptionService';
 import { ConfigScreenNavigationProp } from '../types/navigation';
 import { COLORS } from '../constants/app';
+import { URLS } from '../constants/urls';
 import Logger from '../utils/Logger';
 import { useTranslation } from 'react-i18next';
 import { changeLanguage } from '../i18n';
@@ -139,15 +140,15 @@ const ConfigScreen: React.FC = () => {
   };
 
   const openPrivacyPolicy = useCallback(() => {
-    Linking.openURL('https://stokk.app/privacy');
+    Linking.openURL(URLS.privacyPolicy);
   }, []);
 
   const openTerms = useCallback(() => {
-    Linking.openURL('https://stokk.app/terms');
+    Linking.openURL(URLS.termsOfService);
   }, []);
 
   const openSupport = useCallback(() => {
-    Linking.openURL('mailto:support@stokk.app');
+    Linking.openURL(URLS.supportEmail);
   }, []);
 
   const formatExpirationDate = (dateString?: string): string => {

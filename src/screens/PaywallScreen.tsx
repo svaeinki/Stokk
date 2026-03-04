@@ -18,6 +18,7 @@ import { useTheme } from '../context/ThemeContext';
 import Logger from '../utils/Logger';
 import { PaywallScreenNavigationProp } from '../types/navigation';
 import { COLORS } from '../constants/app';
+import { URLS } from '../constants/urls';
 import { useTranslation } from 'react-i18next';
 
 type MaterialIconName = React.ComponentProps<typeof MaterialIcons>['name'];
@@ -185,11 +186,11 @@ const PaywallScreen: React.FC = () => {
   }, [navigation, t]);
 
   const openPrivacyPolicy = useCallback(() => {
-    Linking.openURL('https://stokk.app/privacy');
+    Linking.openURL(URLS.privacyPolicy);
   }, []);
 
   const openTerms = useCallback(() => {
-    Linking.openURL('https://stokk.app/terms');
+    Linking.openURL(URLS.termsOfService);
   }, []);
 
   const benefits: Benefit[] = useMemo(
