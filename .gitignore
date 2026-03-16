@@ -32,5 +32,8 @@ android/build/
 # Metro bundler
 .metro-health-check*
 
+# Test coverage
+coverage/
+
 # TypeScript
 *.tsbuildinfo
