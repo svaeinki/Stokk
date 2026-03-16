@@ -54,10 +54,11 @@ const ConfigScreen: React.FC = () => {
       setSubscriptionStatus(status);
     } catch (error) {
       Logger.error('Error loading subscription status', error);
+      showError(t('config.restore_error'));
     } finally {
       setLoadingStatus(false);
     }
-  }, []);
+  }, [showError, t]);
 
   // Load subscription status when screen is focused
   useFocusEffect(

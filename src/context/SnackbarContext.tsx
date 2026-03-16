@@ -3,6 +3,8 @@ import React, {
   useContext,
   useState,
   useCallback,
+  useRef,
+  useEffect,
   ReactNode,
 } from 'react';
 import { Snackbar } from 'react-native-paper';
@@ -11,15 +13,19 @@ import { COLORS } from '../constants/app';
 
 type SnackbarType = 'success' | 'error' | 'info';
 
-interface SnackbarState {
-  visible: boolean;
+interface SnackbarItem {
   message: string;
   type: SnackbarType;
-  duration?: number;
+  duration: number;
   action?: {
     label: string;
     onPress: () => void;
   };
+}
+
+interface SnackbarState {
+  visible: boolean;
+  current: SnackbarItem | null;
 }
 
 interface SnackbarContextType {
@@ -50,14 +56,32 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
   const { theme } = useTheme();
   const [state, setState] = useState<SnackbarState>({
     visible: false,
-    message: '',
-    type: 'info',
-    duration: DEFAULT_DURATION,
+    current: null,
   });
+  const queueRef = useRef<SnackbarItem[]>([]);
+  const isProcessingRef = useRef(false);
+
+  const showNext = useCallback(() => {
+    if (queueRef.current.length === 0) {
+      isProcessingRef.current = false;
+      return;
+    }
+    isProcessingRef.current = true;
+    const next = queueRef.current.shift()!;
+    setState({ visible: true, current: next });
+  }, []);
 
   const hideSnackbar = useCallback(() => {
     setState(prev => ({ ...prev, visible: false }));
   }, []);
+
+  // When snackbar becomes hidden, show next item in queue
+  useEffect(() => {
+    if (!state.visible && isProcessingRef.current) {
+      const timer = setTimeout(showNext, 200);
+      return () => clearTimeout(timer);
+    }
+  }, [state.visible, showNext]);
 
   const showSnackbar = useCallback(
     (
@@ -68,17 +92,22 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
         action?: { label: string; onPress: () => void };
       }
     ) => {
-      setState({
-        visible: true,
+      const item: SnackbarItem = {
         message,
         type,
         duration:
           options?.duration ??
           (type === 'error' ? ERROR_DURATION : DEFAULT_DURATION),
         action: options?.action,
-      });
+      };
+
+      queueRef.current.push(item);
+
+      if (!isProcessingRef.current) {
+        showNext();
+      }
     },
-    []
+    [showNext]
   );
 
   const showSuccess = useCallback(
@@ -104,7 +133,7 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
 
   // Colores según el tipo
   const getBackgroundColor = () => {
-    switch (state.type) {
+    switch (state.current?.type) {
       case 'success':
         return COLORS.success;
       case 'error':
@@ -129,8 +158,8 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
       <Snackbar
         visible={state.visible}
         onDismiss={hideSnackbar}
-        duration={state.duration}
-        action={state.action}
+        duration={state.current?.duration}
+        action={state.current?.action}
         style={{ backgroundColor: getBackgroundColor() }}
         theme={{
           colors: {
@@ -139,7 +168,7 @@ export const SnackbarProvider: React.FC<{ children: ReactNode }> = ({
           },
         }}
       >
-        {state.message}
+        {state.current?.message ?? ''}
       </Snackbar>
     </SnackbarContext.Provider>
   );

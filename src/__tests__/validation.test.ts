@@ -28,9 +28,6 @@ describe('Validation Schemas', () => {
       const result = validarArticulo(invalidArticulo);
 
       expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain('requerido');
-      }
     });
 
     it('should reject article with negative price', () => {
@@ -38,9 +35,6 @@ describe('Validation Schemas', () => {
       const result = validarArticulo(invalidArticulo);
 
       expect(result.success).toBe(false);
-      if (!result.success) {
-        expect(result.error.issues[0].message).toContain('mayor o igual a 0');
-      }
     });
 
     it('should accept article with empty location code', () => {
@@ -57,6 +51,53 @@ describe('Validation Schemas', () => {
       };
       const result = validarArticulo(articuloConUbicacion);
 
+      expect(result.success).toBe(true);
+    });
+  });
+
+  describe('date validation', () => {
+    it('should reject invalid day 32/01/2026', () => {
+      const invalid = { ...validArticulo, fechaIngreso: '32/01/2026' };
+      const result = validarArticulo(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject invalid month 15/13/2026', () => {
+      const invalid = { ...validArticulo, fechaIngreso: '15/13/2026' };
+      const result = validarArticulo(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it('should reject Feb 30', () => {
+      const invalid = { ...validArticulo, fechaIngreso: '30/02/2026' };
+      const result = validarArticulo(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept valid leap year date 29/02/2024', () => {
+      const valid = { ...validArticulo, fechaIngreso: '29/02/2024' };
+      const result = validarArticulo(valid);
+      expect(result.success).toBe(true);
+    });
+
+    it('should reject non-leap year Feb 29 (29/02/2026)', () => {
+      const invalid = { ...validArticulo, fechaIngreso: '29/02/2026' };
+      const result = validarArticulo(invalid);
+      expect(result.success).toBe(false);
+    });
+
+    it('should accept valid ISO date', () => {
+      const valid = { ...validArticulo, fechaIngreso: '2026-01-23' };
+      const result = validarArticulo(valid);
+      expect(result.success).toBe(true);
+    });
+
+    it('should accept DD/MM/YYYY with time', () => {
+      const valid = {
+        ...validArticulo,
+        fechaIngreso: '23/01/2026 14:30:00',
+      };
+      const result = validarArticulo(valid);
       expect(result.success).toBe(true);
     });
   });

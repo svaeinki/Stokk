@@ -6,6 +6,8 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Stokk is a React Native + Expo inventory management mobile app with offline SQLite storage. The app supports English and Spanish (i18n via i18next) and targets both iOS (11.0+) and Android (API 21+).
 
+**Requirements:** Node 22 (see `.nvmrc`), npm 10+. For iOS: macOS with Xcode 15+. For Android: Android Studio with SDK 21+.
+
 ## Development Commands
 
 ```bash
@@ -107,12 +109,17 @@ interface Articulo {
 
 `index.ts` → `App.tsx`. Uses React Navigation (imperative), **not** expo-router file-based routing (expo-router is in plugins but unused for navigation).
 
+### Path Alias
+
+`~/` maps to `src/` in imports (configured in tsconfig via `expo/tsconfig.base` and mirrored in `jest.config.js`). Example: `import db from '~/database/DatabaseManager'`.
+
 ### Key Patterns
 
 - **Singletons:** `DatabaseManager`, `SubscriptionService`, and `ImageService` are all singleton instances exported as default.
-- **DatabaseManager:** Lazy initialization with `initDatabase()`. All CRUD methods are async and use prepared statements. SQLite database file: `mi_inventario.db`.
+- **DatabaseManager:** Lazy initialization with `initDatabase()` using promise caching (`initPromise`). All CRUD methods are async and use prepared statements. SQLite database file: `mi_inventario.db`.
 - **SubscriptionService:** RevenueCat wrapper with 5-minute cache for pro status. Gracefully handles missing API keys (returns false/null instead of throwing).
-- **App init guard:** `App.tsx` uses a module-level `appInitialized` flag to prevent re-initialization in React Strict Mode.
+- **App init sequence:** Sentry first → i18n → Database → RevenueCat (non-blocking). Module-level `appInitialized` flag prevents re-initialization in React Strict Mode.
+- **ErrorBoundary:** Class component in `App.tsx` wraps the entire app, catches uncaught errors and shows fallback UI with restart.
 - **ThemeContext:** Provides both Paper theme and Navigation theme, respects system color scheme.
 - **SnackbarContext:** Global toast notifications via `useSnackbar()` hook with `showSuccess()`, `showError()`, `showInfo()` methods.
 - **i18n:** Language persisted in AsyncStorage, falls back to device locale then Spanish. Use `useTranslation()` hook and `t('key')` for translations.
@@ -121,16 +128,22 @@ interface Articulo {
 - **Free tier limit:** 20 products max without subscription (`FREE_TIER_PRODUCT_LIMIT` in `src/constants/app.ts`).
 - **Colors:** Use `PALETTE` from `src/constants/app.ts` for theme colors and `COLORS` for semantic colors (success, warning, error, gold). ESLint warns on inline styles and color literals.
 
-### ESLint Conventions
+### Code Style
 
+**Prettier** (`.prettierrc.json`): single quotes, trailing commas (es5), no parens on single arrow params (`x => x`), 2-space indent, 80 char width, LF line endings, double quotes in JSX.
+
+**ESLint** (`.eslintrc.json`):
 - Unused function args must be prefixed with `_` (e.g., `_event`).
 - `no-console: warn` — use `Logger` from `src/utils/Logger.ts` instead of `console.*`.
 - `no-inline-styles: warn` and `no-color-literals: warn` — prefer `StyleSheet.create()` and `PALETTE`/`COLORS` constants.
 - `no-explicit-any: warn` — avoid `any`, use proper types.
+- `react-hooks/exhaustive-deps: "error"` — dependency arrays must be complete.
+- `react-native/no-unused-styles: "error"` — catches unused `StyleSheet` entries.
+- `prettier/prettier: "error"` — formatting violations are errors, not warnings.
 
 ### Testing
 
-Tests live in `src/__tests/` mirroring the source structure. Jest uses `react-native` preset with `babel-jest` transform. Setup files: `jest.setup.js` (mocks) and `jest.env.js` (env vars). Path alias `~/` maps to `src/` in `moduleNameMapper`.
+Tests live in `src/__tests__/` mirroring the source structure. Jest uses `react-native` preset with `babel-jest` transform. Setup files: `jest.setup.js` (mocks for expo-sqlite, RevenueCat, AsyncStorage, react-i18next, etc.) and `jest.env.js` (env vars). `transformIgnorePatterns` allows react-native, expo, @react-navigation packages to be transformed.
 
 ## Configuration
 
@@ -139,6 +152,11 @@ Tests live in `src/__tests/` mirroring the source structure. Jest uses `react-na
 - **EAS build profiles:** `development` (internal), `preview` (iOS simulator), `production` (auto-increment, app-bundle for Android).
 - **Bundle identifier:** `com.svaeinki.stokk` (both platforms).
 - **New Architecture:** Disabled (`newArchEnabled: false` in app.json).
+- **Metro:** Custom config adds WebAssembly (`.wasm`) support.
+
+### CI/CD
+
+GitHub Actions (`.github/workflows/ci.yml`) runs on push/PR to `master`/`main`: lint → type-check → test:ci. Uses `.nvmrc` for Node version.
 
 ## Future Plans
 

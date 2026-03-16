@@ -205,19 +205,24 @@ class DatabaseManager {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
-      // 1. Obtener la imagen antes de borrar
-      const registro = await this.db.getFirstAsync<{ imagen: string | null }>(
-        'SELECT imagen FROM articulos WHERE id = ?',
-        [id]
-      );
+      // Use transaction to ensure query + delete are atomic
+      let imagenUri: string | null = null;
 
-      // 2. Borrar de la BD primero (operación crítica)
-      await this.db.runAsync('DELETE FROM articulos WHERE id = ?', [id]);
+      await this.db.withTransactionAsync(async () => {
+        // 1. Obtener la imagen antes de borrar
+        const registro = await this.db!.getFirstAsync<{
+          imagen: string | null;
+        }>('SELECT imagen FROM articulos WHERE id = ?', [id]);
+        imagenUri = registro?.imagen ?? null;
 
-      // 3. Borrar archivo físico después (si falla, no es crítico)
-      if (registro?.imagen) {
+        // 2. Borrar de la BD (operación crítica)
+        await this.db!.runAsync('DELETE FROM articulos WHERE id = ?', [id]);
+      });
+
+      // 3. Borrar archivo físico después (fuera de la transacción, no es crítico)
+      if (imagenUri) {
         try {
-          await ImageService.deleteImage(registro.imagen);
+          await ImageService.deleteImage(imagenUri);
         } catch (imageError) {
           // Log pero no fallar - la imagen huérfana se puede limpiar después
           Logger.warn('No se pudo eliminar imagen huérfana', imageError);
@@ -233,11 +238,13 @@ class DatabaseManager {
     if (!this.db) throw new Error('Base de datos no inicializada');
 
     try {
-      // Clear images and database in parallel (independent operations)
-      await Promise.all([
-        ImageService.clearAllImages(),
-        this.db.runAsync('DELETE FROM articulos'),
-      ]);
+      // Delete all DB records in a transaction first
+      await this.db.withTransactionAsync(async () => {
+        await this.db!.runAsync('DELETE FROM articulos');
+      });
+
+      // Then clear image files (non-critical if this fails)
+      await ImageService.clearAllImages();
     } catch (error) {
       Logger.error('Error al resetear base de datos', error);
       throw error;

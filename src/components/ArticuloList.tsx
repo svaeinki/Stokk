@@ -16,12 +16,14 @@ import DatabaseManager, { Articulo } from '../database/DatabaseManager';
 import { formatearMoneda } from '../utils/Validation';
 import Logger from '../utils/Logger';
 
+export type ArticuloFilter = 'todos' | 'sinStock';
+
 interface ArticuloListProps {
   refreshTrigger?: number;
   onEdit: (articulo: Articulo) => void;
   onAdd: () => void;
   searchQuery?: string;
-  filter?: string;
+  filter?: ArticuloFilter;
 }
 
 const ArticuloList: React.FC<ArticuloListProps> = ({

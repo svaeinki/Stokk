@@ -121,6 +121,28 @@
     "privacy": "Privacy Policy",
     "terms": "Terms of Use"
   },
+  "validation": {
+    "name_required": "Name is required",
+    "name_max": "Name cannot exceed 100 characters",
+    "description_max": "Description cannot exceed 500 characters",
+    "price_min": "Price must be greater than or equal to 0",
+    "price_max": "Price cannot exceed 999,999,999",
+    "quantity_integer": "Quantity must be a whole number",
+    "quantity_min": "Quantity must be greater than or equal to 0",
+    "quantity_max": "Quantity cannot exceed 999,999",
+    "location_max": "Code cannot exceed 50 characters",
+    "notes_max": "Notes cannot exceed 1000 characters",
+    "date_required": "Date is required",
+    "date_format": "Date must be in DD/MM/YYYY or ISO format",
+    "image_uri_required": "Image URI is required",
+    "image_uri_invalid": "Image URI is not valid",
+    "id_positive": "ID must be a positive number",
+    "search_required": "Search term is required",
+    "search_max": "Search term cannot exceed 100 characters",
+    "page_min": "Page must be greater than 0",
+    "limit_min": "Limit must be greater than 0",
+    "limit_max": "Maximum limit is 100"
+  },
   "paywall": {
     "title": "Stokk PRO",
     "subtitle": "Professional Inventory Management",

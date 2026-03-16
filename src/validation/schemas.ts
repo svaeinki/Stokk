@@ -1,41 +1,48 @@
 import { z } from 'zod';
+import i18n from '../i18n';
 import { Articulo } from '../database/DatabaseManager';
 
-// Validación del código/ubicación (opcional, texto libre)
-const numeroBodegaSchema = z
-  .string()
-  .max(50, 'El código no puede exceder 50 caracteres')
-  .trim()
-  .optional()
-  .nullable();
+// Helper: get translated validation message at call time
+const t = (key: string) => i18n.t(key);
 
+// Validation for date values (DD/MM/YYYY or ISO)
 const esFechaValida = (value: string): boolean => {
   if (!value) return false;
-  const esFormatoLatino = /^\d{2}\/\d{2}\/\d{4}(\s\d{2}:\d{2}:\d{2})?$/.test(
-    value
+
+  // Check DD/MM/YYYY format with actual date validation
+  const latinMatch = value.match(
+    /^(\d{2})\/(\d{2})\/(\d{4})(\s\d{2}:\d{2}:\d{2})?$/
   );
-  if (esFormatoLatino) return true;
+  if (latinMatch) {
+    const day = parseInt(latinMatch[1], 10);
+    const month = parseInt(latinMatch[2], 10);
+    const year = parseInt(latinMatch[3], 10);
+    if (month < 1 || month > 12 || day < 1 || year < 1) return false;
+    // Use Date to validate day-of-month (handles leap years, 30/31 days)
+    const date = new Date(year, month - 1, day);
+    return (
+      date.getFullYear() === year &&
+      date.getMonth() === month - 1 &&
+      date.getDate() === day
+    );
+  }
+
+  // Fallback: ISO or other parseable format
   const parsed = new Date(value);
   return !Number.isNaN(parsed.getTime());
 };
 
-// Validación de fecha (acepta DD/MM/YYYY o ISO)
-const fechaSchema = z
-  .string()
-  .min(1, 'La fecha es requerida')
-  .refine(esFechaValida, 'La fecha debe tener formato DD/MM/YYYY o ISO');
-
-// Validación personalizada para URI de imágenes
+// Validation for image URIs
 export const esUriValido = (uri: string): boolean => {
   if (!uri) return false;
 
-  // Aceptar URIs locales de React Native
+  // Accept local React Native URIs
   if (uri.startsWith('file://') || uri.startsWith('content://')) return true;
 
-  // Aceptar URIs de assets
+  // Accept asset URIs
   if (uri.startsWith('asset://')) return true;
 
-  // Aceptar URIs http/https (para imágenes remotas)
+  // Accept http/https URIs (remote images)
   try {
     new URL(uri);
     return uri.startsWith('http://') || uri.startsWith('https://');
@@ -44,155 +51,180 @@ export const esUriValido = (uri: string): boolean => {
   }
 };
 
-// Schema modificado para aceptar URIs de imágenes locales
-const imagenUriSchema = z
-  .string()
-  .min(1, 'La URI de la imagen es requerida')
-  .refine(esUriValido, 'La URI de la imagen no es válida')
-  .or(z.literal(''))
-  .nullable()
-  .optional();
+// --- Schema factories (create schemas with current locale messages) ---
 
-// Schema principal para Articulo
-export const articuloSchema = z.object({
-  id: z.number().optional(),
-  nombre: z
+const createNumeroBodegaSchema = () =>
+  z
     .string()
-    .min(1, 'El nombre es requerido')
-    .max(100, 'El nombre no puede exceder 100 caracteres')
-    .trim(),
-  descripcion: z
-    .string()
-    .max(500, 'La descripción no puede exceder 500 caracteres')
+    .max(50, t('validation.location_max'))
     .trim()
     .optional()
-    .nullable(),
-  precio: z
-    .number()
-    .min(0, 'El precio debe ser mayor o igual a 0')
-    .max(999999999, 'El precio no puede exceder 999.999.999')
-    .default(0),
-  cantidad: z
-    .number()
-    .int('La cantidad debe ser un número entero')
-    .min(0, 'La cantidad debe ser mayor o igual a 0')
-    .max(999999, 'La cantidad no puede exceder 999.999')
-    .default(1),
-  imagen: imagenUriSchema,
-  numeroBodega: numeroBodegaSchema,
-  observaciones: z
+    .nullable();
+
+const createFechaSchema = () =>
+  z
     .string()
-    .max(1000, 'Las observaciones no pueden exceder 1000 caracteres')
+    .min(1, t('validation.date_required'))
+    .refine(esFechaValida, t('validation.date_format'));
+
+const createImagenUriSchema = () =>
+  z
+    .string()
+    .min(1, t('validation.image_uri_required'))
+    .refine(esUriValido, t('validation.image_uri_invalid'))
+    .or(z.literal(''))
+    .nullable()
+    .optional();
+
+const createObservacionesSchema = () =>
+  z
+    .string()
+    .max(1000, t('validation.notes_max'))
     .trim()
     .optional()
-    .nullable(),
-  fechaIngreso: fechaSchema,
-  fechaModificacion: fechaSchema.optional().nullable(),
-});
+    .nullable();
 
-// Schema para crear un nuevo artículo (sin id)
-export const crearArticuloSchema = articuloSchema.omit({
-  id: true,
-  fechaModificacion: true,
-});
+const createArticuloSchema = () =>
+  z.object({
+    id: z.number().optional(),
+    nombre: z
+      .string()
+      .min(1, t('validation.name_required'))
+      .max(100, t('validation.name_max'))
+      .trim(),
+    descripcion: z
+      .string()
+      .max(500, t('validation.description_max'))
+      .trim()
+      .optional()
+      .nullable(),
+    precio: z
+      .number()
+      .min(0, t('validation.price_min'))
+      .max(999999999, t('validation.price_max'))
+      .default(0),
+    cantidad: z
+      .number()
+      .int(t('validation.quantity_integer'))
+      .min(0, t('validation.quantity_min'))
+      .max(999999, t('validation.quantity_max'))
+      .default(1),
+    imagen: createImagenUriSchema(),
+    numeroBodega: createNumeroBodegaSchema(),
+    observaciones: createObservacionesSchema(),
+    fechaIngreso: createFechaSchema(),
+    fechaModificacion: createFechaSchema().optional().nullable(),
+  });
 
-// Schema para actualizar un artículo (todos los campos opcionales excepto id)
-export const actualizarArticuloSchema = z.object({
-  id: z.number().positive('El ID debe ser un número positivo'),
-  nombre: z
-    .string()
-    .min(1, 'El nombre es requerido')
-    .max(100, 'El nombre no puede exceder 100 caracteres')
-    .trim()
-    .optional(),
-  descripcion: z
-    .string()
-    .max(500, 'La descripción no puede exceder 500 caracteres')
-    .trim()
-    .optional()
-    .nullable(),
-  precio: z
-    .number()
-    .min(0, 'El precio debe ser mayor o igual a 0')
-    .max(999999999, 'El precio no puede exceder 999.999.999')
-    .optional(),
-  cantidad: z
-    .number()
-    .int('La cantidad debe ser un número entero')
-    .min(0, 'La cantidad debe ser mayor o igual a 0')
-    .max(999999, 'La cantidad no puede exceder 999.999')
-    .optional(),
-  imagen: imagenUriSchema,
-  numeroBodega: numeroBodegaSchema.optional(),
-  observaciones: z
-    .string()
-    .max(1000, 'Las observaciones no pueden exceder 1000 caracteres')
-    .trim()
-    .optional()
-    .nullable(),
-});
+const createCrearArticuloSchema = () =>
+  createArticuloSchema().omit({
+    id: true,
+    fechaModificacion: true,
+  });
 
-// Schema para búsqueda
-export const busquedaSchema = z.object({
-  termino: z
-    .string()
-    .min(1, 'El término de búsqueda es requerido')
-    .max(100, 'El término de búsqueda no puede exceder 100 caracteres')
-    .trim(),
-});
+const createActualizarArticuloSchema = () =>
+  z.object({
+    id: z.number().positive(t('validation.id_positive')),
+    nombre: z
+      .string()
+      .min(1, t('validation.name_required'))
+      .max(100, t('validation.name_max'))
+      .trim()
+      .optional(),
+    descripcion: z
+      .string()
+      .max(500, t('validation.description_max'))
+      .trim()
+      .optional()
+      .nullable(),
+    precio: z
+      .number()
+      .min(0, t('validation.price_min'))
+      .max(999999999, t('validation.price_max'))
+      .optional(),
+    cantidad: z
+      .number()
+      .int(t('validation.quantity_integer'))
+      .min(0, t('validation.quantity_min'))
+      .max(999999, t('validation.quantity_max'))
+      .optional(),
+    imagen: createImagenUriSchema(),
+    numeroBodega: createNumeroBodegaSchema().optional(),
+    observaciones: createObservacionesSchema(),
+  });
 
-// Schema para paginación
-export const paginacionSchema = z.object({
-  pagina: z.coerce
-    .number()
-    .int()
-    .min(1, 'La página debe ser mayor a 0')
-    .default(1),
-  limite: z.coerce
-    .number()
-    .int()
-    .min(1, 'Límite debe ser mayor a 0')
-    .max(100, 'Límite máximo es 100')
-    .default(20),
-});
+const createBusquedaSchema = () =>
+  z.object({
+    termino: z
+      .string()
+      .min(1, t('validation.search_required'))
+      .max(100, t('validation.search_max'))
+      .trim(),
+  });
 
-// Schema para filtros de búsqueda avanzada
-export const filtroBusquedaSchema = z.object({
-  nombre: z.string().trim().optional(),
-  descripcion: z.string().trim().optional(),
-  numeroBodega: z.string().trim().optional(),
-  precioMin: z.coerce.number().min(0).optional(),
-  precioMax: z.coerce.number().min(0).optional(),
-  cantidadMin: z.coerce.number().int().min(0).optional(),
-  cantidadMax: z.coerce.number().int().min(0).optional(),
-  fechaDesde: fechaSchema.optional(),
-  fechaHasta: fechaSchema.optional(),
-});
+const createPaginacionSchema = () =>
+  z.object({
+    pagina: z.coerce
+      .number()
+      .int()
+      .min(1, t('validation.page_min'))
+      .default(1),
+    limite: z.coerce
+      .number()
+      .int()
+      .min(1, t('validation.limit_min'))
+      .max(100, t('validation.limit_max'))
+      .default(20),
+  });
 
-// Tipos TypeScript generados desde los schemas
+const createFiltroBusquedaSchema = () =>
+  z.object({
+    nombre: z.string().trim().optional(),
+    descripcion: z.string().trim().optional(),
+    numeroBodega: z.string().trim().optional(),
+    precioMin: z.coerce.number().min(0).optional(),
+    precioMax: z.coerce.number().min(0).optional(),
+    cantidadMin: z.coerce.number().int().min(0).optional(),
+    cantidadMax: z.coerce.number().int().min(0).optional(),
+    fechaDesde: createFechaSchema().optional(),
+    fechaHasta: createFechaSchema().optional(),
+  });
+
+// --- Static schemas for type inference ---
+
+export const articuloSchema = createArticuloSchema();
+export const crearArticuloSchema = createCrearArticuloSchema();
+export const actualizarArticuloSchema = createActualizarArticuloSchema();
+export const busquedaSchema = createBusquedaSchema();
+export const paginacionSchema = createPaginacionSchema();
+export const filtroBusquedaSchema = createFiltroBusquedaSchema();
+
+// --- TypeScript types generated from schemas ---
+
 export type CrearArticuloInput = z.infer<typeof crearArticuloSchema>;
 export type ActualizarArticuloInput = z.infer<typeof actualizarArticuloSchema>;
 export type BusquedaInput = z.infer<typeof busquedaSchema>;
 export type PaginacionInput = z.infer<typeof paginacionSchema>;
 export type FiltroBusquedaInput = z.infer<typeof filtroBusquedaSchema>;
 
-// Funciones de validación
+// --- Validation functions (create fresh schemas with current locale) ---
+
 export const validarArticulo = (data: unknown) => {
-  return crearArticuloSchema.safeParse(data);
+  return createCrearArticuloSchema().safeParse(data);
 };
 
 export const validarArticuloParaActualizar = (data: unknown) => {
-  return actualizarArticuloSchema.safeParse(data);
+  return createActualizarArticuloSchema().safeParse(data);
 };
 
 export const validarBusqueda = (data: unknown) => {
-  return busquedaSchema.safeParse(data);
+  return createBusquedaSchema().safeParse(data);
 };
 
 export const validarPaginacion = (data: unknown) => {
-  return paginacionSchema.safeParse(data);
+  return createPaginacionSchema().safeParse(data);
 };
 
 export const validarFiltroBusqueda = (data: unknown) => {
-  return filtroBusquedaSchema.safeParse(data);
+  return createFiltroBusquedaSchema().safeParse(data);
 };

@@ -27,6 +27,10 @@ jest.mock('expo-image-picker', () => ({
   launchImageLibraryAsync: jest.fn(),
 }));
 
+jest.mock('expo-localization', () => ({
+  getLocales: jest.fn(() => [{ languageCode: 'es' }]),
+}));
+
 jest.mock('expo-image-manipulator', () => ({
   manipulateAsync: jest.fn(uri => Promise.resolve({ uri })),
   SaveFormat: {
@@ -41,6 +45,7 @@ jest.mock('expo-sqlite', () => ({
     runAsync: jest.fn(),
     getAllAsync: jest.fn(),
     getFirstAsync: jest.fn(),
+    withTransactionAsync: jest.fn(async callback => callback()),
   })),
 }));
 
@@ -86,6 +91,10 @@ jest.mock('react-i18next', () => ({
       language: 'es',
     },
   }),
+  initReactI18next: {
+    type: '3rdParty',
+    init: jest.fn(),
+  },
 }));
 
 // Mock ThemeContext

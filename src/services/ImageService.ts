@@ -66,7 +66,8 @@ class ImageService {
       // Comprimir imagen antes de guardar
       const compressedUri = await this.compressImage(tempUri);
 
-      const fileName = `image_${Date.now()}.jpg`;
+      const randomSuffix = Math.random().toString(36).substring(2, 8);
+      const fileName = `image_${Date.now()}_${randomSuffix}.jpg`;
       const newPath = IMAGES_DIR + fileName;
 
       const sourceFile = new File(compressedUri);

@@ -121,6 +121,28 @@
     "privacy": "Política de Privacidad",
     "terms": "Términos de Uso"
   },
+  "validation": {
+    "name_required": "El nombre es requerido",
+    "name_max": "El nombre no puede exceder 100 caracteres",
+    "description_max": "La descripción no puede exceder 500 caracteres",
+    "price_min": "El precio debe ser mayor o igual a 0",
+    "price_max": "El precio no puede exceder 999.999.999",
+    "quantity_integer": "La cantidad debe ser un número entero",
+    "quantity_min": "La cantidad debe ser mayor o igual a 0",
+    "quantity_max": "La cantidad no puede exceder 999.999",
+    "location_max": "El código no puede exceder 50 caracteres",
+    "notes_max": "Las observaciones no pueden exceder 1000 caracteres",
+    "date_required": "La fecha es requerida",
+    "date_format": "La fecha debe tener formato DD/MM/YYYY o ISO",
+    "image_uri_required": "La URI de la imagen es requerida",
+    "image_uri_invalid": "La URI de la imagen no es válida",
+    "id_positive": "El ID debe ser un número positivo",
+    "search_required": "El término de búsqueda es requerido",
+    "search_max": "El término de búsqueda no puede exceder 100 caracteres",
+    "page_min": "La página debe ser mayor a 0",
+    "limit_min": "Límite debe ser mayor a 0",
+    "limit_max": "Límite máximo es 100"
+  },
   "paywall": {
     "title": "Stokk PRO",
     "subtitle": "Gestión profesional de inventario",

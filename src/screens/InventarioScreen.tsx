@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, StyleSheet } from 'react-native';
 import ArticuloList from '../components/ArticuloList';
 import { Articulo } from '../database/DatabaseManager';
@@ -10,13 +10,16 @@ const InventarioScreen: React.FC = () => {
   const navigation = useNavigation<InventarioScreenNavigationProp>();
   const { theme } = useTheme();
 
-  const handleEdit = (articulo: Articulo) => {
-    navigation.navigate('Ingresar', { articulo });
-  };
+  const handleEdit = useCallback(
+    (articulo: Articulo) => {
+      navigation.navigate('Ingresar', { articulo });
+    },
+    [navigation]
+  );
 
-  const handleAdd = () => {
+  const handleAdd = useCallback(() => {
     navigation.navigate('Ingresar');
-  };
+  }, [navigation]);
 
   return (
     <View

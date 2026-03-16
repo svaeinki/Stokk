@@ -38,6 +38,7 @@ beforeEach(() => {
       runAsync: mockRunAsync,
       getAllAsync: mockGetAllAsync,
       getFirstAsync: mockGetFirstAsync,
+      withTransactionAsync: jest.fn(async callback => callback()),
     }),
   }));
 
