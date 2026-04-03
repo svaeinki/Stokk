@@ -67,10 +67,10 @@ export const reportError = (error: Error, context?: string) => {
 };
 
 // Performance tracking
-export const trackPerformance = (
+export const trackPerformance = <T>(
   operation: string,
-  callback: () => Promise<any>
-) => {
+  callback: () => Promise<T>
+): Promise<T> => {
   return Sentry.startSpan(
     {
       name: operation,

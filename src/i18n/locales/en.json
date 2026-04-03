@@ -143,6 +143,11 @@
     "limit_min": "Limit must be greater than 0",
     "limit_max": "Maximum limit is 100"
   },
+  "error_boundary": {
+    "title": "Something went wrong",
+    "message": "An unexpected error occurred",
+    "restart": "Restart"
+  },
   "paywall": {
     "title": "Stokk PRO",
     "subtitle": "Professional Inventory Management",

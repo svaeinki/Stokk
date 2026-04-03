@@ -143,6 +143,11 @@
     "limit_min": "Límite debe ser mayor a 0",
     "limit_max": "Límite máximo es 100"
   },
+  "error_boundary": {
+    "title": "Algo salió mal",
+    "message": "Ocurrió un error inesperado",
+    "restart": "Reiniciar"
+  },
   "paywall": {
     "title": "Stokk PRO",
     "subtitle": "Gestión profesional de inventario",

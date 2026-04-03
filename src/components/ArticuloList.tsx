@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import { Card, Text, IconButton, Chip, FAB } from 'react-native-paper';
 import Icon from '@expo/vector-icons/MaterialIcons';
+import { useFocusEffect } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
 import { useSnackbar } from '../context/SnackbarContext';
 import DatabaseManager, { Articulo } from '../database/DatabaseManager';
@@ -66,6 +67,12 @@ const ArticuloList: React.FC<ArticuloListProps> = ({
   useEffect(() => {
     cargarArticulos();
   }, [refreshTrigger, cargarArticulos]);
+
+  useFocusEffect(
+    useCallback(() => {
+      cargarArticulos();
+    }, [cargarArticulos])
+  );
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);

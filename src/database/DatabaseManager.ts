@@ -125,7 +125,7 @@ class DatabaseManager {
       const result = await this.db.getFirstAsync<{ count: number }>(
         'SELECT COUNT(*) as count FROM articulos'
       );
-      return result?.count || 0;
+      return result?.count ?? 0;
     } catch (error) {
       Logger.error('Error al contar artículos', error);
       throw error; // Propagar error para manejo adecuado en la UI

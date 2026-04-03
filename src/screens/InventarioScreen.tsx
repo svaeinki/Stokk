@@ -18,7 +18,7 @@ const InventarioScreen: React.FC = () => {
   );
 
   const handleAdd = useCallback(() => {
-    navigation.navigate('Ingresar');
+    navigation.navigate('Ingresar', { articulo: undefined });
   }, [navigation]);
 
   return (

@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback, useMemo } from 'react';
+import React, { useEffect, useState, useCallback, useMemo, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -11,7 +11,6 @@ import {
 import { Button, Card, ActivityIndicator } from 'react-native-paper';
 import { MaterialIcons } from '@expo/vector-icons';
 import { PurchasesPackage } from 'react-native-purchases';
-import RevenueCatUI, { PAYWALL_RESULT } from 'react-native-purchases-ui';
 import SubscriptionService from '../services/SubscriptionService';
 import { useNavigation } from '@react-navigation/native';
 import { useTheme } from '../context/ThemeContext';
@@ -38,69 +37,24 @@ const PaywallScreen: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [purchasing, setPurchasing] = useState(false);
   const [selectedPackage, setSelectedPackage] = useState<string | null>(null);
-  const [useNativePaywall, setUseNativePaywall] = useState(false);
+  const isMountedRef = useRef(true);
 
   useEffect(() => {
-    initializePaywall();
+    loadOfferings();
+    return () => {
+      isMountedRef.current = false;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  const initializePaywall = async () => {
-    try {
-      // First try to present native RevenueCat paywall
-      if (useNativePaywall) {
-        const result = await presentNativePaywall();
-        if (result !== 'fallback') {
-          return;
-        }
-      }
-
-      // Fallback to custom paywall
-      await loadOfferings();
-    } catch (error) {
-      Logger.error('Error initializing paywall', error);
-      await loadOfferings();
-    }
-  };
-
-  const presentNativePaywall = async (): Promise<
-    'purchased' | 'cancelled' | 'fallback'
-  > => {
-    try {
-      const paywallResult = await RevenueCatUI.presentPaywall();
-
-      switch (paywallResult) {
-        case PAYWALL_RESULT.PURCHASED:
-        case PAYWALL_RESULT.RESTORED:
-          Alert.alert(
-            t('paywall.purchase_success'),
-            t('paywall.purchase_success_msg'),
-            [{ text: t('common.ok'), onPress: () => navigation.goBack() }]
-          );
-          return 'purchased';
-
-        case PAYWALL_RESULT.CANCELLED:
-          navigation.goBack();
-          return 'cancelled';
-
-        case PAYWALL_RESULT.NOT_PRESENTED:
-        default:
-          // Fall back to custom paywall
-          setUseNativePaywall(false);
-          return 'fallback';
-      }
-    } catch (error) {
-      Logger.warn('Native paywall not available, using custom paywall', error);
-      setUseNativePaywall(false);
-      return 'fallback';
-    }
-  };
 
   const loadOfferings = async () => {
     try {
       setLoading(true);
       await SubscriptionService.initialize();
       const availablePackages = await SubscriptionService.getPackages();
+
+      if (!isMountedRef.current) return;
+
       setPackages(availablePackages);
 
       // Auto-select yearly as best value
@@ -115,7 +69,9 @@ const PaywallScreen: React.FC = () => {
     } catch (error) {
       Logger.error('Error loading offerings', error);
     } finally {
-      setLoading(false);
+      if (isMountedRef.current) {
+        setLoading(false);
+      }
     }
   };
 
@@ -186,11 +142,15 @@ const PaywallScreen: React.FC = () => {
   }, [navigation, t]);
 
   const openPrivacyPolicy = useCallback(() => {
-    Linking.openURL(URLS.privacyPolicy);
+    Linking.openURL(URLS.privacyPolicy).catch(e =>
+      Logger.warn('Failed to open URL', e)
+    );
   }, []);
 
   const openTerms = useCallback(() => {
-    Linking.openURL(URLS.termsOfService);
+    Linking.openURL(URLS.termsOfService).catch(e =>
+      Logger.warn('Failed to open URL', e)
+    );
   }, []);
 
   const benefits: Benefit[] = useMemo(
@@ -242,26 +202,6 @@ const PaywallScreen: React.FC = () => {
     return null;
   };
 
-  // Show loading while trying native paywall or loading packages
-  if (loading && useNativePaywall) {
-    return (
-      <View
-        style={[
-          styles.loadingContainer,
-          { backgroundColor: theme.colors.background },
-        ]}
-      >
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-        <Text
-          style={[styles.loadingText, { color: theme.colors.onSurfaceVariant }]}
-        >
-          {t('paywall.loading_products')}
-        </Text>
-      </View>
-    );
-  }
-
-  // Custom fallback paywall
   return (
     <ScrollView
       style={[styles.container, { backgroundColor: theme.colors.background }]}
@@ -541,15 +481,6 @@ const PaywallScreen: React.FC = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    marginTop: 16,
-    fontSize: 16,
   },
   content: {
     padding: 24,

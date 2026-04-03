@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { TextInput } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
@@ -17,6 +17,11 @@ const NotesSection: React.FC<NotesSectionProps> = ({
   const { theme } = useTheme();
   const { t } = useTranslation();
 
+  const onChangeObservaciones = useCallback(
+    (text: string) => onFieldChange('observaciones', text),
+    [onFieldChange]
+  );
+
   return (
     <View style={styles.section}>
       <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
@@ -29,7 +34,7 @@ const NotesSection: React.FC<NotesSectionProps> = ({
         </Text>
         <TextInput
           value={formData.observaciones || ''}
-          onChangeText={text => onFieldChange('observaciones', text)}
+          onChangeText={onChangeObservaciones}
           style={[styles.input, { backgroundColor: theme.colors.surface }]}
           mode="outlined"
           outlineColor={theme.colors.outline}

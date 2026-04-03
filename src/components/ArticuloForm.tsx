@@ -28,7 +28,6 @@ const ArticuloForm: React.FC = () => {
   const { formData, loading, handleFieldChange, handleSave, handleCancel } =
     useArticuloForm({
       initialArticulo: articulo,
-      isEditing: !!articulo,
       onSuccess: showSuccess,
       onError: showError,
     });

@@ -5,7 +5,6 @@ import { useArticuloSubmit } from './useArticuloSubmit';
 
 interface UseArticuloFormProps {
   initialArticulo?: Articulo;
-  isEditing?: boolean; // Kept for API compatibility
   onSuccess?: (message: string) => void;
   onError?: (message: string) => void;
 }

@@ -27,7 +27,8 @@ import ConfigScreen from './src/screens/ConfigScreen';
 import PaywallScreen from './src/screens/PaywallScreen';
 import { ThemeProvider, useTheme } from './src/context/ThemeContext';
 import { SnackbarProvider } from './src/context/SnackbarContext';
-import { i18nInitPromise } from './src/i18n'; // Initialize i18n
+import i18n, { i18nInitPromise } from './src/i18n'; // Initialize i18n
+import { PALETTE, COLORS } from './src/constants/app';
 
 const Tab = createBottomTabNavigator<TabParamList>();
 const Stack = createNativeStackNavigator<RootStackParamList>();
@@ -144,18 +145,25 @@ class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <View style={[styles.container, styles.centered]}>
-          <MaterialIcons name="error-outline" size={64} color="#F44336" />
+          <MaterialIcons
+            name="error-outline"
+            size={64}
+            color={COLORS.error}
+          />
           <Text style={styles.errorBoundaryTitle}>
-            Something went wrong
+            {i18n.t('error_boundary.title')}
           </Text>
           <Text style={styles.errorBoundaryMessage}>
-            {this.state.error?.message || 'An unexpected error occurred'}
+            {this.state.error?.message ||
+              i18n.t('error_boundary.message')}
           </Text>
           <TouchableOpacity
             style={styles.restartButton}
             onPress={this.handleRestart}
           >
-            <Text style={styles.restartButtonText}>Restart</Text>
+            <Text style={styles.restartButtonText}>
+              {i18n.t('error_boundary.restart')}
+            </Text>
           </TouchableOpacity>
         </View>
       );
@@ -208,14 +216,14 @@ function AppContent() {
         setIsReady(true);
       } catch (error) {
         const errorMessage =
-          error instanceof Error ? error.message : t('common.error');
+          error instanceof Error ? error.message : i18n.t('common.error');
         setDbError(errorMessage);
         setIsReady(true);
       }
     };
 
     initApp();
-  }, [t]);
+  }, []);
 
   if (!isReady) {
     return (
@@ -318,24 +326,24 @@ const styles = StyleSheet.create({
     fontSize: 20,
     fontWeight: 'bold',
     textAlign: 'center',
-    color: '#333',
+    color: PALETTE.smartBlue,
   },
   errorBoundaryMessage: {
     marginTop: 8,
     fontSize: 14,
     textAlign: 'center',
-    color: '#666',
+    color: PALETTE.steelBlue,
     paddingHorizontal: 32,
   },
   restartButton: {
     marginTop: 24,
     paddingVertical: 12,
     paddingHorizontal: 32,
-    backgroundColor: '#3066BE',
+    backgroundColor: PALETTE.smartBlue,
     borderRadius: 8,
   },
   restartButtonText: {
-    color: '#FFFFFF',
+    color: PALETTE.icyAqua,
     fontSize: 16,
     fontWeight: '600',
   },

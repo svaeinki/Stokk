@@ -24,6 +24,8 @@ export const useSubscriptionLimit = (options?: UseSubscriptionLimitOptions) => {
     };
   }, []);
 
+  const onError = options?.onError;
+
   const checkLimit = useCallback(async (): Promise<boolean> => {
     try {
       const [count, isPro] = await Promise.all([
@@ -55,12 +57,12 @@ export const useSubscriptionLimit = (options?: UseSubscriptionLimitOptions) => {
       return true;
     } catch (error) {
       Logger.error('Error verificando límites', error);
-      if (isMountedRef.current && options?.onError) {
-        options.onError(t('list.error_loading'));
+      if (isMountedRef.current && onError) {
+        onError(t('list.error_loading'));
       }
       return false;
     }
-  }, [t, navigation, options]);
+  }, [t, navigation, onError]);
 
   return { checkLimit };
 };

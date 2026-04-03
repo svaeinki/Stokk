@@ -103,9 +103,12 @@ export const Logger = {
     ...args: unknown[]
   ) => {
     if (shouldLog('error')) {
-      const typedError = error as StokkError;
+      const stokkError =
+        error instanceof Error && 'type' in error
+          ? (error as StokkError)
+          : undefined;
       console.error(
-        formatMessage('error', message, typedError),
+        formatMessage('error', message, stokkError),
         formatErrorObject(error),
         ...args
       );

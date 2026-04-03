@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   StyleSheet,
@@ -43,6 +43,13 @@ const ConfigScreen: React.FC = () => {
   const [subscriptionStatus, setSubscriptionStatus] =
     useState<SubscriptionStatus | null>(null);
   const [loadingStatus, setLoadingStatus] = useState(true);
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
 
   // Get app version from expo constants
   const appVersion = Constants.expoConfig?.version ?? '1.0.0';
@@ -51,12 +58,18 @@ const ConfigScreen: React.FC = () => {
     try {
       setLoadingStatus(true);
       const status = await SubscriptionService.getSubscriptionStatus();
-      setSubscriptionStatus(status);
+      if (isMountedRef.current) {
+        setSubscriptionStatus(status);
+      }
     } catch (error) {
       Logger.error('Error loading subscription status', error);
-      showError(t('config.restore_error'));
+      if (isMountedRef.current) {
+        showError(t('config.restore_error'));
+      }
     } finally {
-      setLoadingStatus(false);
+      if (isMountedRef.current) {
+        setLoadingStatus(false);
+      }
     }
   }, [showError, t]);
 
@@ -75,7 +88,7 @@ const ConfigScreen: React.FC = () => {
     navigation.navigate('Paywall');
   }, [navigation]);
 
-  const handleManageSubscription = async () => {
+  const handleManageSubscription = useCallback(async () => {
     try {
       // Try to open RevenueCat Customer Center
       await RevenueCatUI.presentCustomerCenter();
@@ -89,11 +102,13 @@ const ConfigScreen: React.FC = () => {
         Platform.OS === 'ios'
           ? 'https://apps.apple.com/account/subscriptions'
           : 'https://play.google.com/store/account/subscriptions';
-      Linking.openURL(url);
+      Linking.openURL(url).catch(e =>
+        Logger.warn('Failed to open URL', e)
+      );
     }
-  };
+  }, []);
 
-  const handleRestore = async () => {
+  const handleRestore = useCallback(async () => {
     setIsRestoring(true);
     try {
       const result = await SubscriptionService.restorePurchases();
@@ -110,9 +125,9 @@ const ConfigScreen: React.FC = () => {
     } finally {
       setIsRestoring(false);
     }
-  };
+  }, [showSuccess, showInfo, showError, t, loadSubscriptionStatus]);
 
-  const performReset = async () => {
+  const performReset = useCallback(async () => {
     setIsResetting(true);
     try {
       await DatabaseManager.resetDatabase();
@@ -123,7 +138,7 @@ const ConfigScreen: React.FC = () => {
     } finally {
       setIsResetting(false);
     }
-  };
+  }, [showSuccess, showError, t]);
 
   const handleReset = () => {
     Alert.alert(
@@ -141,15 +156,21 @@ const ConfigScreen: React.FC = () => {
   };
 
   const openPrivacyPolicy = useCallback(() => {
-    Linking.openURL(URLS.privacyPolicy);
+    Linking.openURL(URLS.privacyPolicy).catch(e =>
+      Logger.warn('Failed to open URL', e)
+    );
   }, []);
 
   const openTerms = useCallback(() => {
-    Linking.openURL(URLS.termsOfService);
+    Linking.openURL(URLS.termsOfService).catch(e =>
+      Logger.warn('Failed to open URL', e)
+    );
   }, []);
 
   const openSupport = useCallback(() => {
-    Linking.openURL(URLS.supportEmail);
+    Linking.openURL(URLS.supportEmail).catch(e =>
+      Logger.warn('Failed to open URL', e)
+    );
   }, []);
 
   const formatExpirationDate = (dateString?: string): string => {

@@ -1,4 +1,4 @@
-import React, { memo, useCallback } from 'react';
+import React, { memo, useCallback, useMemo } from 'react';
 import { View, StyleSheet, Text } from 'react-native';
 import { TextInput, TextInputProps } from 'react-native-paper';
 import { useTheme } from '../../context/ThemeContext';
@@ -14,7 +14,7 @@ interface FormFieldProps {
 }
 
 const FormField = memo<FormFieldProps>(
-  ({ label, value, onChangeText, inputProps = {} }) => {
+  ({ label, value, onChangeText, inputProps }) => {
     const { theme } = useTheme();
 
     return (
@@ -72,6 +72,37 @@ const DataSection: React.FC<DataSectionProps> = ({
     [onFieldChange]
   );
 
+  const nombreInputProps = useMemo(
+    () => ({ placeholder: t('product.placeholder_name') }),
+    [t]
+  );
+  const precioAffix = useMemo(() => <TextInput.Affix text="$" />, []);
+  const precioInputProps = useMemo(
+    () => ({
+      placeholder: '0',
+      keyboardType: 'numeric' as const,
+      left: precioAffix,
+    }),
+    [precioAffix]
+  );
+  const cantidadInputProps = useMemo(
+    () => ({ placeholder: '1', keyboardType: 'numeric' as const }),
+    []
+  );
+  const descripcionInputProps = useMemo(
+    () => ({
+      placeholder: t('product.placeholder_desc'),
+      multiline: true,
+      numberOfLines: 3,
+      style: styles.textArea,
+    }),
+    [t]
+  );
+  const ubicacionInputProps = useMemo(
+    () => ({ placeholder: t('product.placeholder_location') }),
+    [t]
+  );
+
   return (
     <View style={styles.section}>
       <Text style={[styles.sectionTitle, { color: theme.colors.onSurface }]}>
@@ -82,7 +113,7 @@ const DataSection: React.FC<DataSectionProps> = ({
         label={t('product.name_label')}
         value={formData.nombre || ''}
         onChangeText={onChangeNombre}
-        inputProps={{ placeholder: t('product.placeholder_name') }}
+        inputProps={nombreInputProps}
       />
 
       <View style={styles.row}>
@@ -91,11 +122,7 @@ const DataSection: React.FC<DataSectionProps> = ({
             label={t('product.price_label')}
             value={formData.precio?.toString() || ''}
             onChangeText={onChangePrecio}
-            inputProps={{
-              placeholder: '0',
-              keyboardType: 'numeric',
-              left: <TextInput.Affix text="$" />,
-            }}
+            inputProps={precioInputProps}
           />
         </View>
         <View style={styles.rowFieldRight}>
@@ -103,10 +130,7 @@ const DataSection: React.FC<DataSectionProps> = ({
             label={t('product.quantity_label')}
             value={formData.cantidad?.toString() || ''}
             onChangeText={onChangeCantidad}
-            inputProps={{
-              placeholder: '1',
-              keyboardType: 'numeric',
-            }}
+            inputProps={cantidadInputProps}
           />
         </View>
       </View>
@@ -115,21 +139,14 @@ const DataSection: React.FC<DataSectionProps> = ({
         label={t('product.description_label')}
         value={formData.descripcion || ''}
         onChangeText={onChangeDescripcion}
-        inputProps={{
-          placeholder: t('product.placeholder_desc'),
-          multiline: true,
-          numberOfLines: 3,
-          style: styles.textArea,
-        }}
+        inputProps={descripcionInputProps}
       />
 
       <FormField
         label={t('product.location_label')}
         value={formData.numeroBodega || ''}
         onChangeText={onChangeNumeroBodega}
-        inputProps={{
-          placeholder: t('product.placeholder_location'),
-        }}
+        inputProps={ubicacionInputProps}
       />
     </View>
   );
