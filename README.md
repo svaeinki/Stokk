@@ -51,7 +51,7 @@ Add screenshots here. Recommended: 3-4 screens side by side.
 | i18n | i18next + react-i18next |
 | Subscriptions | RevenueCat |
 | Error Tracking | Sentry |
-| Testing | Jest (37 tests) |
+| Testing | Jest (55 tests) |
 | CI | GitHub Actions |
 
 ## Architecture
@@ -96,8 +96,8 @@ Root Stack Navigator
 **Requirements:** Node 22+ (see `.nvmrc`), npm 10+. iOS: macOS with Xcode 15+. Android: Android Studio with SDK 21+.
 
 ```bash
-git clone https://github.com/your-username/stokk.git
-cd stokk
+git clone https://github.com/svaeinki/Stokk.git
+cd Stokk
 nvm use
 npm install
 cp .env.example .env   # Configure API keys
@@ -111,7 +111,7 @@ npm run start          # Hot reload after initial build
 # Code quality
 npm run lint           # ESLint
 npm run type-check     # TypeScript
-npm run test           # Jest (37 tests)
+npm run test           # Jest (55 tests)
 ```
 
 ## Roadmap
