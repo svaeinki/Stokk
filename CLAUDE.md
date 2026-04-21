@@ -11,13 +11,13 @@ Stokk is a React Native + Expo inventory management mobile app with offline SQLi
 ## Development Commands
 
 ```bash
-# Start Expo development server
+# Start Expo development server (hot reload after initial native build)
 npm run start
 
-# Run on specific platform
-npm run ios          # iOS simulator/device
-npm run android      # Android emulator/device
-npm run web          # Web browser
+# Native builds (compile + run — use these the first time or after adding native deps)
+npm run ios          # expo run:ios — builds and runs on iOS simulator/device
+npm run android      # expo run:android — builds and runs on Android emulator/device
+npm run web          # expo start --web — runs in browser
 
 # Code quality
 npm run lint         # ESLint check
@@ -36,13 +36,9 @@ npm run test -- src/__tests__/validation.test.ts  # Run single test file
 # EAS builds (requires EAS CLI)
 eas build --profile development --platform ios
 eas build --profile production --platform all
-
-# Development build (recommended over Expo Go)
-npx expo run:ios      # First time: compiles native app
-npx expo run:android  # Then use `npm run start` for hot reload
 ```
 
-**Development build vs Expo Go:** Use development builds for RevenueCat/Sentry to work correctly, custom splash/icons visible, and production-like experience. Only recompile when adding native dependencies.
+**Development builds vs Expo Go:** `npm run ios`/`npm run android` create native development builds (recommended). RevenueCat/Sentry only work in development builds. After the initial native compile, use `npm run start` for hot reload. Only recompile when adding native dependencies.
 
 ## Architecture
 
@@ -53,7 +49,7 @@ npx expo run:android  # Then use `npm run start` for hot reload
 - **UI:** React Native Paper (Material Design 3)
 - **Navigation:** React Navigation v7 (bottom tabs + native stack)
 - **Storage:** expo-sqlite (SQLite), AsyncStorage
-- **Validation:** Zod (runtime schema validation)
+- **Validation:** Zod v4 (runtime schema validation — v4 API, not v3)
 - **i18n:** i18next + react-i18next + expo-localization
 - **Subscriptions:** RevenueCat (react-native-purchases)
 - **Error Tracking:** Sentry
@@ -139,6 +135,9 @@ interface Articulo {
 - `no-explicit-any: warn` — avoid `any`, use proper types.
 - `react-hooks/exhaustive-deps: "error"` — dependency arrays must be complete.
 - `react-native/no-unused-styles: "error"` — catches unused `StyleSheet` entries.
+- `react-native/split-platform-components: "error"` — platform-specific imports must use `.ios.ts`/`.android.ts`.
+- `prefer-const: "error"` and `no-var: "error"` — always use `const`/`let`, never `var`.
+- `@typescript-eslint/no-shadow: "error"` (in `.ts`/`.tsx` files) — no variable shadowing.
 - `prettier/prettier: "error"` — formatting violations are errors, not warnings.
 
 ### Testing
