@@ -145,17 +145,12 @@ class ErrorBoundary extends React.Component<
     if (this.state.hasError) {
       return (
         <View style={[styles.container, styles.centered]}>
-          <MaterialIcons
-            name="error-outline"
-            size={64}
-            color={COLORS.error}
-          />
+          <MaterialIcons name="error-outline" size={64} color={COLORS.error} />
           <Text style={styles.errorBoundaryTitle}>
             {i18n.t('error_boundary.title')}
           </Text>
           <Text style={styles.errorBoundaryMessage}>
-            {this.state.error?.message ||
-              i18n.t('error_boundary.message')}
+            {this.state.error?.message || i18n.t('error_boundary.message')}
           </Text>
           <TouchableOpacity
             style={styles.restartButton}

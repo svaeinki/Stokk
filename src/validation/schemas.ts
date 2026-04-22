@@ -1,6 +1,5 @@
 import { z } from 'zod';
 import i18n from '../i18n';
-import { Articulo } from '../database/DatabaseManager';
 
 // Helper: get translated validation message at call time
 const t = (key: string) => i18n.t(key);
@@ -54,12 +53,7 @@ export const esUriValido = (uri: string): boolean => {
 // --- Schema factories (create schemas with current locale messages) ---
 
 const createNumeroBodegaSchema = () =>
-  z
-    .string()
-    .max(50, t('validation.location_max'))
-    .trim()
-    .optional()
-    .nullable();
+  z.string().max(50, t('validation.location_max')).trim().optional().nullable();
 
 const createFechaSchema = () =>
   z
@@ -77,12 +71,7 @@ const createImagenUriSchema = () =>
     .optional();
 
 const createObservacionesSchema = () =>
-  z
-    .string()
-    .max(1000, t('validation.notes_max'))
-    .trim()
-    .optional()
-    .nullable();
+  z.string().max(1000, t('validation.notes_max')).trim().optional().nullable();
 
 const createArticuloSchema = () =>
   z.object({
@@ -164,11 +153,7 @@ const createBusquedaSchema = () =>
 
 const createPaginacionSchema = () =>
   z.object({
-    pagina: z.coerce
-      .number()
-      .int()
-      .min(1, t('validation.page_min'))
-      .default(1),
+    pagina: z.coerce.number().int().min(1, t('validation.page_min')).default(1),
     limite: z.coerce
       .number()
       .int()

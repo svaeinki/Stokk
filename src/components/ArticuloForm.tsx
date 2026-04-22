@@ -149,10 +149,7 @@ const ArticuloForm: React.FC = () => {
             ]}
           />
 
-          <DataSection
-            formData={formData}
-            onFieldChange={handleFieldChange}
-          />
+          <DataSection formData={formData} onFieldChange={handleFieldChange} />
 
           <Divider
             style={[

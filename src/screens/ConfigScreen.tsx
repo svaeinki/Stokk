@@ -102,9 +102,7 @@ const ConfigScreen: React.FC = () => {
         Platform.OS === 'ios'
           ? 'https://apps.apple.com/account/subscriptions'
           : 'https://play.google.com/store/account/subscriptions';
-      Linking.openURL(url).catch(e =>
-        Logger.warn('Failed to open URL', e)
-      );
+      Linking.openURL(url).catch(e => Logger.warn('Failed to open URL', e));
     }
   }, []);
 

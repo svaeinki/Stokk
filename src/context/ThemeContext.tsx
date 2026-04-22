@@ -182,7 +182,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
         ) {
           setThemePreferenceState(savedPreference as ThemePreference);
         }
-      } catch (error) {
+      } catch {
         // Si falla, usar 'system' por defecto
       } finally {
         setIsLoaded(true);
@@ -198,7 +198,7 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({
       setThemePreferenceState(preference);
       try {
         await AsyncStorage.setItem(THEME_STORAGE_KEY, preference);
-      } catch (error) {
+      } catch {
         // Error silencioso - la preferencia se aplicó en memoria
       }
     },

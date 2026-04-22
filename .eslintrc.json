@@ -1,12 +1,19 @@
 {
   "root": true,
   "extends": [
-    "@react-native-community",
+    "eslint:recommended",
     "plugin:@typescript-eslint/recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
     "prettier"
   ],
   "parser": "@typescript-eslint/parser",
-  "plugins": ["@typescript-eslint", "react", "react-native", "prettier"],
+  "plugins": ["@typescript-eslint", "react", "react-hooks", "react-native", "prettier"],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "parserOptions": {
     "ecmaFeatures": {
       "jsx": true
@@ -36,6 +43,7 @@
     "react-native/no-color-literals": "warn",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "error",
+    "react-hooks/set-state-in-effect": "off",
     "no-console": "warn",
     "prefer-const": "error",
     "no-var": "error"

@@ -50,7 +50,7 @@ const BuscarScreen: React.FC = () => {
         setHasSearched(true);
         const resultados = await DatabaseManager.buscarArticulos(query.trim());
         setArticulos(resultados);
-      } catch (error) {
+      } catch {
         showError(t('list.error_loading'));
       } finally {
         setLoading(false);
@@ -129,7 +129,7 @@ const BuscarScreen: React.FC = () => {
                 await DatabaseManager.eliminarArticulo(id);
                 // Actualizar lista después de eliminar
                 buscar(searchQueryRef.current);
-              } catch (error) {
+              } catch {
                 showError(t('list.delete_error'));
               }
             },
@@ -268,7 +268,7 @@ const BuscarScreen: React.FC = () => {
           {t('list.empty_search_msg')}
         </Text>
         <Text style={[styles.emptySubtext, { color: theme.colors.outline }]}>
-          "{searchQuery}"
+          &quot;{searchQuery}&quot;
         </Text>
       </View>
     );
