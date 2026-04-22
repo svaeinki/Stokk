@@ -96,18 +96,18 @@ Root Stack Navigator
 **Requirements:** Node 22+ (see `.nvmrc`), npm 10+. iOS: macOS with Xcode 15+. Android: Android Studio with SDK 21+.
 
 ```bash
+# Install
 git clone https://github.com/svaeinki/Stokk.git
 cd Stokk
 nvm use
 npm install
 cp .env.example .env   # Configure API keys
 
+# Run
 npm run ios            # Build and run on iOS simulator
 npm run android        # Build and run on Android emulator
 npm run start          # Hot reload after initial build
-```
 
-```bash
 # Code quality
 npm run lint           # ESLint
 npm run type-check     # TypeScript
@@ -123,6 +123,33 @@ The project is evolving from offline-only to a cloud-synced platform:
 - **Phase 3** — Multi-user support and organizations
 - **Phase 4** — Web admin panel
 
+---
+
+## Project status
+
+- **Closed testing on Google Play** — Currently in the 14-day closed testing period required by Google Play for new publisher accounts. Looking for 12 active testers to complete the requirement.
+- Version 1.0.0.
+- Actively maintained. First commit: December 2025.
+- Public launch expected after closed testing completes.
+
+---
+
+## Privacy
+
+Stokk is offline-first by design:
+
+- **All data is stored locally.** The SQLite database and product photos live on the user's device. Nothing is synced to a server by default.
+- **No analytics, no tracking.** Sentry is used only for crash reports and can be disabled by the user.
+- **RevenueCat is the only third-party service with network access**, used exclusively to validate in-app purchases.
+
 ## License
 
 MIT
+
+---
+
+## Contact
+
+**Diego Moreno** — [diegomorenovillarroel@gmail.com](mailto:diegomorenovillarroel@gmail.com) — [github.com/svaeinki](https://github.com/svaeinki)
+
+Happy to walk through the architecture, offline-first storage strategy, or RevenueCat integration on request.
