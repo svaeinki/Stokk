@@ -1,6 +1,7 @@
 {
   "name": "stokk",
   "version": "1.0.0",
+  "packageManager": "pnpm@10.0.0",
   "main": "index.ts",
   "scripts": {
     "start": "expo start",

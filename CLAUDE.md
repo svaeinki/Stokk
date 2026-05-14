@@ -6,39 +6,39 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 Stokk is a React Native + Expo inventory management mobile app with offline SQLite storage. The app supports English and Spanish (i18n via i18next) and targets both iOS (11.0+) and Android (API 21+).
 
-**Requirements:** Node 22 (see `.nvmrc`), npm 10+. For iOS: macOS with Xcode 15+. For Android: Android Studio with SDK 21+.
+**Requirements:** Node 22 (see `.nvmrc`), pnpm 10+. For iOS: macOS with Xcode 15+. For Android: Android Studio with SDK 21+.
 
 ## Development Commands
 
 ```bash
 # Start Expo development server (hot reload after initial native build)
-npm run start
+pnpm run start
 
 # Native builds (compile + run — use these the first time or after adding native deps)
-npm run ios          # expo run:ios — builds and runs on iOS simulator/device
-npm run android      # expo run:android — builds and runs on Android emulator/device
-npm run web          # expo start --web — runs in browser
+pnpm run ios          # expo run:ios — builds and runs on iOS simulator/device
+pnpm run android      # expo run:android — builds and runs on Android emulator/device
+pnpm run web          # expo start --web — runs in browser
 
 # Code quality
-npm run lint         # ESLint check
-npm run lint:fix     # ESLint auto-fix
-npm run format       # Prettier format all files
-npm run format:check # Prettier check (CI)
-npm run type-check   # TypeScript type checking
+pnpm run lint         # ESLint check
+pnpm run lint:fix     # ESLint auto-fix
+pnpm run format       # Prettier format all files
+pnpm run format:check # Prettier check (CI)
+pnpm run type-check   # TypeScript type checking
 
 # Testing
-npm run test         # Run Jest tests
-npm run test:watch   # Watch mode
-npm run test:coverage # With coverage report
-npm run test:ci      # CI mode (no watch, with coverage, passWithNoTests)
-npm run test -- src/__tests__/validation.test.ts  # Run single test file
+pnpm run test         # Run Jest tests
+pnpm run test:watch   # Watch mode
+pnpm run test:coverage # With coverage report
+pnpm run test:ci      # CI mode (no watch, with coverage, passWithNoTests)
+pnpm run test -- src/__tests__/validation.test.ts  # Run single test file
 
 # EAS builds (requires EAS CLI)
 eas build --profile development --platform ios
 eas build --profile production --platform all
 ```
 
-**Development builds vs Expo Go:** `npm run ios`/`npm run android` create native development builds (recommended). RevenueCat/Sentry only work in development builds. After the initial native compile, use `npm run start` for hot reload. Only recompile when adding native dependencies.
+**Development builds vs Expo Go:** `pnpm run ios`/`pnpm run android` create native development builds (recommended). RevenueCat/Sentry only work in development builds. After the initial native compile, use `pnpm run start` for hot reload. Only recompile when adding native dependencies.
 
 ## Architecture
 

@@ -93,25 +93,26 @@ Root Stack Navigator
 
 ## Getting Started
 
-**Requirements:** Node 22+ (see `.nvmrc`), npm 10+. iOS: macOS with Xcode 15+. Android: Android Studio with SDK 21+.
+**Requirements:** Node 22+ (see `.nvmrc`), pnpm 10+. iOS: macOS with Xcode 15+. Android: Android Studio with SDK 21+.
 
 ```bash
 # Install
 git clone https://github.com/svaeinki/Stokk.git
 cd Stokk
 nvm use
-npm install
+corepack enable
+pnpm install
 cp .env.example .env   # Configure API keys
 
 # Run
-npm run ios            # Build and run on iOS simulator
-npm run android        # Build and run on Android emulator
-npm run start          # Hot reload after initial build
+pnpm run ios            # Build and run on iOS simulator
+pnpm run android        # Build and run on Android emulator
+pnpm run start          # Hot reload after initial build
 
 # Code quality
-npm run lint           # ESLint
-npm run type-check     # TypeScript
-npm run test           # Jest (55 tests)
+pnpm run lint           # ESLint
+pnpm run type-check     # TypeScript
+pnpm run test           # Jest (55 tests)
 ```
 
 ## Roadmap

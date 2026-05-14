@@ -378,16 +378,16 @@ src/
 
 ```bash
 # 1. Schema actualizado
-npm run test -- --testPathPattern=database
+pnpm run test -- --testPathPattern=database
 
 # 2. Servicios funcionan
-npm run test -- --testPathPattern=services
+pnpm run test -- --testPathPattern=services
 
 # 3. Tipos correctos
-npm run type-check
+pnpm run type-check
 
 # 4. Manual: Login/Registro funciona
-npm run ios
+pnpm run ios
 # Probar: crear cuenta, login, logout
 ```
 
@@ -413,13 +413,13 @@ npm run ios
 
 ```bash
 # Almacenamiento seguro para tokens
-npx expo install expo-secure-store
+pnpm dlx expo install expo-secure-store
 
 # Estado de red
-npx expo install @react-native-community/netinfo
+pnpm dlx expo install @react-native-community/netinfo
 
 # (Opcional) Background tasks para sync
-npx expo install expo-background-fetch expo-task-manager
+pnpm dlx expo install expo-background-fetch expo-task-manager
 ```
 
 ---

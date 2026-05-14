@@ -3,7 +3,7 @@
 ## Requisitos
 
 - Node 22 (hay `.nvmrc`)
-- npm 10+
+- pnpm 10+
 - Xcode 15+ (para iOS)
 - Android Studio con SDK 21+ (para Android)
 
@@ -11,7 +11,8 @@
 
 ```bash
 nvm use
-npm install
+corepack enable
+pnpm install
 cp .env.example .env   # llenar con keys de RevenueCat y Sentry
 ```
 
@@ -19,36 +20,36 @@ cp .env.example .env   # llenar con keys de RevenueCat y Sentry
 
 ```bash
 # Primera vez (compila nativo + abre simulador)
-npm run ios
-npm run android
+pnpm run ios
+pnpm run android
 
 # Despues solo hot reload
-npm run start
+pnpm run start
 ```
 
-> Despues de agregar una dependencia nativa, hay que volver a compilar con `npm run ios` / `npm run android`.
+> Despues de agregar una dependencia nativa, hay que volver a compilar con `pnpm run ios` / `pnpm run android`.
 
 ## Code quality
 
 ```bash
-npm run lint           # ESLint
-npm run lint:fix       # ESLint auto-fix
-npm run format         # Prettier
-npm run type-check     # TypeScript
+pnpm run lint           # ESLint
+pnpm run lint:fix       # ESLint auto-fix
+pnpm run format         # Prettier
+pnpm run type-check     # TypeScript
 ```
 
 ## Tests
 
 ```bash
-npm run test                                    # todos
-npm run test:watch                              # watch mode
-npm run test -- src/__tests__/validation.test.ts  # un archivo
+pnpm run test                                    # todos
+pnpm run test:watch                              # watch mode
+pnpm run test -- src/__tests__/validation.test.ts  # un archivo
 ```
 
 ## Builds con EAS
 
 ```bash
-npm install -g eas-cli
+pnpm add -g eas-cli
 eas build --profile development --platform ios
 eas build --profile production --platform all
 ```
