@@ -27,6 +27,11 @@ export const PRODUCT_IDS = {
 // Cache duration in milliseconds (5 minutes)
 const CACHE_DURATION = 5 * 60 * 1000;
 
+// Max age for the persisted offline Pro status. Past this window the value
+// is discarded and Pro must be re-validated against RevenueCat, so a stale
+// (or tampered) flag can't grant Pro indefinitely while offline.
+const PERSISTED_STATUS_MAX_AGE = 7 * 24 * 60 * 60 * 1000;
+
 interface ProStatusCache {
   isPro: boolean;
   timestamp: number;
@@ -446,22 +451,42 @@ class SubscriptionService {
     // Persist to AsyncStorage for offline access
     AsyncStorage.setItem(
       PRO_STATUS_STORAGE_KEY,
-      JSON.stringify({ isPro })
+      JSON.stringify({ isPro, timestamp: Date.now() })
     ).catch(() => {
       // Silent failure - storage persistence is best-effort
     });
   }
 
   /**
-   * Get persisted Pro status from AsyncStorage (for offline fallback)
+   * Get persisted Pro status from AsyncStorage (for offline fallback).
+   * The payload is validated strictly and expires after
+   * PERSISTED_STATUS_MAX_AGE, after which Pro requires re-validation online.
    */
   private async getPersistedProStatus(): Promise<boolean> {
     try {
       const stored = await AsyncStorage.getItem(PRO_STATUS_STORAGE_KEY);
-      if (stored) {
-        const parsed = JSON.parse(stored);
-        return parsed.isPro ?? false;
+      if (!stored) return false;
+
+      const parsed: unknown = JSON.parse(stored);
+      if (
+        typeof parsed !== 'object' ||
+        parsed === null ||
+        typeof (parsed as { isPro?: unknown }).isPro !== 'boolean' ||
+        typeof (parsed as { timestamp?: unknown }).timestamp !== 'number'
+      ) {
+        return false;
       }
+
+      const { isPro, timestamp } = parsed as {
+        isPro: boolean;
+        timestamp: number;
+      };
+      const age = Date.now() - timestamp;
+      if (age < 0 || age > PERSISTED_STATUS_MAX_AGE) {
+        Logger.debug('Persisted pro status expired, requiring re-validation');
+        return false;
+      }
+      return isPro;
     } catch {
       // Silent failure
     }

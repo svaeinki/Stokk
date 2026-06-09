@@ -80,6 +80,17 @@ const ConfigScreen: React.FC = () => {
     }, [loadSubscriptionStatus])
   );
 
+  // Refresh when RevenueCat pushes a customer info update (e.g. a purchase
+  // or renewal completed while this screen is mounted)
+  useEffect(() => {
+    SubscriptionService.setCustomerInfoListener(() => {
+      loadSubscriptionStatus();
+    });
+    return () => {
+      SubscriptionService.removeCustomerInfoListener();
+    };
+  }, [loadSubscriptionStatus]);
+
   const handleLanguageChange = useCallback((lang: string) => {
     changeLanguage(lang);
   }, []);
