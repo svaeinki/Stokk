@@ -15,7 +15,7 @@ module.exports = {
     '<rootDir>/ios/',
   ],
   transformIgnorePatterns: [
-    'node_modules/(?!(jest-)?react-native|@react-native|expo|@expo|@react-navigation|react-native-vector-icons)',
+    'node_modules/(?!(\\.pnpm/)?((jest-)?react-native|@react-native|expo|@expo|@react-navigation|react-native-vector-icons))',
   ],
   collectCoverageFrom: [
     'src/**/*.{js,jsx,ts,tsx}',
@@ -25,6 +25,14 @@ module.exports = {
   ],
   coverageDirectory: 'coverage',
   coverageReporters: ['text', 'lcov', 'html'],
+  coverageThreshold: {
+    global: {
+      statements: 30,
+      branches: 25,
+      functions: 28,
+      lines: 30,
+    },
+  },
   testEnvironment: 'node',
   setupFiles: ['<rootDir>/jest.env.js'],
 };

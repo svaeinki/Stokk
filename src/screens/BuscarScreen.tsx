@@ -34,7 +34,7 @@ const BuscarScreen: React.FC = () => {
   const [articulos, setArticulos] = useState<Articulo[]>([]);
   const [loading, setLoading] = useState(false);
   const [hasSearched, setHasSearched] = useState(false);
-  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+  const debounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const searchQueryRef = useRef(searchQuery);
 
   const buscar = useCallback(
@@ -62,6 +62,11 @@ const BuscarScreen: React.FC = () => {
   // Recargar cuando la pantalla obtiene foco (por si se editó un producto)
   useFocusEffect(
     useCallback(() => {
+      // Cancelar el debounce pendiente para no disparar una segunda búsqueda
+      if (debounceRef.current) {
+        clearTimeout(debounceRef.current);
+        debounceRef.current = null;
+      }
       if (searchQueryRef.current.trim()) {
         buscar(searchQueryRef.current);
       }
@@ -317,6 +322,9 @@ const BuscarScreen: React.FC = () => {
         }
         ListEmptyComponent={renderEmptyState}
         showsVerticalScrollIndicator={false}
+        maxToRenderPerBatch={10}
+        windowSize={5}
+        removeClippedSubviews={true}
       />
     </View>
   );

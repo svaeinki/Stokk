@@ -239,8 +239,8 @@ const PaywallScreen: React.FC = () => {
         style={[styles.benefitsCard, { backgroundColor: theme.colors.surface }]}
       >
         <Card.Content>
-          {benefits.map((benefit, index) => (
-            <View key={index} style={styles.benefitRow}>
+          {benefits.map(benefit => (
+            <View key={benefit.icon} style={styles.benefitRow}>
               <View
                 style={[
                   styles.benefitIcon,

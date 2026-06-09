@@ -56,19 +56,19 @@ eas build --profile production --platform all
 
 ### Source Structure (`src/`)
 
-| Directory     | Purpose                                                                            |
-| ------------- | ---------------------------------------------------------------------------------- |
-| `components/` | Reusable UI components (`ArticuloForm`, `ArticuloList`, `form/*`)                  |
-| `context/`    | React Context providers (`ThemeContext`, `SnackbarContext`)                        |
-| `database/`   | `DatabaseManager.ts` - singleton SQLite CRUD operations                            |
-| `hooks/`      | Custom hooks (`useSubscriptionLimit`, `useArticuloForm`, `useArticuloSubmit`)      |
-| `i18n/`       | Internationalization setup and locale files (`locales/es.json`, `locales/en.json`) |
-| `screens/`    | Screen components (Inventario, Buscar, Ingresar, Config, Paywall)                  |
+| Directory     | Purpose                                                                              |
+| ------------- | ------------------------------------------------------------------------------------ |
+| `components/` | Reusable UI components (`ArticuloForm`, `ArticuloList`, `form/*`)                    |
+| `context/`    | React Context providers (`ThemeContext`, `SnackbarContext`)                          |
+| `database/`   | `DatabaseManager.ts` - singleton SQLite CRUD operations                              |
+| `hooks/`      | Custom hooks (`useSubscriptionLimit`, `useArticuloForm`, `useArticuloSubmit`)        |
+| `i18n/`       | Internationalization setup and locale files (`locales/es.json`, `locales/en.json`)   |
+| `screens/`    | Screen components (Inventario, Buscar, Ingresar, Config, Paywall)                    |
 | `services/`   | `SubscriptionService` (RevenueCat), `ImageService` (camera/gallery), `SentryService` |
-| `types/`      | TypeScript types (`navigation.ts`, `errors.ts`)                                    |
-| `utils/`      | `Validation.ts` (formatting), `Logger.ts` (silenced in production)                 |
-| `validation/` | Zod schemas for data validation (`schemas.ts`)                                     |
-| `constants/`  | App constants including `FREE_TIER_PRODUCT_LIMIT` and color palette                |
+| `types/`      | TypeScript types (`navigation.ts`, `errors.ts`)                                      |
+| `utils/`      | `Validation.ts` (formatting), `Logger.ts` (silenced in production)                   |
+| `validation/` | Zod schemas for data validation (`schemas.ts`)                                       |
+| `constants/`  | App constants including `FREE_TIER_PRODUCT_LIMIT` and color palette                  |
 
 ### Navigation Structure
 
@@ -103,7 +103,7 @@ interface Articulo {
 
 ### Entry Point
 
-`index.ts` → `App.tsx`. Uses React Navigation (imperative), **not** expo-router file-based routing (expo-router is in plugins but unused for navigation).
+`index.ts` → `App.tsx`. Uses React Navigation (imperative), **not** expo-router file-based routing.
 
 ### Path Alias
 
@@ -129,6 +129,7 @@ interface Articulo {
 **Prettier** (`.prettierrc.json`): single quotes, trailing commas (es5), no parens on single arrow params (`x => x`), 2-space indent, 80 char width, LF line endings, double quotes in JSX.
 
 **ESLint** (`.eslintrc.json`):
+
 - Unused function args must be prefixed with `_` (e.g., `_event`).
 - `no-console: warn` — use `Logger` from `src/utils/Logger.ts` instead of `console.*`.
 - `no-inline-styles: warn` and `no-color-literals: warn` — prefer `StyleSheet.create()` and `PALETTE`/`COLORS` constants.
