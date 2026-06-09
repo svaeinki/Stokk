@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { DatabaseOperationError, DB_ERROR_CODES } from '../types/errors';
 import Logger from '../utils/Logger';
 import ImageService from '../services/ImageService';
 
@@ -39,7 +40,11 @@ class DatabaseManager {
   }
 
   private async createTables(): Promise<void> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     // Crear tabla de artículos (Ahora Productos)
     await this.db.execAsync(`
@@ -70,7 +75,11 @@ class DatabaseManager {
   // ============================================
 
   async insertarArticulo(articulo: Omit<Articulo, 'id'>): Promise<number> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     try {
       const result = await this.db.runAsync(
@@ -91,7 +100,10 @@ class DatabaseManager {
       );
 
       if (result.lastInsertRowId === undefined) {
-        throw new Error('No se pudo obtener el ID del artículo insertado');
+        throw new DatabaseOperationError(
+          DB_ERROR_CODES.INSERT_NO_ID,
+          'Could not retrieve the inserted row ID'
+        );
       }
       return result.lastInsertRowId;
     } catch (error) {
@@ -104,7 +116,11 @@ class DatabaseManager {
     limit: number = 100,
     offset: number = 0
   ): Promise<Articulo[]> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     try {
       const articulos = await this.db.getAllAsync<Articulo>(
@@ -119,7 +135,11 @@ class DatabaseManager {
   }
 
   async contarArticulos(): Promise<number> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     try {
       const result = await this.db.getFirstAsync<{ count: number }>(
@@ -133,7 +153,11 @@ class DatabaseManager {
   }
 
   async buscarArticulos(termino: string): Promise<Articulo[]> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     try {
       const articulos = await this.db.getAllAsync<Articulo>(
@@ -153,7 +177,11 @@ class DatabaseManager {
     id: number,
     articulo: Partial<Articulo>
   ): Promise<void> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     try {
       const campos = [];
@@ -202,7 +230,11 @@ class DatabaseManager {
   }
 
   async eliminarArticulo(id: number): Promise<void> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     try {
       // Use transaction to ensure query + delete are atomic
@@ -235,7 +267,11 @@ class DatabaseManager {
   }
 
   async resetDatabase(): Promise<void> {
-    if (!this.db) throw new Error('Base de datos no inicializada');
+    if (!this.db)
+      throw new DatabaseOperationError(
+        DB_ERROR_CODES.NOT_INITIALIZED,
+        'Database has not been initialized'
+      );
 
     try {
       // Delete all DB records in a transaction first

@@ -69,3 +69,24 @@ export type StokkError =
   | ImageError
   | SubscriptionError
   | FileSystemError;
+
+// Stable error codes for database failures. Log/Sentry messages stay in
+// English; user-facing text is resolved via i18n at the UI layer.
+export const DB_ERROR_CODES = {
+  NOT_INITIALIZED: 'DB_NOT_INITIALIZED',
+  INSERT_NO_ID: 'DB_INSERT_NO_ID',
+} as const;
+
+export type DbErrorCode = (typeof DB_ERROR_CODES)[keyof typeof DB_ERROR_CODES];
+
+export class DatabaseOperationError extends Error implements AppError {
+  readonly code: DbErrorCode;
+  readonly timestamp: Date;
+
+  constructor(code: DbErrorCode, message: string) {
+    super(message);
+    this.name = 'DatabaseOperationError';
+    this.code = code;
+    this.timestamp = new Date();
+  }
+}

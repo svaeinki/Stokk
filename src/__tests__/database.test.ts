@@ -1,4 +1,5 @@
 import { Articulo } from '../database/DatabaseManager';
+import { DB_ERROR_CODES } from '../types/errors';
 
 const mockArticulo: Omit<Articulo, 'id'> = {
   nombre: 'Test Product',
@@ -119,13 +120,13 @@ describe('DatabaseManager', () => {
 
       await expect(
         DatabaseManager.insertarArticulo(mockArticulo)
-      ).rejects.toThrow('No se pudo obtener el ID');
+      ).rejects.toMatchObject({ code: DB_ERROR_CODES.INSERT_NO_ID });
     });
 
     it('should throw if database is not initialized', async () => {
       await expect(
         DatabaseManager.insertarArticulo(mockArticulo)
-      ).rejects.toThrow('Base de datos no inicializada');
+      ).rejects.toMatchObject({ code: DB_ERROR_CODES.NOT_INITIALIZED });
     });
   });
 
