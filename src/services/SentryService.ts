@@ -2,6 +2,23 @@ import * as Sentry from '@sentry/react-native';
 import { Platform } from 'react-native';
 import Logger from '../utils/Logger';
 
+// Event shape consumed by the beforeSend filter (structural subset of
+// Sentry's ErrorEvent so it can be unit-tested without the SDK)
+type FilterableEvent = {
+  exception?: { values?: { value?: string }[] };
+};
+
+// Filter out events that aren't useful before sending them to Sentry
+export const sentryBeforeSend = <T extends FilterableEvent>(
+  event: T
+): T | null => {
+  const error = event.exception?.values?.[0];
+  if (error?.value?.includes('Network request failed')) {
+    return null; // Don't send network errors
+  }
+  return event;
+};
+
 // Initialize Sentry for production
 export const initializeSentry = () => {
   const dsn = process.env.EXPO_PUBLIC_SENTRY_DSN;
@@ -22,16 +39,7 @@ export const initializeSentry = () => {
       enabled: true,
 
       // Customize error grouping
-      beforeSend(event) {
-        // Filter out certain errors that aren't useful
-        if (event.exception) {
-          const error = event.exception.values?.[0];
-          if (error?.value?.includes('Network request failed')) {
-            return null; // Don't send network errors
-          }
-        }
-        return event;
-      },
+      beforeSend: sentryBeforeSend,
     });
 
     // Set user context

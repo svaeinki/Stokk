@@ -1,4 +1,28 @@
 // Mock Expo modules
+const createMockIcon = () => {
+  const React = require('react');
+  const { Text } = require('react-native');
+  const MockIcon = props => React.createElement(Text, null, props.name);
+  MockIcon.displayName = 'MockIcon';
+  return MockIcon;
+};
+
+jest.mock('@expo/vector-icons', () => ({
+  MaterialIcons: createMockIcon(),
+  MaterialCommunityIcons: createMockIcon(),
+  Ionicons: createMockIcon(),
+}));
+
+jest.mock('@expo/vector-icons/MaterialIcons', () => ({
+  __esModule: true,
+  default: createMockIcon(),
+}));
+
+jest.mock('@expo/vector-icons/MaterialCommunityIcons', () => ({
+  __esModule: true,
+  default: createMockIcon(),
+}));
+
 jest.mock('expo-file-system', () => ({
   Paths: {
     document: { uri: 'file:///tmp/documents/' },
