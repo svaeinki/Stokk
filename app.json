@@ -26,11 +26,12 @@
         "backgroundColor": "#ffffff"
       },
       "package": "com.svaeinki.stokk",
+      "allowBackup": false,
       "permissions": [
         "android.permission.CAMERA",
-        "com.android.vending.BILLING",
-        "android.permission.RECORD_AUDIO"
-      ]
+        "com.android.vending.BILLING"
+      ],
+      "blockedPermissions": ["android.permission.RECORD_AUDIO"]
     },
     "web": {
       "favicon": "./assets/favicon.png"
@@ -45,7 +46,8 @@
         "expo-image-picker",
         {
           "photosPermission": "Stokk needs access to your photos to add product images",
-          "cameraPermission": "Stokk needs access to your camera to take product photos"
+          "cameraPermission": "Stokk needs access to your camera to take product photos",
+          "microphonePermission": false
         }
       ],
       "@sentry/react-native"
