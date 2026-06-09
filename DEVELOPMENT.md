@@ -23,21 +23,21 @@ La Fase 0 de limpieza está **COMPLETADA**:
 
 ### Warnings de Lint (6 - Aceptables)
 
-| Archivo              | Warning             | Razón por la que es aceptable            |
-| -------------------- | ------------------- | ---------------------------------------- |
-| `SentryService.ts:72` | `Unexpected any`   | Necesario para manejar errores genéricos |
-| `Logger.ts:84,90,96,107` | `Unexpected console` | Es un logger, necesita console       |
-| `schemas.ts:40`      | `new for side effects` | Validación de fecha con Zod          |
+| Archivo                  | Warning                | Razón por la que es aceptable            |
+| ------------------------ | ---------------------- | ---------------------------------------- |
+| `SentryService.ts:72`    | `Unexpected any`       | Necesario para manejar errores genéricos |
+| `Logger.ts:84,90,96,107` | `Unexpected console`   | Es un logger, necesita console           |
+| `schemas.ts:40`          | `new for side effects` | Validación de fecha con Zod              |
 
 ### Issues de Rendimiento Detectados
 
-| Severidad  | Problema                         | Archivo            | Impacto                  |
-| ---------- | -------------------------------- | ------------------ | ------------------------ |
-| **MEDIA**  | Sin paginación en búsqueda       | `BuscarScreen.tsx` | +1000 items = lag        |
-| **MEDIA**  | Compresión imagen en main thread | `ImageService.ts`  | Bloquea UI               |
-| **MEDIA**  | Sin Error Boundary               | `App.tsx`          | Crash = pantalla blanca  |
-| **BAJA**   | Debounce con setTimeout          | `BuscarScreen.tsx` | Podría usar AbortController |
-| **BAJA**   | eslint-disable en PaywallScreen  | `PaywallScreen.tsx:44` | Riesgo de closure stale |
+| Severidad | Problema                         | Archivo                | Impacto                     |
+| --------- | -------------------------------- | ---------------------- | --------------------------- |
+| **MEDIA** | Sin paginación en búsqueda       | `BuscarScreen.tsx`     | +1000 items = lag           |
+| **MEDIA** | Compresión imagen en main thread | `ImageService.ts`      | Bloquea UI                  |
+| **MEDIA** | Sin Error Boundary               | `App.tsx`              | Crash = pantalla blanca     |
+| **BAJA**  | Debounce con setTimeout          | `BuscarScreen.tsx`     | Podría usar AbortController |
+| **BAJA**  | eslint-disable en PaywallScreen  | `PaywallScreen.tsx:44` | Riesgo de closure stale     |
 
 ### Cobertura de Tests Actual
 
@@ -157,7 +157,11 @@ class ApiService {
 class AuthService {
   // Autenticación
   async login(email: string, password: string): Promise<User>;
-  async register(email: string, password: string, nombre: string): Promise<User>;
+  async register(
+    email: string,
+    password: string,
+    nombre: string
+  ): Promise<User>;
   async logout(): Promise<void>;
   async forgotPassword(email: string): Promise<void>;
 
@@ -191,7 +195,10 @@ class SyncService {
 
   // Conflictos
   async getConflicts(): Promise<Conflict[]>;
-  async resolveConflict(id: number, resolution: 'local' | 'remote'): Promise<void>;
+  async resolveConflict(
+    id: number,
+    resolution: 'local' | 'remote'
+  ): Promise<void>;
 
   // Auto-sync
   enableAutoSync(intervalMs: number): void;
@@ -226,8 +233,8 @@ class SyncService {
 ```typescript
 // Nueva estructura de navegación
 type RootStackParamList = {
-  Auth: undefined;           // Stack de autenticación
-  MainTabs: undefined;       // Tabs existentes
+  Auth: undefined; // Stack de autenticación
+  MainTabs: undefined; // Tabs existentes
   Paywall: undefined;
 };
 

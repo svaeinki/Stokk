@@ -57,6 +57,7 @@ eas build --profile production --platform all
 ## Variables de entorno
 
 Ver `.env.example`:
+
 - `EXPO_PUBLIC_REVENUECAT_API_KEY`
 - `EXPO_PUBLIC_SENTRY_DSN`
 - `EXPO_PUBLIC_ENVIRONMENT` (development / staging / production)

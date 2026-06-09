@@ -14,7 +14,7 @@ Stokk is a cross-platform mobile app that lets small business owners manage thei
 
 The app supports English and Spanish, follows Material Design 3 guidelines, and includes a freemium subscription model via RevenueCat.
 
-<!-- 
+<!--
 ## Screenshots
 
 Add screenshots here. Recommended: 3-4 screens side by side.
@@ -40,19 +40,19 @@ Add screenshots here. Recommended: 3-4 screens side by side.
 
 ## Tech Stack
 
-| Layer | Technology |
-|-------|-----------|
-| Framework | React Native 0.81 + Expo SDK 54 |
-| Language | TypeScript (strict mode) |
-| UI | React Native Paper (Material Design 3) |
-| Navigation | React Navigation v7 (bottom tabs + stack) |
-| Storage | expo-sqlite (SQLite) |
-| Validation | Zod v4 |
-| i18n | i18next + react-i18next |
-| Subscriptions | RevenueCat |
-| Error Tracking | Sentry |
-| Testing | Jest (55 tests) |
-| CI | GitHub Actions |
+| Layer          | Technology                                |
+| -------------- | ----------------------------------------- |
+| Framework      | React Native 0.81 + Expo SDK 54           |
+| Language       | TypeScript (strict mode)                  |
+| UI             | React Native Paper (Material Design 3)    |
+| Navigation     | React Navigation v7 (bottom tabs + stack) |
+| Storage        | expo-sqlite (SQLite)                      |
+| Validation     | Zod v4                                    |
+| i18n           | i18next + react-i18next                   |
+| Subscriptions  | RevenueCat                                |
+| Error Tracking | Sentry                                    |
+| Testing        | Jest (55 tests)                           |
+| CI             | GitHub Actions                            |
 
 ## Architecture
 
